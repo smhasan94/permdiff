@@ -1,4 +1,4 @@
-"""Demo policy, head version: the proposed change under review."""
+"""Demo policy, head version: the proposed change under review (comment check)."""
 
 from __future__ import annotations
 
