@@ -11,7 +11,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 |---|---|---|
 | E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | reviewed |
 | E2 | OPA evaluator | reviewed |
-| E3 | Reporting, grouping, config | todo |
+| E3 | Reporting, grouping, config | in progress |
 | E4 | GitHub Action | todo |
 | E5 | Importers: Custody, OTel, convert | todo |
 | E6 | Cedar evaluator | todo |
@@ -160,7 +160,7 @@ Satisfies: FR-6, FR-16, FR-17 (completion), FR-19, FR-20, FR-21, FR-23.
 
 | # | Story | Status |
 |---|---|---|
-| E3-S1 | Grouping and sampling | todo |
+| E3-S1 | Grouping and sampling | in progress |
 | E3-S2 | Markdown reporter | todo |
 | E3-S3 | JSON reporter and report schema | todo |
 | E3-S4 | SARIF reporter | todo |

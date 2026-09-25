@@ -2,13 +2,39 @@
 
 **Source**: [03-epics.md](../03-epics.md) E3; FR-6, FR-16, FR-17, FR-19, FR-20, FR-21, FR-23
 **Complexity**: Medium (6 stories)
-**Status**: planned 2026-09-25
+**Status**: in progress since 2026-09-25 (plan re-read and updated after E1 and E2 landed)
 
 ## Summary
 
 Turn a `Report` into PR-ready markdown, versioned JSON, and SARIF, with
 grouping and deterministic sampling shared by all reporters, `permdiff.toml`
 configuration with precedence, and trace filters.
+
+## Updated 2026-09-25 (re-read before starting)
+
+- E1-S8 already created `report/grouping.py` (`Group` with `cls`, `key`, `count`,
+  `samples`, sorted widening first, deterministic samples by call id) and
+  `report/summary.py` (summary rows shared by reporters); the terminal reporter consumes
+  both. S1 generalizes `Group.key` into `GroupKey(cls, parts)` for combinable
+  `--group-by` fields, adds `max_groups` truncation and `show_attribution`, and
+  introduces `ReportView` as the single redacted, grouped, sampled structure. The
+  terminal reporter migrates to `ReportView` in S1 so all four formats share one input.
+- `[opa] result = object|bool` is dropped: the mapping already accepts objects,
+  booleans, and effect strings per call. `[opa] version` selects the pinned download
+  version (`permdiff setup opa --version` semantics); `[opa] capabilities` accepts
+  `default` or a file path; `[opa] nd_cache` a file path.
+- The SARIF 2.1.0 schema is vendored at `tests/vendor/sarif-schema-2.1.0.json`
+  (schemastore copy of the OASIS schema, draft-07) and validated with `jsonschema`.
+- Markdown headers print the salt (AC-17.1) and both SHAs; `--pr-comment` refuses
+  `--redact none` with exit 1 (AC-17.3). GitHub's comment body limit is 65,536
+  characters; the markdown reporter targets < 60 KB on the demo and truncates groups
+  beyond `--max-groups` (default 50) with a note.
+- `--since 7d` is relative to the newest trace timestamp, not the wall clock, so CI
+  runs are reproducible; the header shows the effective window.
+- `--engine` stays required on the command line until S5 makes `[policy] engine`
+  (default `opa`) the fallback; `[traces] paths` becomes the default for `--traces`.
+- CLI structure: `cli/diff.py` grows a `Settings` resolver (flags > env > file >
+  defaults) in S5; until then flags keep their current defaults.
 
 ## Patterns to mirror
 
@@ -58,7 +84,7 @@ def render_sarif(view, *, policy_path: str) -> str
 
 # config/model.py
 class PolicyConfig(Frozen): engine: str = "opa"; path: str = "policy/"; base: str = "origin/main"
-class OpaConfig(Frozen): decision: str | None; result: Literal["object","bool"] = "object"; capabilities: str = "default"; nd_cache: str = ""; version: str = OPA_VERSION; undefined: Literal["deny","error"] = "deny"
+class OpaConfig(Frozen): decision: str | None; capabilities: str = "default"; nd_cache: str = ""; version: str = OPA_VERSION; undefined: Literal["deny","error"] = "deny"
 class CedarConfig(Frozen): principal: str; action: str; resource: str; approval_annotation: str = "require_approval"
 class TracesConfig(Frozen): paths: tuple[str, ...] = (); format: str = "auto"; since: str | None = None
 class ReportConfig(Frozen): redact: RedactLevel = SAFE; show_args: tuple[str, ...] = (); samples: int = 3; group_by: tuple[str, ...] = ("tool",); fail_on: FailOn = WIDEN; max_groups: int = 50
