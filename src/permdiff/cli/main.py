@@ -4,14 +4,40 @@ from __future__ import annotations
 
 import logging
 import sys
+from typing import Any
 
 import click
 
 from permdiff import __version__
+from permdiff.cli.diff import diff_cmd
 from permdiff.cli.schema import schema_cmd
-from permdiff.errors import PermdiffError
+from permdiff.errors import EXIT_GATE, EXIT_TOOL_ERROR, PermdiffError
 
 PACKAGE_LOGGER = "permdiff"
+
+
+class CliError(click.ClickException):
+    """A PermdiffError surfaced through click with an ``error:`` prefix. Exit 1."""
+
+    exit_code = EXIT_TOOL_ERROR
+
+    def show(self, file: Any = None) -> None:
+        click.echo(f"error: {self.message}", err=True)
+
+
+class CliGateError(CliError):
+    """A GateFailedError surfaced through click. Exit 2."""
+
+    exit_code = EXIT_GATE
+
+
+class PermdiffGroup(click.Group):
+    def invoke(self, ctx: click.Context) -> Any:
+        try:
+            return super().invoke(ctx)
+        except PermdiffError as exc:
+            wrapper = CliGateError if exc.exit_code == EXIT_GATE else CliError
+            raise wrapper(str(exc)) from exc
 
 
 def _configure_logging(verbose: bool, debug: bool) -> None:
@@ -22,7 +48,7 @@ def _configure_logging(verbose: bool, debug: bool) -> None:
         logging.basicConfig(format="%(levelname)s %(name)s: %(message)s", stream=sys.stderr)
 
 
-@click.group(context_settings={"help_option_names": ["-h", "--help"]})
+@click.group(cls=PermdiffGroup, context_settings={"help_option_names": ["-h", "--help"]})
 @click.version_option(__version__, prog_name="permdiff")
 @click.option("--verbose", is_flag=True, help="Print engine commands and timings.")
 @click.option("--debug", is_flag=True, help="Keep temp dirs and print their paths.")
@@ -36,18 +62,4 @@ def cli(ctx: click.Context, verbose: bool, debug: bool) -> None:
 
 
 cli.add_command(schema_cmd)
-
-
-def main() -> int:
-    """Entry point that converts PermdiffError into exit codes."""
-    try:
-        result = cli.main(standalone_mode=False)
-    except PermdiffError as exc:
-        click.echo(f"error: {exc}", err=True)
-        return exc.exit_code
-    except click.ClickException as exc:
-        exc.show()
-        return exc.exit_code
-    # In non-standalone mode click returns ``Exit.exit_code`` (e.g. from
-    # ``--version``) instead of raising; any other return value means success.
-    return result if isinstance(result, int) else 0
+cli.add_command(diff_cmd)

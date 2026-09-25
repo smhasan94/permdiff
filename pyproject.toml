@@ -78,6 +78,7 @@ ignore = [
   "ANN401",  # Any is legitimate at JSON boundaries
   "PLR2004", # magic-value comparisons in tests and small tables
   "PLR0913", # click commands take many parameters
+  "PLR0917", # same: click passes options positionally
 ]
 
 [tool.ruff.lint.per-file-ignores]

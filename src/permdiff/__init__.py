@@ -6,9 +6,21 @@ refs and reports which decisions change.
 
 from __future__ import annotations
 
+from permdiff.api import diff, load_traces
 from permdiff.evaluators import Evaluator
-from permdiff.models import Decision, Effect, ErrorKind, ToolCall
+from permdiff.models import Decision, Effect, ErrorKind, Report, ToolCall, Transition
 
 __version__ = "0.1.0.dev0"
 
-__all__ = ["Decision", "Effect", "ErrorKind", "Evaluator", "ToolCall", "__version__"]
+__all__ = [
+    "Decision",
+    "Effect",
+    "ErrorKind",
+    "Evaluator",
+    "Report",
+    "ToolCall",
+    "Transition",
+    "__version__",
+    "diff",
+    "load_traces",
+]

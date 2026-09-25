@@ -34,7 +34,15 @@ Python 3.11 or newer.
 
 ```
 permdiff --version
+permdiff diff --base origin/main --head HEAD --policy policy/ \
+              --engine python:authz.permdiff_adapter:evaluate \
+              --traces traces/*.jsonl
 ```
+
+`diff` replays every trace against the policy at both refs and prints the
+summary block above. Exit code `2` means the run matched `--fail-on`
+(`widen` by default), `1` means permdiff itself failed, `0` means nothing
+matched. `--head WORKTREE` uses the uncommitted policy in your working tree.
 
 More arrives with each story. The design is in `docs/01-overview.md`.
 

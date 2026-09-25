@@ -60,7 +60,7 @@ def _resolve_python(spec: str) -> Evaluator:
     if not callable(fn):
         msg = f"{module_name}.{attr} is not callable for --engine {spec}"
         raise EngineError(msg)
-    log.warning("--engine %s runs arbitrary Python from the current environment", spec)
+    log.info("--engine %s runs arbitrary Python from the current environment", spec)
     return PythonCallableEvaluator(spec, fn)
 
 

@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E1, [02-prd.md](../02-prd.md)
 **Complexity**: Large (10 stories, sets every convention)
-**Status**: in progress since 2026-09-25 (S1-S8 done)
+**Status**: in progress since 2026-09-25 (S1-S9 done)
 
 ## Summary
 
