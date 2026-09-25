@@ -41,3 +41,9 @@ def test_view_none_level_keeps_raw_values() -> None:
     view = build_view(sample_report(), redactor=Redactor(level=RedactLevel.NONE))
 
     assert view.transitions[0].call.principal.id.startswith("sentinel-principal")
+
+
+def test_view_records_the_validated_group_by() -> None:
+    view = build_view(sample_report(), redactor=Redactor(salt=FIXED_SALT), by=("", " "))
+
+    assert view.group_by == ("tool",)

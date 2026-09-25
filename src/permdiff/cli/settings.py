@@ -254,7 +254,6 @@ def engine_options(config: Config) -> dict[str, Any]:
 def output_options(config: Config, kwargs: dict[str, Any]) -> OutputOptions:
     """Run-only switches come from ``kwargs``; shaping comes from the resolved config."""
     r = config.report
-    validate_group_by(r.group_by)
     return OutputOptions(
         fmt=r.format,
         fail_on=FailOn(r.fail_on),

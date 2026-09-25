@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import html
 import json
 
 from permdiff.models import Transition, TransitionClass
@@ -86,8 +87,8 @@ def _sample_row(t: Transition) -> str:
 
 def _group(group: Group) -> list[str]:
     title = (
-        f"{_CLASS_ICON[group.cls]} · <code>{_cell(group.label)}</code> · "
-        f"{_calls(group.count)} · {group.effects}"
+        f"{_CLASS_ICON[group.cls]} · <code>{html.escape(group.label)}</code> · "
+        f"{_calls(group.count)} · {html.escape(group.effects)}"
     )
     lines = ["<details>", f"<summary>{title}</summary>", ""]
     if group.reasons:

@@ -72,7 +72,7 @@ def test_pipes_and_backticks_in_values_are_escaped() -> None:
             "timestamp": datetime(2026, 9, 20, tzinfo=UTC).isoformat(),
             "principal": {"id": "p"},
             "agent": {"id": "a"},
-            "tool": {"name": "t`x|y"},
+            "tool": {"name": "t`x|y<b>&"},
         }
     )
     base = Decision(call_id="c|1", effect=Effect.DENY, engine="e")
@@ -90,7 +90,8 @@ def test_pipes_and_backticks_in_values_are_escaped() -> None:
     out = render_markdown(view, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN)
 
     assert "| `c\\|1` |" in out
-    assert "t'x\\|y" in out
+    assert "<code>t`x|y&lt;b&gt;&amp;</code>" in out  # summary line is HTML, so HTML-escaped
+    assert "t'x\\|y" in out  # table cells are markdown, so pipe-escaped
     assert "| a\\|b |" in out
 
 

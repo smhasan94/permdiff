@@ -12,6 +12,7 @@ from permdiff.report.grouping import (
     DEFAULT_SAMPLES,
     Group,
     group_transitions,
+    validate_group_by,
 )
 from permdiff.report.summary import SummaryRow, summary_rows
 
@@ -40,8 +41,9 @@ def build_view(
 ) -> ReportView:
     """Redact once (AC-17.5), then group and sample on the redacted values."""
     redacted = redactor.report(report)
+    fields = validate_group_by(by)
     groups = group_transitions(
-        redacted.transitions, by=by, samples=samples, include_attribution=show_attribution
+        redacted.transitions, by=fields, samples=samples, include_attribution=show_attribution
     )
     kept = groups[: max(max_groups, 0)]
     return ReportView(
@@ -52,5 +54,5 @@ def build_view(
         truncated_groups=len(groups) - len(kept),
         transitions=redacted.transitions,
         allow_widening=redacted.allow_widening,
-        group_by=tuple(by),
+        group_by=fields,
     )
