@@ -107,10 +107,12 @@ runs:
         IN_ENGINE: ${{ inputs.engine }}
         IN_DECISION: ${{ inputs.decision }}
         IN_CONFIG: ${{ inputs.config }}
-        IN_FAIL_ON: ${{ inputs.fail-on }}
+        EXTRA: ${{ inputs.extra-args }}
         BASE_REF: ${{ github.base_ref }}
       run: |
         set -euo pipefail
+        out="${RUNNER_TEMP}/permdiff"
+        mkdir -p "$out"
         base="$IN_BASE"
         if [ -z "$base" ]; then
           if [ -n "$BASE_REF" ]; then base="origin/$BASE_REF"; else base="origin/main"; fi
@@ -118,45 +120,57 @@ runs:
         case "$base" in
           origin/*) git fetch --no-tags --depth=1 origin "${base#origin/}" >/dev/null 2>&1 || true ;;
         esac
-        args=(--base "$base" --head "$IN_HEAD")
-        [ -n "$IN_TRACES" ] && args+=(--traces "$IN_TRACES")
-        [ -n "$IN_POLICY" ] && args+=(--policy "$IN_POLICY")
-        [ -n "$IN_ENGINE" ] && args+=(--engine "$IN_ENGINE")
-        [ -n "$IN_DECISION" ] && args+=(--decision "$IN_DECISION")
-        global=()
-        [ -n "$IN_CONFIG" ] && global+=(--config "$IN_CONFIG")
-        printf 'args=%s\n' "${args[*]}" >> "$GITHUB_OUTPUT"
-        printf 'global=%s\n' "${global[*]:-}" >> "$GITHUB_OUTPUT"
-        printf 'base=%s\n' "$base" >> "$GITHUB_OUTPUT"
+        # One argument per line: later steps read these back without word splitting or
+        # glob expansion (permdiff expands trace globs itself).
+        {
+          printf '%s\n' --base "$base" --head "$IN_HEAD"
+          [ -n "$IN_TRACES" ] && printf '%s\n' --traces "$IN_TRACES"
+          [ -n "$IN_POLICY" ] && printf '%s\n' --policy "$IN_POLICY"
+          [ -n "$IN_ENGINE" ] && printf '%s\n' --engine "$IN_ENGINE"
+          [ -n "$IN_DECISION" ] && printf '%s\n' --decision "$IN_DECISION"
+          true
+        } > "$out/selection.args"
+        { [ -n "$IN_CONFIG" ] && printf '%s\n' --config "$IN_CONFIG"; true; } > "$out/global.args"
+        # extra-args is split like a shell would, so quoted reasons stay one argument.
+        python - "$EXTRA" > "$out/extra.args" <<'PY'
+        import shlex, sys
+        print("\n".join(shlex.split(sys.argv[1])))
+        PY
+        echo "dir=$out" >> "$GITHUB_OUTPUT"
+        echo "base=$base" >> "$GITHUB_OUTPUT"
 
     - name: permdiff check
       shell: bash
+      env:
+        OUT: ${{ steps.args.outputs.dir }}
       run: |
         set -euo pipefail
-        # shellcheck disable=SC2086
-        permdiff ${{ steps.args.outputs.global }} check ${{ steps.args.outputs.args }}
+        mapfile -t global < "$OUT/global.args"
+        mapfile -t args < "$OUT/selection.args"
+        permdiff "${global[@]}" check "${args[@]}"
 
     - name: permdiff diff
       id: diff
       shell: bash
       env:
-        EXTRA: ${{ inputs.extra-args }}
+        OUT: ${{ steps.args.outputs.dir }}
         FAIL_ON: ${{ inputs.fail-on }}
       run: |
         set -uo pipefail
-        out="${RUNNER_TEMP}/permdiff"
-        mkdir -p "$out"
-        # shellcheck disable=SC2086
-        permdiff ${{ steps.args.outputs.global }} diff ${{ steps.args.outputs.args }} \
-          --fail-on "$FAIL_ON" --format json --include-decisions --output "$out/report.json" $EXTRA
+        mapfile -t global < "$OUT/global.args"
+        mapfile -t args < "$OUT/selection.args"
+        mapfile -t extra < "$OUT/extra.args"
+        # --redact safe comes last so extra-args can never lower redaction in a posted report.
+        permdiff "${global[@]}" diff "${args[@]}" --fail-on "$FAIL_ON" "${extra[@]}" \
+          --format json --include-decisions --output "$OUT/report.json" --redact safe
         code=$?
-        if [ ! -s "$out/report.json" ]; then
+        if [ ! -s "$OUT/report.json" ]; then
           echo "permdiff diff failed (exit $code)" >&2
           exit "$code"
         fi
         echo "exit-code=$code" >> "$GITHUB_OUTPUT"
-        echo "report-json=$out/report.json" >> "$GITHUB_OUTPUT"
-        echo "dir=$out" >> "$GITHUB_OUTPUT"
+        echo "report-json=$OUT/report.json" >> "$GITHUB_OUTPUT"
+        echo "dir=$OUT" >> "$GITHUB_OUTPUT"
 
     - name: Render markdown and SARIF
       id: render

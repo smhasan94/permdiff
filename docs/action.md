@@ -39,7 +39,7 @@ permdiff's defaults.
 | `config` | nearest `permdiff.toml` | Config file path |
 | `version` | empty | permdiff version from PyPI; empty installs the action's own source |
 | `python-version` | `3.12` | Python for `actions/setup-python` |
-| `extra-args` | empty | Appended verbatim to `permdiff diff` (for example `--allow-widening "ticket-42"`) |
+| `extra-args` | empty | Extra `permdiff diff` arguments, split like a shell command line (for example `--allow-widening "ticket-42"`); cannot lower redaction |
 
 ## Outputs
 
@@ -63,8 +63,8 @@ permdiff's defaults.
 
 Principal ids are hashed with a salt derived from the repository id, so hashes are stable
 across runs of the same repository and the comment update is a no-op when nothing changed.
-Argument values are always redacted in the comment (`--redact none` is refused for PR
-comments).
+Argument values are always redacted: the action appends `--redact safe` after
+`extra-args`, so a `--redact none` there has no effect.
 
 ## Fork pull requests and read-only tokens
 
