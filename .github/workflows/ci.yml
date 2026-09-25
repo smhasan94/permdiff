@@ -29,6 +29,9 @@ jobs:
       - run: uv run mypy
       - run: uv run pytest --cov=permdiff --cov-fail-under=80
       - if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        name: Dependency audit
+        run: uv run pip-audit --skip-editable
+      - if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         run: uv run pytest -m slow -o addopts="" tests/slow
       - if: matrix.python == '3.12'
         name: Cedar extra

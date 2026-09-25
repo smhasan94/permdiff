@@ -486,7 +486,31 @@ Threats and mitigations:
   imported vs evaluated calls so a mismatch is visible.
 - **Temp-file exposure.** Policy archives and `cases.json` go to a per-run
   `tempfile.mkdtemp` with 0700 permissions and are removed on exit, including
-  on failure.
+  on failure. `--debug` keeps them deliberately and prints the paths.
+- **Nondeterministic policy input (learned in E2).** OPA runs with
+  `--strict-builtin-errors` and a capabilities file that removes `http.send`,
+  `net.lookup_ip_addr`, `rand.intn`, `uuid.rfc4122`, and `opa.runtime`; a
+  policy using one is reported as nondeterministic rather than evaluated with
+  live data. `--nd-cache` re-enables only the builtins it has recorded values
+  for, replaces them with shim lookups, and never lets a cache miss fall back
+  to the real builtin or to `default deny`; misses are surfaced per call.
+- **Recorded lookup values are trace data (learned in E2).** An nd-cache file
+  can carry HTTP response bodies. It is read from a user-supplied path, written
+  into the per-batch 0700 temp directory only, and never into the user cache.
+- **Action inputs (learned in E4).** Every user-controlled input reaches
+  `permdiff` through argument files read with `mapfile`, never through shell
+  word splitting; `extra-args` is split with `shlex`; `--redact safe` is
+  appended last so `extra-args` cannot lower redaction in a posted report. The
+  comment step runs only for same-repository pull requests.
+- **Third-party plugins (learned in E1/E3).** Importer and evaluator entry
+  points are loaded lazily; a plugin that fails to import is skipped with a
+  warning for importers and is an error for engines; built-in names always win
+  a collision. Installing a plugin is a code-execution decision the user makes
+  with `pip`.
+- **Cedar (learned in E6).** Evaluation is in-process and pure; request
+  templates are validated at engine construction; JSON nulls are dropped from
+  context rather than passed through; policies are validated against the
+  schema per ref and a validation failure marks every call, never allows.
 
 Out of scope for the threat model: the correctness of the user's policy
 engine, the runtime that produced the traces, and the trustworthiness of
