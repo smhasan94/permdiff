@@ -36,4 +36,41 @@ policy or a reader tell that apart from a genuinely missing attribute.
 
 ## OpenTelemetry GenAI (`otel`)
 
-Arrives with E5-S2.
+Reads OTLP/JSON trace documents (`resourceSpans → scopeSpans → spans`), either one
+document per file or one per line (JSONL), as written by the OTLP file exporter or a
+collector's file exporter. Only tool spans are imported: `gen_ai.operation.name ==
+execute_tool`, span names starting `execute_tool `, and MCP `tools/call` spans
+(`mcp.method.name`). Everything else (chat, agent, embedding spans) is skipped.
+
+The conventions tracked are OpenTelemetry semantic-conventions-genai `main` as of
+2026-09-25, which is still Development stability; attribute names may change and the
+alias table in `importers/otel/mapping.py` absorbs renames (`gen_ai.system` →
+`gen_ai.provider.name` today).
+
+| OTel | ToolCall |
+|---|---|
+| `gen_ai.tool.call.id`, else `spanId` | `id` |
+| `startTimeUnixNano` | `timestamp` |
+| `enduser.id` / `user.id` on the span, then on the resource; else `--principal-from PATH` (`attr.<key>`, `resource.attr.<key>`); else `unknown` with `context["otel.principal_missing"] = true` and a warning | `principal.id` |
+| `gen_ai.agent.name`, else `gen_ai.agent.id`, else resource `service.name` | `agent.id` |
+| `gen_ai.tool.name` (else the span name after `execute_tool ` / `tools/call `) | `tool.name`; `gen_ai.tool.type` → `tool.type`; MCP spans set `tool.server = mcp` |
+| `gen_ai.tool.call.arguments` (Opt-In; JSON text or kvlist) | `arguments` |
+| ancestor span `gen_ai.output.messages` `tool_call` part with the same id (or a unique part for the tool), or a deprecated `gen_ai.choice` event | `arguments` when the span carries none |
+| `gen_ai.conversation.id`, `mcp.session.id`, `gen_ai.provider.name`, trace and span ids | `context` |
+
+Most real OTel data does not record arguments (they are Opt-In), so argument-dependent
+rules report `can't evaluate` for those calls; the report says so.
+
+## Auto-detection and `permdiff convert`
+
+`--from auto` (the default) sniffs each file in the order permdiff JSONL, Custody, OTel and
+logs the choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
+message when the file is recognizably another format.
+
+```
+permdiff convert --from otel traces/otel/*.json -o traces/otel.jsonl
+permdiff convert --from custody custody-export.jsonl -o traces/custody.jsonl
+```
+
+`convert` writes canonical JSONL that round-trips through the JSONL importer without loss
+of the canonical fields; each record keeps its original `source` for provenance.

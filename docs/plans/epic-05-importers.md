@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E5; FR-3, FR-4, FR-5, FR-7
 **Complexity**: Medium (4 stories)
-**Status**: in progress since 2026-09-25 (plan re-read and updated)
+**Status**: done 2026-09-25; review pending
 
 ## Summary
 
@@ -117,5 +117,5 @@ uv run permdiff convert --from otel tests/fixtures/otel/execute_tool.jsonl -o /t
 
 ## Acceptance
 
-- [ ] All four stories done and marked
-- [ ] `permdiff diff --from otel` and `--from custody` run on fixtures end to end
+- [x] All four stories done and marked
+- [x] `permdiff diff --from otel` and `--from custody` run on fixtures end to end (convert and check tests)

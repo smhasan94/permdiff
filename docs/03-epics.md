@@ -13,7 +13,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E2 | OPA evaluator | reviewed |
 | E3 | Reporting, grouping, config | reviewed |
 | E4 | GitHub Action | reviewed |
-| E5 | Importers: Custody, OTel, convert | in progress |
+| E5 | Importers: Custody, OTel, convert | done |
 | E6 | Cedar evaluator | todo |
 | E7 | Performance, hardening, release preparation | todo |
 
@@ -226,7 +226,7 @@ Satisfies: FR-3, FR-4, FR-5 (auto-detect), FR-7.
 | E5-S1 | Custody importer | done |
 | E5-S2 | OTel importer: OTLP JSON and JSONL, `execute_tool` spans | done |
 | E5-S3 | OTel parent-span argument fallback and aliases | done |
-| E5-S4 | Auto-detection and `permdiff convert` | in progress |
+| E5-S4 | Auto-detection and `permdiff convert` | done |
 
 **E5-S1 Custody importer.** FR-3. Deps: E1-S3.
 AC: AC-3.1 through AC-3.4; fixtures for every `action.type` and every

@@ -11,6 +11,7 @@ import click
 
 from permdiff import __version__
 from permdiff.cli.check import check_cmd
+from permdiff.cli.convert import convert_cmd
 from permdiff.cli.demo import demo_cmd
 from permdiff.cli.diff import diff_cmd
 from permdiff.cli.init import init_cmd
@@ -77,6 +78,7 @@ def cli(ctx: click.Context, verbose: bool, debug: bool, config: Path | None) -> 
 cli.add_command(schema_cmd)
 cli.add_command(diff_cmd)
 cli.add_command(check_cmd)
+cli.add_command(convert_cmd)
 cli.add_command(demo_cmd)
 cli.add_command(setup_group)
 cli.add_command(init_cmd)

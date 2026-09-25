@@ -62,7 +62,7 @@ def load_traces(
         importer = (
             importers.detect(path, **options)
             if fmt == AUTO_FORMAT
-            else importers.get(fmt, **options)
+            else importers.get_for(path, fmt, **options)
         )
         result = importer.read(path, strict=strict, max_records=max_records)
         calls.extend(result.calls)

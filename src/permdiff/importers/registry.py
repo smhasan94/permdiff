@@ -77,17 +77,37 @@ def get(name: str, **options: Any) -> Importer:
     raise TraceImportError(msg)
 
 
-def detect(path: Path, **options: Any) -> Importer:
-    """First importer whose ``detect`` accepts the file head (``--from auto``)."""
+def _head(path: Path) -> bytes:
     try:
         with path.open("rb") as fh:
-            head = fh.read(_SNIFF_BYTES)
+            return fh.read(_SNIFF_BYTES)
     except OSError as exc:
         msg = f"cannot read {path}: {exc.strerror or exc}"
         raise TraceImportError(msg) from exc
+
+
+def detect(path: Path, **options: Any) -> Importer:
+    """First importer whose ``detect`` accepts the file head (``--from auto``)."""
+    head = _head(path)
     for importer in all_importers(**options):
         if importer.detect(head):
             log.info("detected format %s for %s", importer.name, path)
             return importer
     msg = f"could not detect the trace format of {path}; pass --from {'|'.join(names())}"
     raise TraceImportError(msg)
+
+
+def get_for(path: Path, name: str, **options: Any) -> Importer:
+    """``--from NAME`` for ``path``: an error when the file clearly is another format (AC-5.2)."""
+    importer = get(name, **options)
+    head = _head(path)
+    if importer.detect(head):
+        return importer
+    for other in all_importers(**options):
+        if other.name != importer.name and other.detect(head):
+            msg = (
+                f"--from {name}: {path} looks like {other.name} traces, not {importer.name}; "
+                f"pass --from {other.name} or --from auto"
+            )
+            raise TraceImportError(msg)
+    return importer
