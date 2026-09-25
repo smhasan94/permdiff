@@ -118,7 +118,7 @@ runs:
         case "$base" in
           origin/*) git fetch --no-tags --depth=1 origin "${base#origin/}" >/dev/null 2>&1 || true ;;
         esac
-        args=(--base "$base" --head "$IN_HEAD" --fail-on "$IN_FAIL_ON")
+        args=(--base "$base" --head "$IN_HEAD")
         [ -n "$IN_TRACES" ] && args+=(--traces "$IN_TRACES")
         [ -n "$IN_POLICY" ] && args+=(--policy "$IN_POLICY")
         [ -n "$IN_ENGINE" ] && args+=(--engine "$IN_ENGINE")
@@ -141,13 +141,14 @@ runs:
       shell: bash
       env:
         EXTRA: ${{ inputs.extra-args }}
+        FAIL_ON: ${{ inputs.fail-on }}
       run: |
         set -uo pipefail
         out="${RUNNER_TEMP}/permdiff"
         mkdir -p "$out"
         # shellcheck disable=SC2086
         permdiff ${{ steps.args.outputs.global }} diff ${{ steps.args.outputs.args }} \
-          --format json --include-decisions --output "$out/report.json" $EXTRA
+          --fail-on "$FAIL_ON" --format json --include-decisions --output "$out/report.json" $EXTRA
         code=$?
         if [ ! -s "$out/report.json" ]; then
           echo "permdiff diff failed (exit $code)" >&2
