@@ -30,6 +30,12 @@ jobs:
       - run: uv run pytest --cov=permdiff --cov-fail-under=80
       - if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
         run: uv run pytest -m slow -o addopts="" tests/slow
+      - if: matrix.python == '3.12'
+        name: Cedar extra
+        run: |
+          uv sync --extra cedar --dev
+          uv run pytest -o addopts="" tests/unit/evaluators/cedar tests/integration/test_demo_cedar.py
+          uv run pytest -m slow -o addopts="" tests/slow/test_cedar_100k.py
   quickstart:
     runs-on: ubuntu-latest
     steps:

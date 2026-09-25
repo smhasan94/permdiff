@@ -16,7 +16,12 @@ pytest.importorskip("cedarpy")
 
 from permdiff.evaluators.cedar.evaluator import CedarEvaluator
 from permdiff.evaluators.cedar.loader import load_bundle, validate
-from permdiff.evaluators.cedar.request import MissingTemplateValue, missing_name, render
+from permdiff.evaluators.cedar.request import (
+    MissingTemplateValue,
+    build_request,
+    missing_name,
+    render,
+)
 
 FIXTURES = OPA_FIXTURES.parent / "cedar"
 
@@ -202,3 +207,40 @@ def test_missing_cedarpy_names_the_install_command(monkeypatch: pytest.MonkeyPat
 
     with pytest.raises(EngineError, match=r'pip install "permdiff\[cedar\]"'):
         registry.resolve("cedar")
+
+
+def test_context_carries_the_call_record_and_now() -> None:
+    call = _call("c", "t", args={"amount": 1}, context={"env": "prod"})
+
+    req = build_request(
+        call,
+        principal='User::"{principal.id}"',
+        action='Action::"{tool.name}"',
+        resource='Resource::"{resource.id}"',
+        now_key="now",
+    )
+
+    assert req["context"]["amount"] == 1
+    assert req["context"]["env"] == "prod"
+    assert req["context"]["call"]["principal"]["id"] == "alice"
+    assert req["context"]["call"]["tool"]["name"] == "t"
+    assert req["context"]["now"] == {
+        "__extn": {"fn": "datetime", "arg": "2026-09-20T12:00:00.000Z"}
+    }
+
+
+def test_nulls_are_dropped_from_the_context() -> None:
+    call = _call("c", "t", args={"a": None, "b": [1, None], "c": {"d": None, "e": 2}})
+
+    ctx = build_request(
+        call,
+        principal='User::"{principal.id}"',
+        action='Action::"{tool.name}"',
+        resource='Resource::"{resource.id}"',
+        now_key="now",
+    )["context"]
+
+    assert ctx["b"] == [1]
+    assert ctx["c"] == {"e": 2}
+    assert "a" not in ctx
+    assert "version" not in ctx["call"]["agent"]

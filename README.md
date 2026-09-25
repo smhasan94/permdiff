@@ -125,6 +125,21 @@ epics. The design is in `docs/01-overview.md`.
 
 ## Engines
 
+`--engine cedar` (`pip install "permdiff[cedar]"`) loads `*.cedar` files, one
+`*.cedarschema`, and `entities.json` from the policy path, validates the policies
+against the schema, and evaluates every trace as a Cedar request built from the
+`[cedar]` templates (`principal`, `action`, `resource`; defaults
+`User::"{principal.id}"`, `Action::"{tool.name}"`, `Resource::"{resource.id}"`).
+The request context is the call's arguments plus its trace context, plus
+`context.call.{principal,agent,tool,resource}` and `context.now` (the trace
+timestamp as a Cedar `datetime`). A deny whose forbids all carry
+`@require_approval("reason")` is reported as require-approval; a missing
+attribute or entity is can't-evaluate naming it. `permdiff demo --engine cedar`
+runs the bundled Cedar variant.
+
+Measured on an Apple M-series laptop: 100,000 calls per ref take about 12 s
+through cedarpy (the OPA engine takes about 5 s for the same corpus).
+
 `--engine opa` runs a pinned OPA binary (1.21.0, SHA-256 verified on
 download; override with `--opa-bin` or `PERMDIFF_OPA_BIN`).
 

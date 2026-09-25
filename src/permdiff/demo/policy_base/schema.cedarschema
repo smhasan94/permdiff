@@ -1,0 +1,11 @@
+entity User;
+entity Resource;
+type Attrs = { team: String, department: String };
+type Call = {
+  principal: { id: String, type: String, attrs: Attrs },
+  agent: { id: String },
+  tool: { name: String },
+  resource: { type: String }
+};
+action "github.read", "slack.post", "stripe.refund", "aws.ec2.terminate_instance", "github.delete_branch", "salesforce.update"
+  appliesTo { principal: [User], resource: [Resource], context: { amount?: Long, env?: String, call: Call, now: datetime } };

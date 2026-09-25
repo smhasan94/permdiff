@@ -17,7 +17,7 @@ from permdiff.redact import RedactLevel
 from permdiff.report import FailOn
 from permdiff.report.grouping import validate_group_by
 
-ENGINES = ("auto", "opa", "python")
+ENGINES = ("auto", "opa", "python", "cedar")
 FALLBACK_NOTE = (
     "note: opa is not installed, using the Python engine; run `permdiff setup opa` "
     "then `permdiff demo --engine opa` for the Rego version"
@@ -55,6 +55,8 @@ def choose_engine(requested: str) -> tuple[str, dict[str, Any]]:
 
     if requested == "python":
         return demo.ENGINE_SPEC, {}
+    if requested == "cedar":
+        return "cedar", {"resource": demo.CEDAR_RESOURCE}
     try:
         opa_bin = resolve_binary(download_missing=(requested == "opa"))
     except EngineError:

@@ -12,3 +12,4 @@ BASE_LABEL = "demo/base"
 HEAD_LABEL = "demo/head"
 ENGINE_SPEC = "python:permdiff.demo.engine:evaluate"
 OPA_DECISION = "data.agent.authz.decision"
+CEDAR_RESOURCE = 'Resource::"{resource.type}"'

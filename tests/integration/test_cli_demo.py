@@ -60,7 +60,7 @@ def test_demo_fail_on_none_exits_zero_and_quiet_hides_groups() -> None:
 
 
 def test_demo_rejects_unknown_engine() -> None:
-    result = _run("--engine", "cedar")
+    result = _run("--engine", "rego")
 
     assert result.exit_code == 2
     assert "python" in result.stderr

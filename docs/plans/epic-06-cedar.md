@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E6; FR-11; NFR-C4
 **Complexity**: Medium (2 stories)
-**Status**: in progress since 2026-09-25 (plan re-read; cedarpy API verified by a spike)
+**Status**: done 2026-09-25; review pending
 
 ## Summary
 
@@ -103,5 +103,5 @@ uv run permdiff demo --engine cedar
 
 ## Acceptance
 
-- [ ] Both stories done and marked
-- [ ] Cedar golden corpus matches; demo Cedar variant runs
+- [x] Both stories done and marked
+- [x] Cedar golden corpus matches the OPA golden; demo Cedar variant runs; 100K calls per ref measured at 12.2 s (recorded in README per AC-11.3)

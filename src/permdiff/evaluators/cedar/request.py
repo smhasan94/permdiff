@@ -65,13 +65,41 @@ def now_value(call: ToolCall) -> dict[str, Any]:
     return {"__extn": {"fn": "datetime", "arg": stamp}}
 
 
+CALL_KEY = "call"
+"""``context.call`` carries the canonical principal, agent, tool, and resource records."""
+
+
+def call_record(call: ToolCall) -> dict[str, Any]:
+    return {
+        "principal": call.principal.model_dump(mode="json"),
+        "agent": call.agent.model_dump(mode="json"),
+        "tool": call.tool.model_dump(mode="json"),
+        "resource": call.resource.model_dump(mode="json"),
+    }
+
+
+def without_nulls(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return {k: without_nulls(v) for k, v in value.items() if v is not None}
+    if isinstance(value, list | tuple):
+        return [without_nulls(v) for v in value if v is not None]
+    return value
+
+
 def build_request(
     call: ToolCall, *, principal: str, action: str, resource: str, now_key: str
 ) -> dict[str, Any]:
+    """Context = arguments + trace context + ``call`` record + ``now`` (AC-11.2).
+
+    Cedar has no null, so null values are dropped at every depth; a policy that needs
+    one sees a missing attribute, which permdiff reports as can't-evaluate.
+    """
     context: dict[str, Any] = {}
     context.update(call.arguments or {})
     context.update(call.context)
+    context[CALL_KEY] = call_record(call)
     context[now_key] = now_value(call)
+    context = without_nulls(context)
     return {
         "principal": render(principal, call),
         "action": render(action, call),
