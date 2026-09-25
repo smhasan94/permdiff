@@ -32,8 +32,8 @@ subset), FR-18, FR-22, FR-24, FR-27 (initial). NFR-C1, NFR-D, NFR-Q, NFR-L.
 |---|---|---|
 | E1-S1 | Package skeleton and tooling | done |
 | E1-S2 | `ToolCall` and `Decision` models, JSON Schema | done |
-| E1-S3 | permdiff JSONL importer | in progress |
-| E1-S4 | Evaluator protocol and Python callable evaluator | todo |
+| E1-S3 | permdiff JSONL importer | done |
+| E1-S4 | Evaluator protocol and Python callable evaluator | in progress |
 | E1-S5 | Git policy loading | todo |
 | E1-S6 | Replay and transition classification | todo |
 | E1-S7 | Redaction core | todo |

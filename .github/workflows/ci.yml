@@ -24,6 +24,8 @@ jobs:
       - run: uv run ruff format --check .
       - run: uv run mypy
       - run: uv run pytest --cov=permdiff --cov-fail-under=80
+      - if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        run: uv run pytest -m slow -o addopts="" tests/slow
   quickstart:
     runs-on: ubuntu-latest
     steps:
