@@ -181,3 +181,23 @@ updates in place. Standing rule 2 forbids the agent from creating branches or PR
 verify. Observed: exactly one `<!-- permdiff -->` comment, updated in place on each push
 (`updated_at` advanced, `base` SHA in the body changed), all 11 checks green (8 test cells,
 quickstart, bench, dogfood). The branch is a throwaway; close PR #1 without merging.
+
+## 2026-09-25: first 0.2.0 epic
+
+**Question.** All 0.1.0 epics are done and reviewed. Which of the PRD's later items
+(FR-L1 through FR-L11) becomes the first 0.2.0 epic?
+
+**Options.**
+1. FR-L3 Claude Code hook log importer (recommended: highest time-to-first-value; the
+   `PreToolUse` JSON already exists on many laptops; a small importer in the E5 pattern;
+   pairs later with an FR-L11 `permdiff record` helper).
+2. FR-L1 Langfuse importer (wider reach; needs a Parquet dependency and current-export
+   verification; about two days).
+3. FR-L7 line-level OPA rule attribution (deepens the diff; depends on OPA explain output;
+   about three days).
+4. FR-L10 HTML report (nicer output; no new value for the CI use case).
+
+**Decision.** Option 1. Epic E8.
+
+**Rationale.** Cheapest path to a real trace source for a large audience, and it reuses the
+importer protocol, limits, and redaction that already exist.
