@@ -6,9 +6,9 @@
 
 **Status 2026-09-25.** Seven 0.1.0 epics done and reviewed. 0.1.0 released: PyPI
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
-`main` is `0.2.0.dev0`. 0.2.0 starts with E8 (Claude Code importer; decisions.md
-2026-09-25). Remaining later candidates: FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision
-logs, FR-L7 line-level OPA attribution, FR-L10 HTML report, FR-L11 record helpers.
+0.2.0 released 2026-09-25 with E8 (Claude Code importers). `main` is `0.3.0.dev0`; 0.3.0
+starts with E9 (FR-L11, decisions.md 2026-09-25). Remaining later candidates: FR-L1 Langfuse,
+FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution, FR-L10 HTML report.
 
 Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 `pip install`-able and demoable. Each story is sized for about one day.
@@ -23,6 +23,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E6 | Cedar evaluator | reviewed |
 | E7 | Performance, hardening, release preparation | reviewed |
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
+| E9 | `permdiff record`: Claude Code hook command and installer | todo |
 
 ---
 
@@ -372,3 +373,52 @@ forced delete in a `Bash` command and denies `Write` outside `cwd`) that produce
 transitions on the fixture; the quickstart runs in CI.
 AC-L3.11: `docs/importers.md` mapping tables for both formats and a caveat that the
 transcript format is undocumented and pinned by fixture version.
+
+---
+
+## E9 — `permdiff record`: Claude Code hook command and installer
+
+Goal: a Claude Code user gets the stable `claude-code-hooks` input with one command and no
+`jq`: `permdiff record install claude-code --write`, then every session appends to
+`~/.claude/permdiff-hooks.jsonl`.
+
+Satisfies: FR-L11 (scoped 2026-09-25: hook command plus installer, not a store).
+
+Facts verified 2026-09-25: hook entries in `settings.json` are
+`{"hooks": {"PreToolUse": [{"matcher": "<regex or empty>", "hooks": [{"type": "command",
+"command": "<shell>", "timeout": <s>}]}]}}` (hooks reference; a real local settings file).
+A hook's stdout is parsed by Claude Code for decisions and exit code 2 blocks the call, so
+the recorder must write nothing to stdout and exit 0 on every path.
+
+| # | Story | Status |
+|---|---|---|
+| E9-S1 | `permdiff record claude-code` hook command | todo |
+| E9-S2 | `permdiff record install claude-code` | todo |
+| E9-S3 | Docs, quickstart, round-trip test | todo |
+
+**E9-S1 Hook command.** Deps: E8-S2.
+AC-L11.1: reads one JSON object from stdin, adds `ts` (RFC 3339, UTC, second precision,
+never overwriting an existing `ts`), appends one line to `--out PATH` (default
+`~/.claude/permdiff-hooks.jsonl`, parent created, file mode 0600 on creation).
+AC-L11.2: never writes to stdout; exits 0 on every path including bad JSON, unwritable
+file, and an oversized line (> 1 MiB is dropped); failures go to stderr in one line.
+AC-L11.3: events other than `PreToolUse` are still appended verbatim plus `ts` (the
+importer skips them), so one hook entry can serve several events.
+AC-L11.4: the appended line reads back through `--from claude-code-hooks` with the same
+tool, arguments, and context (round-trip test).
+
+**E9-S2 Installer.** Deps: S1.
+AC-L11.5: `permdiff record install claude-code` prints the `settings.json` hook entry
+(command `permdiff record claude-code --out <path>`, matcher empty, timeout 5) as JSON
+and the path it would edit; nothing is written.
+AC-L11.6: `--write` merges the entry into `--settings PATH` (default
+`~/.claude/settings.json`): creates the file if absent, keeps every other key, appends to
+an existing `PreToolUse` list, is idempotent (a second run changes nothing and says so),
+and writes `<file>.bak` before the first change.
+AC-L11.7: an unparsable settings file is an error with the path and no write.
+
+**E9-S3 Docs and quickstart.** Deps: S2.
+AC-L11.8: `docs/importers.md` and README show `permdiff record install claude-code`
+first and keep the `jq` variant as the manual alternative; CHANGELOG Unreleased entry.
+AC-L11.9: `scripts/quickstart_check.sh` pipes a sample `PreToolUse` object through
+`permdiff record claude-code --out` and diffs the result with `--from claude-code-hooks`.
