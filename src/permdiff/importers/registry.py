@@ -10,6 +10,7 @@ from typing import Any
 
 from permdiff.errors import TraceImportError
 from permdiff.importers.base import Importer
+from permdiff.importers.claude_code import ClaudeCodeImporter
 from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import JsonlImporter
 from permdiff.importers.otel import OtelImporter
@@ -19,8 +20,13 @@ log = logging.getLogger(__name__)
 ENTRY_POINT_GROUP = "permdiff.importers"
 _SNIFF_BYTES = 8192
 
-_BUILTIN: tuple[Callable[..., Importer], ...] = (JsonlImporter, CustodyImporter, OtelImporter)
-"""Detection order: permdiff JSONL first, then Custody, then OTel."""
+_BUILTIN: tuple[Callable[..., Importer], ...] = (
+    JsonlImporter,
+    CustodyImporter,
+    OtelImporter,
+    ClaudeCodeImporter,
+)
+"""Detection order: permdiff JSONL first, then Custody, OTel, Claude Code."""
 _ALIASES: dict[str, str] = {"permdiff": "jsonl"}
 
 

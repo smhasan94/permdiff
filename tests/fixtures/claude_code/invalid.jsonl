@@ -1,0 +1,4 @@
+{"type": "assistant", "sessionId": "sess-0001", "timestamp": "2026-09-25T08:48:25.277Z", "message": {"role": "assistant", "content": [{"type": "tool_use", "name": "Bash", "input": {"command": "ls"}}]}}
+{"type": "assistant", "sessionId": "sess-0001", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": "toolu_x", "name": "Bash", "input": {"command": "ls"}}]}}
+{not json
+{"type": "assistant", "sessionId": "sess-0001", "timestamp": "2026-09-25T08:50:00.000Z", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": "toolu_ok", "name": "Glob", "input": {"pattern": "**/*.py"}}]}}

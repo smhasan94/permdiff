@@ -98,7 +98,7 @@ def test_detect_and_registry_options() -> None:
     assert isinstance(registry.get("otel"), OtelImporter)
     assert registry.get("otel", principal_from="attr.x").principal_from == "attr.x"  # type: ignore[attr-defined]
     assert isinstance(registry.detect(FIXTURES / "execute_tool.json"), OtelImporter)
-    assert registry.names() == ("jsonl", "custody", "otel")
+    assert registry.names() == ("jsonl", "custody", "otel", "claude-code")
 
 
 def test_max_records_cap(tmp_path: Path) -> None:

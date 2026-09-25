@@ -22,7 +22,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E5 | Importers: Custody, OTel, convert | reviewed |
 | E6 | Cedar evaluator | reviewed |
 | E7 | Performance, hardening, release preparation | reviewed |
-| E8 | Claude Code importer: transcripts and hook logs | todo |
+| E8 | Claude Code importer: transcripts and hook logs | in progress |
 
 ---
 
@@ -332,7 +332,7 @@ corpus; the hooks reference documents the `mcp__<server>__<tool>` naming.
 
 | # | Story | Status |
 |---|---|---|
-| E8-S1 | Transcript importer (`claude-code`) | todo |
+| E8-S1 | Transcript importer (`claude-code`) | done |
 | E8-S2 | Hook-log importer (`claude-code-hooks`) and the documented hook | todo |
 | E8-S3 | Registry, convert, docs, README quickstart | todo |
 

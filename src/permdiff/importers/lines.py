@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from pathlib import Path
 
 from permdiff.errors import TraceImportError
@@ -16,6 +16,9 @@ log = logging.getLogger(__name__)
 
 LineParser = Callable[[str, str], ToolCall | None]
 """``(text, locator) -> ToolCall``; ``None`` skips silently (not an error), raise RecordRejected."""
+
+MultiLineParser = Callable[[str, str], Sequence[ToolCall]]
+"""``(text, locator) -> calls``; an empty sequence skips silently, raise RecordRejected."""
 
 
 def first_nonblank_line(head: bytes, limit: int = 4096) -> bytes | None:
@@ -32,6 +35,23 @@ def read_lines(
     strict: bool = False,
     max_records: int = DEFAULT_MAX_RECORDS,
 ) -> ImportResult:
+    """One call (or none) per line."""
+
+    def one(text: str, locator: str) -> Sequence[ToolCall]:
+        call = parse(text, locator)
+        return () if call is None else (call,)
+
+    return read_lines_multi(path, one, strict=strict, max_records=max_records)
+
+
+def read_lines_multi(
+    path: Path,
+    parse: MultiLineParser,
+    *,
+    strict: bool = False,
+    max_records: int = DEFAULT_MAX_RECORDS,
+) -> ImportResult:
+    """Any number of calls per line; the record cap counts calls."""
     calls: list[ToolCall] = []
     skipped: list[str] = []
     try:
@@ -43,7 +63,7 @@ def read_lines(
                 locator = f"{path}:{lineno}"
                 try:
                     check_line_size(line)
-                    call = parse(decode_utf8(line, locator=locator), locator)
+                    parsed = parse(decode_utf8(line, locator=locator), locator)
                 except RecordRejected as exc:
                     message = f"{locator}: {exc.reason}"
                     if strict:
@@ -51,9 +71,7 @@ def read_lines(
                     log.warning("skipping %s", message)
                     skipped.append(message)
                     continue
-                if call is None:
-                    continue
-                calls.append(call)
+                calls.extend(parsed)
                 if len(calls) > max_records:
                     msg = (
                         f"{locator}: corpus exceeds max_records={max_records}; "
