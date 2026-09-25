@@ -4,6 +4,13 @@
 (todo / in progress / done / reviewed). Requirements in
 [02-prd.md](02-prd.md). Plans in `docs/plans/epic-NN-<slug>.md`.*
 
+**Status 2026-09-25.** All seven epics done and reviewed. 0.1.0 released: PyPI
+`permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
+`main` is `0.2.0.dev0`. Next work is not planned yet; candidates are the PRD's later items
+(FR-L1 Langfuse, FR-L2 LangSmith, FR-L3 Claude Code hook logs, FR-L4 OPA decision logs,
+FR-L7 line-level OPA attribution, FR-L10 HTML report). Start a new epic with a Phase 3/4
+entry here and a plan under `docs/plans/`.
+
 Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 `pip install`-able and demoable. Each story is sized for about one day.
 
