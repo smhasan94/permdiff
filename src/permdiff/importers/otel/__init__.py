@@ -12,6 +12,7 @@ from permdiff.importers.base import ImportResult, ImportStats
 from permdiff.importers.jsonl import summarize_validation_error
 from permdiff.importers.limits import RecordRejected
 from permdiff.importers.lines import first_nonblank_line
+from permdiff.importers.otel.fallback import find_arguments
 from permdiff.importers.otel.mapping import FORMAT_NAME, is_tool_span, to_toolcall
 from permdiff.importers.otel.spans import Span, iter_spans
 from permdiff.models import ToolCall
@@ -41,11 +42,21 @@ class OtelImporter:
         calls: list[ToolCall] = []
         skipped: list[str] = []
         missing_principal = 0
-        for span in iter_spans(path):
+        spans = list(iter_spans(path))
+        by_id = {s.span_id: s for s in spans if s.span_id}
+        for span in spans:
             if not is_tool_span(span):
                 continue
             try:
-                call = to_toolcall(span, principal_from=self.principal_from)
+                arguments = None
+                if span.attributes.get("gen_ai.tool.call.arguments") is None:
+                    arguments = find_arguments(
+                        span,
+                        by_id,
+                        call_id=_text(span.attributes.get("gen_ai.tool.call.id")),
+                        tool=_text(span.attributes.get("gen_ai.tool.name")) or "",
+                    )
+                call = to_toolcall(span, principal_from=self.principal_from, arguments=arguments)
             except (RecordRejected, ValidationError) as exc:
                 reason = (
                     summarize_validation_error(exc)
@@ -73,3 +84,7 @@ class OtelImporter:
             )
         stats = ImportStats(read=len(calls), skipped=len(skipped), skipped_locators=tuple(skipped))
         return ImportResult(calls=tuple(calls), stats=stats)
+
+
+def _text(value: object) -> str | None:
+    return None if value in (None, "") else str(value)

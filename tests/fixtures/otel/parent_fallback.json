@@ -1,0 +1,338 @@
+{
+  "resourceSpans": [
+    {
+      "resource": {
+        "attributes": [
+          {
+            "key": "service.name",
+            "value": {
+              "stringValue": "support-bot"
+            }
+          },
+          {
+            "key": "user.id",
+            "value": {
+              "stringValue": "carol"
+            }
+          }
+        ]
+      },
+      "scopeSpans": [
+        {
+          "scope": {
+            "name": "legacy"
+          },
+          "spans": [
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000001",
+              "name": "chat gpt-4",
+              "kind": 3,
+              "startTimeUnixNano": "1789981200000000000",
+              "endTimeUnixNano": "1789981200001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.system",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                },
+                {
+                  "key": "gen_ai.output.messages",
+                  "value": {
+                    "stringValue": "[{\"role\": \"assistant\", \"parts\": [{\"type\": \"text\", \"content\": \"Refunding.\"}, {\"type\": \"tool_call\", \"id\": \"call_A\", \"name\": \"stripe.refund\", \"arguments\": {\"charge_id\": \"ch_A\", \"amount\": 900}}, {\"type\": \"tool_call\", \"id\": \"call_B\", \"name\": \"slack.post\", \"arguments\": {\"channel\": \"#ops\"}}]}]"
+                  }
+                }
+              ],
+              "status": {}
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000002",
+              "name": "execute_tool stripe.refund",
+              "kind": 3,
+              "startTimeUnixNano": "1789981201000000000",
+              "endTimeUnixNano": "1789981201001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "stripe.refund"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_A"
+                  }
+                }
+              ],
+              "status": {},
+              "parentSpanId": "c000000000000001"
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000003",
+              "name": "execute_tool slack.post",
+              "kind": 3,
+              "startTimeUnixNano": "1789981202000000000",
+              "endTimeUnixNano": "1789981202001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "slack.post"
+                  }
+                }
+              ],
+              "status": {},
+              "parentSpanId": "c000000000000001"
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000004",
+              "name": "execute_tool weather",
+              "kind": 3,
+              "startTimeUnixNano": "1789981203000000000",
+              "endTimeUnixNano": "1789981203001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "weather"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_Z"
+                  }
+                }
+              ],
+              "status": {},
+              "parentSpanId": "c000000000000001"
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000010",
+              "name": "chat gpt-3.5",
+              "kind": 3,
+              "startTimeUnixNano": "1789981204000000000",
+              "endTimeUnixNano": "1789981204001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "chat"
+                  }
+                },
+                {
+                  "key": "gen_ai.system",
+                  "value": {
+                    "stringValue": "openai"
+                  }
+                }
+              ],
+              "status": {},
+              "events": [
+                {
+                  "name": "gen_ai.choice",
+                  "timeUnixNano": "1789981200000000000",
+                  "attributes": [
+                    {
+                      "key": "gen_ai.event.content",
+                      "value": {
+                        "stringValue": "{\"index\": 0, \"finish_reason\": \"tool_calls\", \"message\": {\"role\": \"assistant\", \"tool_calls\": [{\"id\": \"call_C\", \"type\": \"function\", \"function\": {\"name\": \"github.read\", \"arguments\": \"{\\\"repo\\\": \\\"org/legacy\\\"}\"}}]}}"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000011",
+              "name": "execute_tool github.read",
+              "kind": 3,
+              "startTimeUnixNano": "1789981205000000000",
+              "endTimeUnixNano": "1789981205001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "github.read"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_C"
+                  }
+                }
+              ],
+              "status": {},
+              "parentSpanId": "c000000000000010"
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000020",
+              "name": "tools/call Flights",
+              "kind": 3,
+              "startTimeUnixNano": "1789981206000000000",
+              "endTimeUnixNano": "1789981206001000000",
+              "attributes": [
+                {
+                  "key": "mcp.method.name",
+                  "value": {
+                    "stringValue": "tools/call"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "Flights"
+                  }
+                },
+                {
+                  "key": "mcp.session.id",
+                  "value": {
+                    "stringValue": "mcp-sess-1"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.arguments",
+                  "value": {
+                    "kvlistValue": {
+                      "values": [
+                        {
+                          "key": "from",
+                          "value": {
+                            "stringValue": "SFO"
+                          }
+                        },
+                        {
+                          "key": "to",
+                          "value": {
+                            "stringValue": "JFK"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ],
+              "status": {}
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000021",
+              "name": "tools/call",
+              "kind": 3,
+              "startTimeUnixNano": "1789981207000000000",
+              "endTimeUnixNano": "1789981207001000000",
+              "attributes": [
+                {
+                  "key": "mcp.method.name",
+                  "value": {
+                    "stringValue": "tools/call"
+                  }
+                }
+              ],
+              "status": {}
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000030",
+              "name": "agent run",
+              "kind": 3,
+              "startTimeUnixNano": "1789981208000000000",
+              "endTimeUnixNano": "1789981208001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "invoke_agent"
+                  }
+                },
+                {
+                  "key": "gen_ai.agent.name",
+                  "value": {
+                    "stringValue": "planner"
+                  }
+                },
+                {
+                  "key": "gen_ai.output.messages",
+                  "value": {
+                    "stringValue": "[{\"role\": \"assistant\", \"parts\": [{\"type\": \"tool_call\", \"id\": \"call_D\", \"name\": \"deep\", \"arguments\": {\"level\": 2}}]}]"
+                  }
+                }
+              ],
+              "status": {},
+              "parentSpanId": "c000000000000001"
+            },
+            {
+              "traceId": "00000000000000000000000000000003",
+              "spanId": "c000000000000031",
+              "name": "execute_tool deep",
+              "kind": 3,
+              "startTimeUnixNano": "1789981209000000000",
+              "endTimeUnixNano": "1789981209001000000",
+              "attributes": [
+                {
+                  "key": "gen_ai.operation.name",
+                  "value": {
+                    "stringValue": "execute_tool"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.name",
+                  "value": {
+                    "stringValue": "deep"
+                  }
+                },
+                {
+                  "key": "gen_ai.tool.call.id",
+                  "value": {
+                    "stringValue": "call_D"
+                  }
+                }
+              ],
+              "status": {},
+              "parentSpanId": "c000000000000030"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
