@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import jsonschema
+import pytest
 
 from permdiff.models import Decision, Effect
 from permdiff.redact import Redactor
@@ -18,6 +19,15 @@ GOLDEN = Path(__file__).parents[2] / "golden" / "sarif_report.sarif"
 SCHEMA = json.loads(
     (Path(__file__).parents[2] / "vendor" / "sarif-schema-2.1.0.json").read_text(encoding="utf-8")
 )
+
+
+GOLDEN_TOOL_VERSION = "0.1.0"
+
+
+@pytest.fixture(autouse=True)
+def _pin_tool_version(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The golden embeds tool.driver.version; keep it stable across dev version bumps."""
+    monkeypatch.setattr("permdiff.report.sarif.__version__", GOLDEN_TOOL_VERSION)
 
 
 def _render(**view_kwargs: object) -> str:
