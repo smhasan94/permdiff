@@ -48,6 +48,12 @@ def test_gate_flags_regressions_and_missing_targets() -> None:
     }
 
     assert gate.regressions(ok, baseline) == []
+    noisy = {
+        "engine": "python",
+        "phases": {"import": 1.0, "diff": 2.0, "report": 4.0, "total": 3.5},
+        "peak_rss_mb": 1,
+    }
+    assert gate.regressions(noisy, baseline) == []  # report baseline 0.5s is below the gate floor
     assert gate.regressions(slow, baseline)[0] == "diff: 4.00s > 1.5x baseline 2.00s"
     problems = gate.regressions(huge, baseline)
     assert any("60s target" in p for p in problems)

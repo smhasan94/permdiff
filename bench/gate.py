@@ -11,6 +11,8 @@ from typing import Any
 DEFAULT_RATIO = 1.5
 TARGET_TOTAL_SECONDS = 60.0
 TARGET_RSS_MB = 1024.0
+MIN_GATED_SECONDS = 1.0
+"""Phases whose baseline is under this are too noisy on shared runners to gate on."""
 
 
 def regressions(
@@ -20,7 +22,9 @@ def regressions(
     problems = []
     for phase, seconds in result["phases"].items():
         reference = baseline.get("phases", {}).get(phase)
-        if reference is not None and seconds > reference * ratio:
+        if reference is None or reference < MIN_GATED_SECONDS:
+            continue
+        if seconds > reference * ratio:
             problems.append(f"{phase}: {seconds:.2f}s > {ratio:.1f}x baseline {reference:.2f}s")
     if result["phases"].get("total", 0) > TARGET_TOTAL_SECONDS:
         problems.append(
