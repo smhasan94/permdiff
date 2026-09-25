@@ -12,7 +12,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | reviewed |
 | E2 | OPA evaluator | reviewed |
 | E3 | Reporting, grouping, config | reviewed |
-| E4 | GitHub Action | done |
+| E4 | GitHub Action | reviewed |
 | E5 | Importers: Custody, OTel, convert | todo |
 | E6 | Cedar evaluator | todo |
 | E7 | Performance, hardening, release preparation | todo |
