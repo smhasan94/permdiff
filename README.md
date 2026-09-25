@@ -137,8 +137,18 @@ timestamp as a Cedar `datetime`). A deny whose forbids all carry
 attribute or entity is can't-evaluate naming it. `permdiff demo --engine cedar`
 runs the bundled Cedar variant.
 
-Measured on an Apple M-series laptop: 100,000 calls per ref take about 12 s
-through cedarpy (the OPA engine takes about 5 s for the same corpus).
+## Performance
+
+100,000 calls end to end (import, both refs, classify, markdown) on an Apple
+M-series laptop, `python -m bench.run --n 100000`:
+
+| Engine | Import | Diff (both refs) | Report | Total | Peak RSS |
+|---|---:|---:|---:|---:|---:|
+| Python callable | 2.4 s | 2.8 s | 0.15 s | 6.5 s | 799 MB |
+| OPA 1.21.0 | 2.5 s | 8.0 s | 0.17 s | 11.8 s | 965 MB |
+
+Cedar evaluates 100,000 calls per ref in about 12 s through cedarpy. CI runs the
+benchmark on every push and fails on a 1.5x regression against `bench/baseline.json`.
 
 `--engine opa` runs a pinned OPA binary (1.21.0, SHA-256 verified on
 download; override with `--opa-bin` or `PERMDIFF_OPA_BIN`).

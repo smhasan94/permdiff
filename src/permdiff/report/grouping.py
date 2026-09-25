@@ -96,22 +96,35 @@ def group_transitions(
     samples: int = DEFAULT_SAMPLES,
     include_unchanged: bool = False,
     include_attribution: bool = False,
+    principal_key: Callable[[str], str] | None = None,
+    sample_transform: Callable[[Transition], Transition] | None = None,
 ) -> tuple[Group, ...]:
-    """Groups sorted widening first, then by count descending, then label (AC-16.3)."""
+    """Groups sorted widening first, then by count descending, then label (AC-16.3).
+
+    ``principal_key`` maps principal ids for grouping (the redactor's hash) and
+    ``sample_transform`` redacts only the sampled transitions, so a 100K corpus is never
+    copied whole.
+    """
     fields = validate_group_by(by)
+    extractors = dict(GROUP_FIELDS)
+    if principal_key is not None:
+        extractors["principal"] = lambda t: principal_key(t.call.principal.id)
     buckets: dict[GroupKey, list[Transition]] = defaultdict(list)
     for t in transitions:
         if t.cls is TransitionClass.UNCHANGED and not include_unchanged:
             continue
         if t.cls is TransitionClass.ATTRIBUTION_CHANGE and not include_attribution:
             continue
-        key = GroupKey(cls=t.cls, parts=tuple((f, GROUP_FIELDS[f](t)) for f in fields))
+        key = GroupKey(cls=t.cls, parts=tuple((f, extractors[f](t)) for f in fields))
         buckets[key].append(t)
+    transform = sample_transform or (lambda t: t)
     groups = [
         Group(
             key=key,
             count=len(members),
-            samples=tuple(sorted(members, key=lambda t: t.call.id)[: max(samples, 0)]),
+            samples=tuple(
+                transform(t) for t in sorted(members, key=lambda t: t.call.id)[: max(samples, 0)]
+            ),
             reasons=_top_reasons(members),
         )
         for key, members in buckets.items()

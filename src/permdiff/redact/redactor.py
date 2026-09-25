@@ -81,6 +81,10 @@ class Redactor:
     def salt_hex(self) -> str:
         return self.salt.hex()
 
+    @property
+    def is_identity(self) -> bool:
+        return self.level is RedactLevel.NONE
+
     def principal_hash(self, principal_id: str) -> str:
         digest = hashlib.sha256(self.salt + principal_id.encode("utf-8")).hexdigest()
         return f"{PRINCIPAL_PREFIX}{digest[:PRINCIPAL_HASH_CHARS]}"

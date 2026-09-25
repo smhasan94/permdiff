@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from typing import Literal
 
 from permdiff.models import Counts, Frozen, ReportHeader, Transition, TransitionClass
@@ -29,6 +30,8 @@ class JsonReport(Frozen):
 
     permdiff_report: Literal["1"] = "1"
     header: ReportHeader
+    window: tuple[datetime, datetime] | None = None
+    """Effective time window shown in the header (from filters, else the corpus extremes)."""
     exit_code: int
     fail_on: FailOn
     gate_reason: str
@@ -59,6 +62,7 @@ def build_json_report(
     )
     return JsonReport(
         header=view.header,
+        window=view.window,
         exit_code=exit_code,
         fail_on=fail_on,
         gate_reason=gate_reason(view, fail_on),
@@ -68,7 +72,7 @@ def build_json_report(
         groups=groups,
         truncated_groups=view.truncated_groups,
         allow_widening=view.allow_widening,
-        decisions=view.transitions if include_decisions else None,
+        decisions=view.transitions if include_decisions and view.transitions else None,
     )
 
 

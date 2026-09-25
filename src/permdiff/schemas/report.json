@@ -690,6 +690,30 @@
     "truncated_groups": {
       "title": "Truncated Groups",
       "type": "integer"
+    },
+    "window": {
+      "anyOf": [
+        {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "format": "date-time",
+              "type": "string"
+            },
+            {
+              "format": "date-time",
+              "type": "string"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Window"
     }
   },
   "required": [

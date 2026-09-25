@@ -33,6 +33,7 @@ def view_from_json(report: JsonReport) -> ReportView:
         transitions=report.decisions or (),
         allow_widening=report.allow_widening,
         group_by=report.group_by,
+        window=report.window,
     )
 
 

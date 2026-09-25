@@ -35,13 +35,9 @@ def _calls(n: int) -> str:
 
 
 def _window(view: ReportView) -> str:
-    if view.header.window is not None:
-        start, end = view.header.window
-    elif view.transitions:
-        stamps = [t.call.timestamp for t in view.transitions]
-        start, end = min(stamps), max(stamps)
-    else:
+    if view.window is None:
         return ""
+    start, end = view.window
     return f" · {start.date().isoformat()} → {end.date().isoformat()}"
 
 

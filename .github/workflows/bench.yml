@@ -1,0 +1,34 @@
+name: bench
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10.2.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - uses: actions/cache@v6
+        with:
+          path: ~/.cache/permdiff
+          key: permdiff-opa-${{ runner.os }}-${{ runner.arch }}-1.21.0
+      - run: uv sync --dev
+      - run: uv run permdiff setup opa
+      - name: Benchmark 100K calls
+        run: |
+          uv run python -m bench.run --engine python --n 100000 --out bench-python.json
+          uv run python -m bench.run --engine opa --n 100000 --out bench-opa.json
+      - name: Regression gate
+        run: |
+          uv run python -m bench.gate --result bench-python.json --baseline bench/baseline.json --platform ci-linux
+          uv run python -m bench.gate --result bench-opa.json --baseline bench/baseline.json --platform ci-linux
+      - uses: actions/upload-artifact@v7
+        with:
+          name: bench-results
+          path: bench-*.json

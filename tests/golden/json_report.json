@@ -17,6 +17,10 @@
     "undefined_policy": null,
     "generated_at": "2026-09-25T12:00:00Z"
   },
+  "window": [
+    "2026-09-18T16:00:00Z",
+    "2026-09-22T11:00:00Z"
+  ],
   "exit_code": 2,
   "fail_on": "widen",
   "gate_reason": "widening found; --fail-on widen",

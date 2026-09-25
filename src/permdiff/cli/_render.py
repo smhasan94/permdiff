@@ -83,6 +83,7 @@ def emit_and_exit(ctx: click.Context, report: Report, opts: OutputOptions) -> No
         samples=opts.samples,
         max_groups=opts.max_groups,
         show_attribution=opts.show_attribution,
+        include_decisions=opts.include_decisions and opts.fmt == "json",
     )
     text = render(view, opts, exit_code=exit_code)
     if opts.output is not None:

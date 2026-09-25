@@ -30,9 +30,9 @@ from permdiff.evaluators.opa.shim import (
     SHIM_FILE,
     SHIM_PACKAGE,
     NdOverride,
-    render_cases,
     render_shim,
     validate_decision_path,
+    write_cases,
 )
 from permdiff.models import Decision, ErrorKind, Frozen, ToolCall
 
@@ -213,7 +213,7 @@ class OpaEvaluator:
             shim_path = Path(tmp) / SHIM_FILE
             cases_path = Path(tmp) / CASES_FILE
             shim_path.write_text(self._shim, encoding="utf-8")
-            cases_path.write_bytes(render_cases(calls))
+            write_cases(calls, cases_path)
             argv: list[str | Path] = [
                 self.binary,
                 "eval",

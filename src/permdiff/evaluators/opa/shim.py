@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from collections.abc import Sequence
+from pathlib import Path
 
 from permdiff.models import Frozen, ToolCall
 
@@ -88,9 +89,22 @@ def render_shim(decision_path: str, *, nd_overrides: Sequence[NdOverride] = ()) 
     return "\n".join(lines)
 
 
+def _case(call: ToolCall) -> str:
+    case = {"id": call.id, "ts_ns": timestamp_ns(call), "call": call.model_dump(mode="json")}
+    return json.dumps(case, separators=(",", ":"))
+
+
 def render_cases(calls: Sequence[ToolCall]) -> bytes:
     """``{"permdiff_cases": [{"id", "ts_ns", "call"}, ...]}`` as compact UTF-8 JSON."""
-    cases = [
-        {"id": c.id, "ts_ns": timestamp_ns(c), "call": c.model_dump(mode="json")} for c in calls
-    ]
-    return json.dumps({CASES_ROOT: cases}, separators=(",", ":")).encode("utf-8")
+    return ('{"' + CASES_ROOT + '":[' + ",".join(_case(c) for c in calls) + "]}").encode("utf-8")
+
+
+def write_cases(calls: Sequence[ToolCall], path: Path) -> None:
+    """Stream the cases document so a 100K corpus never exists twice in memory."""
+    with path.open("w", encoding="utf-8") as fh:
+        fh.write('{"' + CASES_ROOT + '":[')
+        for index, call in enumerate(calls):
+            if index:
+                fh.write(",")
+            fh.write(_case(call))
+        fh.write("]}")

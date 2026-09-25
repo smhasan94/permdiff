@@ -1,0 +1,47 @@
+{
+  "_comment": "Reference numbers for bench/gate.py. darwin-arm64: Apple M-series laptop, 2026-09-25. ci-linux: provisional (laptop x2) until captured on a green CI run; refresh by copying the bench-results artifact.",
+  "darwin-arm64": {
+    "python": {
+      "phases": {
+        "import": 2.44,
+        "diff": 2.806,
+        "report": 0.146,
+        "total": 6.501
+      },
+      "peak_rss_mb": 798.7,
+      "n": 100000
+    },
+    "opa": {
+      "phases": {
+        "import": 2.487,
+        "diff": 7.954,
+        "report": 0.174,
+        "total": 11.822
+      },
+      "peak_rss_mb": 965.2,
+      "n": 100000
+    }
+  },
+  "ci-linux": {
+    "python": {
+      "phases": {
+        "import": 4.88,
+        "diff": 5.612,
+        "report": 0.292,
+        "total": 13.002
+      },
+      "peak_rss_mb": 798.7,
+      "n": 100000
+    },
+    "opa": {
+      "phases": {
+        "import": 4.974,
+        "diff": 15.908,
+        "report": 0.348,
+        "total": 23.644
+      },
+      "peak_rss_mb": 965.2,
+      "n": 100000
+    }
+  }
+}

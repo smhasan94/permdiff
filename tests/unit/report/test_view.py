@@ -38,9 +38,20 @@ def test_view_show_attribution_adds_the_group() -> None:
 
 
 def test_view_none_level_keeps_raw_values() -> None:
-    view = build_view(sample_report(), redactor=Redactor(level=RedactLevel.NONE))
+    view = build_view(
+        sample_report(), redactor=Redactor(level=RedactLevel.NONE), include_decisions=True
+    )
 
     assert view.transitions[0].call.principal.id.startswith("sentinel-principal")
+    assert view.groups[0].samples[0].call.principal.id.startswith("sentinel-principal")
+
+
+def test_view_without_decisions_keeps_no_transitions_but_redacts_samples() -> None:
+    view = build_view(sample_report(), redactor=Redactor(salt=FIXED_SALT))
+
+    assert view.transitions == ()
+    assert view.groups[0].samples[0].call.principal.id.startswith("principal:")
+    assert view.window is not None
 
 
 def test_view_records_the_validated_group_by() -> None:

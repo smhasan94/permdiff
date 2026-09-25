@@ -18,7 +18,12 @@ GOLDEN = Path(__file__).parents[2] / "golden" / "json_report.json"
 
 
 def _render(include_decisions: bool = False, **view_kwargs: object) -> str:
-    view = build_view(sample_report(), redactor=Redactor(salt=FIXED_SALT), **view_kwargs)  # type: ignore[arg-type]
+    view = build_view(
+        sample_report(),
+        redactor=Redactor(salt=FIXED_SALT),
+        include_decisions=include_decisions,
+        **view_kwargs,  # type: ignore[arg-type]
+    )
     return render_json(
         view,
         exit_code=gate(view, FailOn.WIDEN),
@@ -39,7 +44,7 @@ def test_envelope_is_versioned_and_validates_against_shipped_schema() -> None:
     doc = json.loads(_render(include_decisions=True))
 
     jsonschema.Draft202012Validator(schemas.json_schema("report")).validate(doc)
-    assert list(doc)[:3] == ["permdiff_report", "header", "exit_code"]
+    assert list(doc)[:4] == ["permdiff_report", "header", "window", "exit_code"]
     assert doc["permdiff_report"] == "1"
     assert doc["exit_code"] == 2
     assert doc["fail_on"] == "widen"
