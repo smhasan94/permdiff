@@ -694,8 +694,10 @@ Environment variables mirror the keys (`PERMDIFF_REPORT_REDACT`) for CI.
 ## 5. Non-goals
 
 - **Not a policy decision point.** permdiff never enforces anything at runtime.
-- **Not a trace collector or store.** It reads files. Recording is the job of
-  the runtime, Custody, or your telemetry stack.
+- **Not a trace store.** It reads files. Recording is the job of the runtime,
+  Custody, or your telemetry stack; the one exception is `permdiff record
+  claude-code`, a hook command that appends Claude Code `PreToolUse` events to
+  a JSONL file and nothing more (0.3.0).
 - **Not LLM replay or evaluation.** Nothing about model outputs, prompts, or
   trajectories.
 - **Not symbolic analysis.** It reports what changes on recorded traffic, not

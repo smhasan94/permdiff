@@ -307,7 +307,9 @@ Reads OTLP/JSON (`resourceSpans`) files and JSONL (one `TracesData` per line).
   widening has zero trace hits.
 - FR-L9 Regorus backend as an optional faster OPA path.
 - FR-L10 HTML report; `permdiff serve` local viewer.
-- FR-L11 Trace recording helpers (`permdiff record` hooks).
+- FR-L11 Trace recording helper for Claude Code: `permdiff record claude-code` (the
+  `PreToolUse` hook command) and `permdiff record install claude-code`; see
+  decisions.md 2026-09-25. Not a store.
 
 ## 5. Non-functional requirements
 

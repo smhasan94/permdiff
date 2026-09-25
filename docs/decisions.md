@@ -228,3 +228,23 @@ header note, as in the OTel importer.
 
 **Rationale.** Transcripts are the fastest path to a real trace on a laptop; the hook log
 is the stable, documented input and shares the mapping, so it costs little extra.
+
+## 2026-09-25: FR-L11 scope (E9)
+
+**Question.** The overview lists "not a trace collector or store" as a non-goal, while the
+PRD keeps FR-L11 "trace recording helpers (`permdiff record` hooks)" as a later item with
+no acceptance criteria. How much recording does permdiff do?
+
+**Options.**
+1. A thin Claude Code hook (recommended): `permdiff record claude-code` reads `PreToolUse`
+   stdin, adds `ts`, appends one line to a JSONL file, always exits 0 and never writes
+   stdout; `permdiff record install claude-code` prints the `settings.json` snippet and
+   merges it only with `--write` (backup first). No store, no server, no rotation.
+2. Skip FR-L11 and keep the documented `jq` hook.
+3. A generic Python recorder API for any agent framework.
+
+**Decision.** Option 1. Epic E9. The non-goal is reworded to "not a store": the hook
+appends a file, nothing more.
+
+**Rationale.** Removes the `jq` dependency and the hand edit of `settings.json` for the
+0.2.0 quickstart's stable input, without taking on collection or storage.
