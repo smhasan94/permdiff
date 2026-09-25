@@ -43,7 +43,7 @@ def test_shim_with_nd_overrides_mocks_each_builtin() -> None:
     text = render_shim("data.p.d", nd_overrides=(NdOverride(builtin="http.send"),))
 
     assert "with http.send as permdiff_mock_http_send" in text
-    assert 'data.permdiff_nd["http.send"][json.marshal(args)]' in text
+    assert 'data.permdiff_nd["http.send"][json.marshal([a0])]' in text
     assert "permdiff-nd-miss:http.send:" in text
 
 

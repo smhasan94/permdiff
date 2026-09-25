@@ -14,14 +14,17 @@ from permdiff import _proc
 from permdiff.errors import EngineError
 from permdiff.evaluators.base import PreparedPolicy
 from permdiff.evaluators.opa.binary import resolve_binary
+from permdiff.evaluators.opa.capabilities import builtin_arity, restricted_capabilities
 from permdiff.evaluators.opa.mapping import (
     ENGINE_NAME,
     UndefinedPolicy,
     to_decision,
     undefined_decision,
 )
+from permdiff.evaluators.opa.ndcache import load_nd_cache, render_nd_data
 from permdiff.evaluators.opa.shim import (
     CASES_FILE,
+    ND_FILE,
     ND_MISS_PREFIX,
     RESULTS_RULE,
     SHIM_FILE,
@@ -46,8 +49,9 @@ class OpaOptions(Frozen):
     opa_bin: Path | None = None
     v0_compatible: bool = False
     capabilities: Path | None = None
-    nd_overrides: tuple[NdOverride, ...] = ()
-    nd_data: Path | None = None
+    """Explicit capabilities file; when unset the restricted default is generated."""
+    nd_cache: Path | None = None
+    """Recorded nondeterministic-builtin values (``nd_builtin_cache`` shape)."""
 
 
 @dataclass(frozen=True)
@@ -74,7 +78,10 @@ class OpaEvaluator:
         self.options = options or OpaOptions()
         validate_decision_path(self.options.decision)
         self._bin: Path | None = None
-        self._shim = render_shim(self.options.decision, nd_overrides=self.options.nd_overrides)
+        self._ready = False
+        self._shim = ""
+        self._capabilities: Path | None = self.options.capabilities
+        self._nd_bytes: bytes | None = None
 
     @property
     def label(self) -> str:
@@ -90,16 +97,37 @@ class OpaEvaluator:
             self._bin = resolve_binary(self.options.opa_bin)
         return self._bin
 
+    def _ensure_ready(self) -> None:
+        """Resolve the binary, load the nd-cache, build capabilities, render the shim (once)."""
+        if self._ready:
+            return
+        overrides: tuple[NdOverride, ...] = ()
+        allowed: tuple[str, ...] = ()
+        if self.options.nd_cache is not None:
+            cache = load_nd_cache(self.options.nd_cache)
+            overrides = tuple(
+                NdOverride(builtin=name, arity=builtin_arity(self.binary, name))
+                for name in cache.builtins
+            )
+            allowed = cache.builtins
+            self._nd_bytes = render_nd_data(cache)
+            log.info("nd-cache re-enables %s with recorded values", ", ".join(allowed))
+        if self._capabilities is None:
+            self._capabilities = restricted_capabilities(self.binary, allow=allowed)
+        self._shim = render_shim(self.options.decision, nd_overrides=overrides)
+        self._ready = True
+
     def _common_flags(self) -> list[str]:
         flags: list[str] = []
         if self.options.v0_compatible:
             flags.append("--v0-compatible")
-        if self.options.capabilities is not None:
-            flags += ["--capabilities", str(self.options.capabilities)]
+        if self._capabilities is not None:
+            flags += ["--capabilities", str(self._capabilities)]
         return flags
 
     def prepare(self, policy_dir: Path, *, label: str) -> PreparedPolicy:
         """``opa check`` once per ref; a failure is recorded, not raised (every call errors)."""
+        self._ensure_ready()
         argv: list[str | Path] = [self.binary, "check", "--format", "json"]
         argv += [*self._common_flags(), policy_dir]
         result = _proc.run(argv)
@@ -196,8 +224,10 @@ class OpaEvaluator:
                 "-d",
                 cases_path,
             ]
-            if self.options.nd_data is not None:
-                argv += ["-d", self.options.nd_data]
+            if self._nd_bytes is not None:
+                nd_path = Path(tmp) / ND_FILE
+                nd_path.write_bytes(self._nd_bytes)
+                argv += ["-d", nd_path]
             argv.append(f"data.{SHIM_PACKAGE}.{RESULTS_RULE}")
             result = _proc.run(argv)
         return _parse_eval_output(result, label=prepared.label)

@@ -148,3 +148,41 @@ def test_opa_diff_missing_binary_names_overrides(
 
     assert result.exit_code == 1
     assert "--opa-bin" in result.stderr
+
+
+def test_opa_diff_nd_cache_flag(
+    rego_repo: Path, traces: Path, opa_bin: Path, tmp_path: Path
+) -> None:
+    delete_rule = HEAD_REGO.splitlines()[-1]  # the github.delete_branch allow rule
+    lookup_rule = "\n".join(
+        [
+            'decision := {"effect": "allow", "rule": "delete"} if {',
+            '    input.tool.name == "github.delete_branch"',
+            '    http.send({"method": "get", "url": "https://risk.example/ok"}).status_code == 200',
+            "}",
+        ]
+    )
+    (rego_repo / "policy" / "agent.rego").write_text(
+        HEAD_REGO.replace(delete_rule, lookup_rule), encoding="utf-8"
+    )
+    nd = tmp_path / "nd.json"
+    nd.write_text(
+        json.dumps(
+            {
+                "http.send": {
+                    '[{"method":"get","url":"https://risk.example/ok"}]': {"status_code": 200}
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    without = _run(rego_repo, traces, opa_bin, "--head", "WORKTREE")
+    with_cache = _run(rego_repo, traces, opa_bin, "--head", "WORKTREE", "--nd-cache", str(nd))
+
+    assert (
+        "nondeterministic: policy at WORKTREE uses nondeterministic builtin http.send"
+        in without.stdout
+    )
+    assert with_cache.exit_code == 2, with_cache.output
+    assert "newly ALLOWED               1   github.delete_branch   ⚠ widening" in with_cache.stdout

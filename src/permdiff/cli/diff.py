@@ -64,7 +64,7 @@ def collect_output_options(kwargs: dict[str, Any]) -> OutputOptions:
     )
 
 
-ENGINE_OPTION_KEYS = ("decision", "opa_bin", "v0_compatible", "undefined")
+ENGINE_OPTION_KEYS = ("decision", "opa_bin", "v0_compatible", "undefined", "nd_cache")
 
 
 def engine_options(kwargs: dict[str, Any]) -> dict[str, Any]:
@@ -117,6 +117,12 @@ def actor() -> str:
 @click.option("--decision", default=None, help="OPA rule path, e.g. data.agent.authz.decision.")
 @click.option("--opa-bin", type=click.Path(path_type=Path), default=None, help="opa executable.")
 @click.option("--v0-compatible", is_flag=True, help="Pass --v0-compatible to opa.")
+@click.option(
+    "--nd-cache",
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    default=None,
+    help="Recorded nondeterministic builtin values (OPA nd_builtin_cache JSON).",
+)
 @click.option(
     "--undefined",
     type=click.Choice(["deny", "error"]),

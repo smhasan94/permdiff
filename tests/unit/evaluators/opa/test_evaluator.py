@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -10,6 +11,7 @@ from permdiff.errors import EngineError
 from permdiff.evaluators import registry
 from permdiff.evaluators.opa import OpaEvaluator, OpaOptions, UndefinedPolicy
 from permdiff.evaluators.opa import evaluator as evaluator_module
+from permdiff.evaluators.opa.capabilities import load_capabilities
 from permdiff.models import Effect, ErrorKind, ToolCall
 from tests.conftest import OPA_FIXTURES
 
@@ -174,3 +176,106 @@ def test_registry_rejects_bad_opa_options() -> None:
         registry.resolve("opa", decision="not-a-path")
     with pytest.raises(EngineError, match="--engine opa"):
         registry.resolve("opa", bogus=1)
+
+
+def _call_at(call_id: str, hour: int) -> ToolCall:
+    return ToolCall.model_validate(
+        {
+            "id": call_id,
+            "timestamp": datetime(2026, 9, 20, hour, tzinfo=UTC).isoformat(),
+            "principal": {"id": "p"},
+            "agent": {"id": "a"},
+            "tool": {"name": "t"},
+        }
+    )
+
+
+def test_trace_timestamp_drives_time_dependent_rules(opa: OpaEvaluator) -> None:
+    prepared = opa.prepare(OPA_FIXTURES / "hours", label="b")
+
+    day, night = opa.evaluate(prepared, [_call_at("day", 14), _call_at("night", 4)])
+
+    assert day.effect is Effect.ALLOW
+    assert night.effect is Effect.REQUIRE_APPROVAL
+
+
+def test_denied_builtin_makes_every_call_nondeterministic(opa: OpaEvaluator) -> None:
+    prepared = opa.prepare(OPA_FIXTURES / "http", label="head")
+
+    d = opa.evaluate(prepared, [_call("1", "t"), _call("2", "t")])
+
+    assert all(x.error_kind is ErrorKind.NONDETERMINISTIC for x in d)
+    assert "http.send" in d[0].reasons[0]
+    assert "head" in d[0].reasons[0]
+
+
+def _nd_file(tmp_path: Path, payload: dict[str, Any]) -> Path:
+    path = tmp_path / "nd.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path
+
+
+def test_nd_cache_replays_recorded_http_response(opa_bin: Path, tmp_path: Path) -> None:
+    nd = _nd_file(
+        tmp_path,
+        {
+            "http.send": {
+                '[{"method":"get","url":"https://risk.example/score"}]': {"body": {"score": 10}}
+            }
+        },
+    )
+    opa = OpaEvaluator(OpaOptions(opa_bin=opa_bin, nd_cache=nd))
+    prepared = opa.prepare(OPA_FIXTURES / "http", label="b")
+
+    (d,) = opa.evaluate(prepared, [_call("1", "t")])
+
+    assert d.effect is Effect.ALLOW
+    assert d.reasons == ("low risk",)
+
+
+def test_nd_cache_miss_is_nondeterministic_and_names_the_lookup(
+    opa_bin: Path, tmp_path: Path
+) -> None:
+    nd = _nd_file(
+        tmp_path, {"http.send": {'[{"method":"get","url":"https://other"}]': {"body": {}}}}
+    )
+    opa = OpaEvaluator(OpaOptions(opa_bin=opa_bin, nd_cache=nd))
+    prepared = opa.prepare(OPA_FIXTURES / "http", label="b")
+
+    (d,) = opa.evaluate(prepared, [_call("1", "t")])
+
+    assert d.error_kind is ErrorKind.NONDETERMINISTIC
+    assert "missing from --nd-cache" in d.reasons[0]
+    assert "risk.example" in d.reasons[0]
+
+
+def test_nd_cache_two_argument_builtin(opa_bin: Path, tmp_path: Path) -> None:
+    nd = _nd_file(tmp_path, {"rand.intn": {'["dice", 6]': 5}})
+    opa = OpaEvaluator(OpaOptions(opa_bin=opa_bin, nd_cache=nd))
+    prepared = opa.prepare(OPA_FIXTURES / "rand", label="b")
+
+    (d,) = opa.evaluate(prepared, [_call("1", "t")])
+
+    assert d.effect is Effect.ALLOW
+    assert d.reasons == ("lucky",)
+
+
+def test_nd_cache_does_not_unlock_other_denied_builtins(opa_bin: Path, tmp_path: Path) -> None:
+    nd = _nd_file(tmp_path, {"rand.intn": {'["dice", 6]': 5}})
+    opa = OpaEvaluator(OpaOptions(opa_bin=opa_bin, nd_cache=nd))
+    prepared = opa.prepare(OPA_FIXTURES / "http", label="b")
+
+    (d,) = opa.evaluate(prepared, [_call("1", "t")])
+
+    assert d.error_kind is ErrorKind.NONDETERMINISTIC
+    assert "http.send" in d.reasons[0]
+
+
+def test_explicit_capabilities_file_is_used_as_is(opa_bin: Path, tmp_path: Path) -> None:
+    full = tmp_path / "full.json"
+    full.write_text(json.dumps(load_capabilities(opa_bin)), encoding="utf-8")
+    opa = OpaEvaluator(OpaOptions(opa_bin=opa_bin, capabilities=full))
+
+    prepared = opa.prepare(OPA_FIXTURES / "http", label="b")
+
+    assert prepared.compile_error is None  # type: ignore[attr-defined]

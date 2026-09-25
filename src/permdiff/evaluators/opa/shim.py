@@ -15,19 +15,33 @@ RESULTS_RULE = "results"
 ND_MISS_PREFIX = "permdiff-nd-miss:"
 SHIM_FILE = "permdiff_shim.rego"
 CASES_FILE = "permdiff_cases.json"
+ND_FILE = "permdiff_nd.json"
 
 _DECISION_PATH = re.compile(r"^data(\.[A-Za-z_][A-Za-z0-9_]*)+$")
 _NS_PER_S = 1_000_000_000
 
 
 class NdOverride(Frozen):
-    """One builtin replaced by a lookup into ``data.permdiff_nd[builtin]`` keyed by args."""
+    """One builtin replaced by a lookup into ``data.permdiff_nd[builtin]`` keyed by its args."""
 
     builtin: str
+    arity: int = 1
 
     @property
     def mock_name(self) -> str:
         return "permdiff_mock_" + self.builtin.replace(".", "_")
+
+    @property
+    def params(self) -> str:
+        return ", ".join(f"a{i}" for i in range(self.arity))
+
+    @property
+    def head(self) -> str:
+        return f"{self.mock_name}({self.params})" if self.arity else self.mock_name
+
+    @property
+    def key_expr(self) -> str:
+        return f"json.marshal([{self.params}])"
 
 
 def validate_decision_path(path: str) -> str:
@@ -48,14 +62,15 @@ def render_shim(decision_path: str, *, nd_overrides: Sequence[NdOverride] = ()) 
     withs = " ".join(f"with {o.builtin} as {o.mock_name}" for o in nd_overrides)
     lines = [f"package {SHIM_PACKAGE}", "", "import rego.v1", ""]
     for o in nd_overrides:
+        table = f'data.{ND_ROOT}["{o.builtin}"]'
         lines += [
-            f"{o.mock_name}(args) := resp if {{",
-            f'    resp := data.{ND_ROOT}["{o.builtin}"][json.marshal(args)]',
+            f"{o.head} := resp if {{",
+            f"    resp := {table}[{o.key_expr}]",
             "}",
             "",
-            f"{o.mock_name}(args) := resp if {{",
-            f'    not data.{ND_ROOT}["{o.builtin}"][json.marshal(args)]',
-            f'    key := concat("", ["{ND_MISS_PREFIX}{o.builtin}:", json.marshal(args)])',
+            f"{o.head} := resp if {{",
+            f"    not {table}[{o.key_expr}]",
+            f'    key := concat("", ["{ND_MISS_PREFIX}{o.builtin}:", {o.key_expr}])',
             "    resp := to_number(key)",
             "}",
             "",
