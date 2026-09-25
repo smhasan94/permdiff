@@ -3,11 +3,22 @@
 from __future__ import annotations
 
 from enum import StrEnum
+from typing import Protocol
 
 from permdiff.errors import EXIT_GATE, EXIT_OK, EXIT_TOOL_ERROR
-from permdiff.models import CHANGE_CLASSES, Report, TransitionClass
+from permdiff.models import CHANGE_CLASSES, Counts, TransitionClass
 
 __all__ = ["EXIT_GATE", "EXIT_OK", "EXIT_TOOL_ERROR", "FailOn", "gate", "gate_reason"]
+
+
+class Gateable(Protocol):
+    """What the gate reads: a ``Report`` or a ``ReportView``."""
+
+    @property
+    def counts(self) -> Counts: ...
+
+    @property
+    def allow_widening(self) -> tuple[str, str] | None: ...
 
 
 class FailOn(StrEnum):
@@ -17,7 +28,7 @@ class FailOn(StrEnum):
     NONE = "none"
 
 
-def _matched_classes(report: Report, fail_on: FailOn) -> tuple[TransitionClass, ...]:
+def _matched_classes(report: Gateable, fail_on: FailOn) -> tuple[TransitionClass, ...]:
     """Classes with a non-zero count that ``fail_on`` cares about, honoring ``--allow-widening``."""
     if fail_on is FailOn.NONE:
         return ()
@@ -33,12 +44,12 @@ def _matched_classes(report: Report, fail_on: FailOn) -> tuple[TransitionClass, 
     return tuple(matched)
 
 
-def gate(report: Report, fail_on: FailOn) -> int:
+def gate(report: Gateable, fail_on: FailOn) -> int:
     """``EXIT_GATE`` when the report matches ``fail_on``, else ``EXIT_OK`` (AC-22.1, AC-22.3)."""
     return EXIT_GATE if _matched_classes(report, fail_on) else EXIT_OK
 
 
-def gate_reason(report: Report, fail_on: FailOn) -> str:
+def gate_reason(report: Gateable, fail_on: FailOn) -> str:
     """Footer sentence such as ``widening found; --fail-on widen``."""
     matched = _matched_classes(report, fail_on)
     if matched:

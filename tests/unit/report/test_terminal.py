@@ -11,6 +11,7 @@ from permdiff.models import Report
 from permdiff.redact import Redactor
 from permdiff.report.exit_codes import EXIT_GATE, EXIT_OK, FailOn, gate
 from permdiff.report.terminal import render_terminal
+from permdiff.report.view import ReportView, build_view
 from tests.redaction_harness import SENTINELS, assert_no_sentinels
 from tests.report_fixtures import FIXED_SALT, sample_report
 
@@ -25,8 +26,9 @@ def _check_golden(name: str, actual: str) -> None:
     assert actual == expected, f"{name} differs; rerun with UPDATE_GOLDEN=1 to accept"
 
 
-def _redacted(report: Report | None = None) -> Report:
-    return Redactor(salt=FIXED_SALT, show_principal=True).report(report or sample_report())
+def _redacted(report: Report | None = None, **kwargs: object) -> ReportView:
+    redactor = Redactor(salt=FIXED_SALT, show_principal=True)
+    return build_view(report or sample_report(), redactor=redactor, **kwargs)  # type: ignore[arg-type]
 
 
 def test_full_output_matches_golden() -> None:
@@ -69,7 +71,7 @@ def test_safe_output_leaks_no_sentinels_except_terminal_principal() -> None:
 
 
 def test_hashed_principal_when_not_shown() -> None:
-    report = Redactor(salt=FIXED_SALT).report(sample_report())
+    report = build_view(sample_report(), redactor=Redactor(salt=FIXED_SALT))
 
     out = render_terminal(report, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN)
 
@@ -89,12 +91,15 @@ def test_footer_reflects_allow_widening_and_exit_zero() -> None:
 
 
 def test_worktree_head_is_labelled(tmp_path: Path) -> None:
-    report = _redacted().model_copy(
-        update={
-            "header": sample_report().header.model_copy(
-                update={"head_label": "WORKTREE", "head_sha": None, "is_worktree": True}
-            )
-        }
+    raw = sample_report()
+    report = _redacted(
+        raw.model_copy(
+            update={
+                "header": raw.header.model_copy(
+                    update={"head_label": "WORKTREE", "head_sha": None, "is_worktree": True}
+                )
+            }
+        )
     )
 
     out = render_terminal(report, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN, quiet=True)
@@ -109,7 +114,7 @@ def test_empty_report_renders_without_window() -> None:
         update={"counts": empty.counts.model_copy(update={"evaluated": 0, "by_class": {}})}
     )
 
-    out = render_terminal(empty, exit_code=EXIT_OK, fail_on=FailOn.WIDEN)
+    out = render_terminal(_redacted(empty), exit_code=EXIT_OK, fail_on=FailOn.WIDEN)
 
     assert "(0 calls)" in out
     assert "unchanged" in out
@@ -117,28 +122,39 @@ def test_empty_report_renders_without_window() -> None:
 
 @pytest.mark.parametrize("samples", [1, 3])
 def test_more_marker_when_group_exceeds_samples(samples: int) -> None:
-    out = render_terminal(_redacted(), exit_code=EXIT_GATE, fail_on=FailOn.WIDEN, samples=samples)
+    out = render_terminal(_redacted(samples=samples), exit_code=EXIT_GATE, fail_on=FailOn.WIDEN)
 
     assert ("… 2 more" in out) == (samples == 1)
 
 
 def test_footer_shows_filtered_count_and_header_window() -> None:
-    base = _redacted()
-    report = base.model_copy(
-        update={
-            "counts": base.counts.model_copy(update={"filtered": 5, "skipped": 0}),
-            "header": base.header.model_copy(
-                update={
-                    "window": (
-                        datetime(2026, 9, 1, tzinfo=UTC),
-                        datetime(2026, 9, 30, tzinfo=UTC),
-                    )
-                }
-            ),
-        }
+    base = sample_report()
+    report = _redacted(
+        base.model_copy(
+            update={
+                "counts": base.counts.model_copy(update={"filtered": 5, "skipped": 0}),
+                "header": base.header.model_copy(
+                    update={
+                        "window": (
+                            datetime(2026, 9, 1, tzinfo=UTC),
+                            datetime(2026, 9, 30, tzinfo=UTC),
+                        )
+                    }
+                ),
+            }
+        )
     )
 
     out = render_terminal(report, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN, quiet=True)
 
     assert "imported 17, filtered 5" in out
     assert "2026-09-01 → 2026-09-30" in out
+
+
+def test_truncation_note_and_multi_field_labels() -> None:
+    out = render_terminal(
+        _redacted(max_groups=1, by=("tool", "agent")), exit_code=EXIT_GATE, fail_on=FailOn.WIDEN
+    )
+
+    assert "widening  tool=github.delete_branch, agent=support-bot  (2 calls)" in out
+    assert "… 4 more groups (--max-groups)" in out

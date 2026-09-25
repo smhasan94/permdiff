@@ -235,3 +235,13 @@ def test_terminal_format_shows_principal_and_hashes_are_reserved_for_other_forma
 
     assert terminal.show_principal
     assert not markdown.show_principal
+
+
+def test_group_by_and_show_attribution_flags(run: Run) -> None:
+    result = run("--group-by", "agent,tool", "--max-groups", "1")
+    bad = run("--group-by", "nope")
+
+    assert "widening  agent=bot, tool=stripe.refund  (1 call)" in result.stdout
+    assert "more groups (--max-groups)" in result.stdout
+    assert bad.exit_code == 1
+    assert "--group-by" in bad.stderr

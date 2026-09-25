@@ -10,8 +10,8 @@ import click
 
 from permdiff.models import Report
 from permdiff.redact import RedactLevel, Redactor
-from permdiff.report import FailOn, gate, render_terminal
-from permdiff.report.grouping import DEFAULT_SAMPLES
+from permdiff.report import FailOn, build_view, gate, render_terminal
+from permdiff.report.grouping import DEFAULT_GROUP_BY, DEFAULT_MAX_GROUPS, DEFAULT_SAMPLES
 
 FORMATS = ("terminal",)
 PRINCIPAL_SHOWN_IN = frozenset({"terminal"})
@@ -25,6 +25,9 @@ class OutputOptions:
     show_args: frozenset[str]
     fmt: str = "terminal"
     samples: int = DEFAULT_SAMPLES
+    group_by: tuple[str, ...] = DEFAULT_GROUP_BY
+    max_groups: int = DEFAULT_MAX_GROUPS
+    show_attribution: bool = False
     quiet: bool = False
     no_color: bool = False
 
@@ -50,13 +53,20 @@ def emit_and_exit(ctx: click.Context, report: Report, opts: OutputOptions) -> No
         show_principal=opts.show_principal,
     )
     exit_code = gate(report, opts.fail_on)
+    view = build_view(
+        report,
+        redactor=redactor,
+        by=opts.group_by,
+        samples=opts.samples,
+        max_groups=opts.max_groups,
+        show_attribution=opts.show_attribution,
+    )
     text = render_terminal(
-        redactor.report(report),
+        view,
         exit_code=exit_code,
         fail_on=opts.fail_on,
         quiet=opts.quiet,
         color=use_color(opts.no_color),
-        samples=opts.samples,
     )
     click.echo(text, nl=False)
     ctx.exit(exit_code)

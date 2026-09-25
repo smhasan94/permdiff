@@ -15,7 +15,13 @@ from permdiff.errors import ConfigError, ProcError
 from permdiff.models.limits import DEFAULT_MAX_RECORDS
 from permdiff.redact import RedactLevel
 from permdiff.report import FailOn
-from permdiff.report.grouping import DEFAULT_SAMPLES
+from permdiff.report.grouping import (
+    DEFAULT_GROUP_BY,
+    DEFAULT_MAX_GROUPS,
+    DEFAULT_SAMPLES,
+    GROUP_FIELDS,
+    validate_group_by,
+)
 
 DEFAULT_BASE = "origin/main"
 DEFAULT_HEAD = "HEAD"
@@ -42,6 +48,14 @@ def output_flags(fn: F) -> F:
         ),
         click.option("--show-args", default="", help="Comma-separated argument keys to reveal."),
         click.option("--samples", type=int, default=DEFAULT_SAMPLES, show_default=True),
+        click.option(
+            "--group-by",
+            default=",".join(DEFAULT_GROUP_BY),
+            show_default=True,
+            help=f"Comma-separated fields: {', '.join(GROUP_FIELDS)}.",
+        ),
+        click.option("--max-groups", type=int, default=DEFAULT_MAX_GROUPS, show_default=True),
+        click.option("--show-attribution", is_flag=True, help="Also list attribution changes."),
         click.option("--salt", "salt_hex", metavar="HEX", help="Fixed principal-hash salt."),
         click.option("--quiet", is_flag=True, help="Print only the summary block."),
         click.option("--no-color", is_flag=True, help="Disable ANSI colors."),
@@ -59,6 +73,9 @@ def collect_output_options(kwargs: dict[str, Any]) -> OutputOptions:
         redact=RedactLevel(kwargs.pop("redact")),
         show_args=parse_show_args(kwargs.pop("show_args")),
         samples=kwargs.pop("samples"),
+        group_by=validate_group_by(kwargs.pop("group_by").split(",")),
+        max_groups=kwargs.pop("max_groups"),
+        show_attribution=kwargs.pop("show_attribution"),
         quiet=kwargs.pop("quiet"),
         no_color=kwargs.pop("no_color"),
     )

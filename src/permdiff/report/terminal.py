@@ -8,10 +8,10 @@ from io import StringIO
 from rich.console import Console
 from rich.markup import escape
 
-from permdiff.models import Report, Transition, TransitionClass
+from permdiff.models import Transition, TransitionClass
 from permdiff.report.exit_codes import EXIT_GATE, FailOn, gate_reason
-from permdiff.report.grouping import DEFAULT_SAMPLES, Group, group_transitions
-from permdiff.report.summary import summary_rows
+from permdiff.report.grouping import Group
+from permdiff.report.view import ReportView
 
 DEFAULT_WIDTH = 100
 _LABEL_WIDTH = 22
@@ -35,13 +35,12 @@ _CLASS_STYLE: dict[TransitionClass, str] = {
 
 
 def render_terminal(
-    report: Report,
+    view: ReportView,
     *,
     exit_code: int,
     fail_on: FailOn,
     quiet: bool = False,
     color: bool = False,
-    samples: int = DEFAULT_SAMPLES,
     width: int = DEFAULT_WIDTH,
 ) -> str:
     """Render to a string. ``color`` false emits plain text (``--no-color`` / ``NO_COLOR``)."""
@@ -54,12 +53,14 @@ def render_terminal(
         highlight=False,
         soft_wrap=True,
     )
-    _print_header(console, report)
-    _print_summary(console, report)
+    _print_header(console, view)
+    _print_summary(console, view)
     if not quiet:
-        for group in group_transitions(report.transitions, samples=samples):
+        for group in view.groups:
             _print_group(console, group)
-    _print_footer(console, report, exit_code=exit_code, fail_on=fail_on)
+        if view.truncated_groups:
+            console.print(f"\n[dim]… {view.truncated_groups:,} more groups (--max-groups)[/dim]")
+    _print_footer(console, view, exit_code=exit_code, fail_on=fail_on)
     out = console.file
     assert isinstance(out, StringIO)  # noqa: S101  # console was built on a StringIO above
     return out.getvalue()
@@ -69,7 +70,7 @@ def _calls(n: int) -> str:
     return f"{n:,} call{'' if n == 1 else 's'}"
 
 
-def _window(report: Report) -> str:
+def _window(report: ReportView) -> str:
     if report.header.window is not None:
         start, end = report.header.window
     elif report.transitions:
@@ -80,7 +81,7 @@ def _window(report: Report) -> str:
     return f", {start.date().isoformat()} → {end.date().isoformat()}"
 
 
-def _print_header(console: Console, report: Report) -> None:
+def _print_header(console: Console, report: ReportView) -> None:
     h = report.header
     console.print(
         f"[bold]permdiff:[/bold] {escape(h.base_label)} → {escape(h.head_label)}   "
@@ -97,8 +98,8 @@ def _print_header(console: Console, report: Report) -> None:
     console.print(f"[dim]  {'  '.join(parts)}[/dim]")
 
 
-def _print_summary(console: Console, report: Report) -> None:
-    for row in summary_rows(report):
+def _print_summary(console: Console, report: ReportView) -> None:
+    for row in report.summary:
         style = "bold red" if row.is_widening else ("dim" if row.label == "unchanged" else "")
         label = f"{row.label:<{_LABEL_WIDTH}}"
         count = f"{row.count:>{_COUNT_WIDTH},}"
@@ -121,7 +122,7 @@ def _print_group(console: Console, group: Group) -> None:
     style = _CLASS_STYLE[group.cls]
     console.print()
     console.print(
-        f"[{style}]{CLASS_LABEL[group.cls]}[/{style}]  [bold]{escape(group.key)}[/bold]  "
+        f"[{style}]{CLASS_LABEL[group.cls]}[/{style}]  [bold]{escape(group.label)}[/bold]  "
         f"({_calls(group.count)})   {escape(group.effects)}"
     )
     for sample in group.samples:
@@ -130,7 +131,7 @@ def _print_group(console: Console, group: Group) -> None:
         console.print(f"    [dim]… {group.count - len(group.samples):,} more[/dim]")
 
 
-def _print_footer(console: Console, report: Report, *, exit_code: int, fail_on: FailOn) -> None:
+def _print_footer(console: Console, report: ReportView, *, exit_code: int, fail_on: FailOn) -> None:
     c = report.counts
     console.print()
     extras = []

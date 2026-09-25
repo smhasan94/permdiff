@@ -11,12 +11,15 @@ from permdiff.report.exit_codes import (
     gate_reason,
 )
 from permdiff.report.terminal import render_terminal
+from permdiff.report.view import ReportView, build_view
 
 __all__ = [
     "EXIT_GATE",
     "EXIT_OK",
     "EXIT_TOOL_ERROR",
     "FailOn",
+    "ReportView",
+    "build_view",
     "gate",
     "gate_reason",
     "render_terminal",
