@@ -32,8 +32,21 @@ Python 3.11 or newer.
 
 ## Quickstart
 
+**1. Try it on the bundled example (30 seconds).**
+
 ```
-permdiff --version
+permdiff demo
+```
+
+This diffs two bundled policy versions over a synthetic 200-call corpus and
+prints one widening group (`github.delete_branch` newly allowed outside
+prod), two tightening groups, and a can't-evaluate group where the new policy
+needs a `department` attribute the traces lack. It exits `2` because a
+widening was found. Nothing is downloaded and no network is used.
+
+**2. Point it at your own policy and traces.**
+
+```
 permdiff diff --base origin/main --head HEAD --policy policy/ \
               --engine python:authz.permdiff_adapter:evaluate \
               --traces traces/*.jsonl
@@ -44,7 +57,12 @@ summary block above. Exit code `2` means the run matched `--fail-on`
 (`widen` by default), `1` means permdiff itself failed, `0` means nothing
 matched. `--head WORKTREE` uses the uncommitted policy in your working tree.
 
-More arrives with each story. The design is in `docs/01-overview.md`.
+Traces are JSONL, one `ToolCall` per line; `permdiff schema toolcall` prints
+the JSON Schema. Reports redact argument values by default; `--show-args`
+reveals named keys and `--redact none` shows everything for local use.
+
+OPA and Cedar engines, markdown/JSON/SARIF output, and the GitHub Action
+arrive in the next epics. The design is in `docs/01-overview.md`.
 
 ## Engines
 

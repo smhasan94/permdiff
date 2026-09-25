@@ -214,10 +214,10 @@ def test_empty_salt_is_a_config_error(run: Run) -> None:
 
 def test_actor_falls_back_to_git_then_unknown(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("GITHUB_ACTOR", raising=False)
-    assert isinstance(diff_module._actor(), str)
+    assert isinstance(diff_module.actor(), str)
 
     def _raise(*args: object, **kwargs: object) -> None:
         raise OSError("no git")
 
     monkeypatch.setattr("subprocess.run", _raise)
-    assert diff_module._actor() == "unknown"
+    assert diff_module.actor() == "unknown"

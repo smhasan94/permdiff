@@ -9,7 +9,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 
 | Epic | Title | Status |
 |---|---|---|
-| E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | in progress |
+| E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | done |
 | E2 | OPA evaluator | todo |
 | E3 | Reporting, grouping, config | todo |
 | E4 | GitHub Action | todo |
@@ -39,7 +39,7 @@ subset), FR-18, FR-22, FR-24, FR-27 (initial). NFR-C1, NFR-D, NFR-Q, NFR-L.
 | E1-S7 | Redaction core | done |
 | E1-S8 | Terminal reporter and exit codes | done |
 | E1-S9 | `permdiff diff` CLI wiring | done |
-| E1-S10 | `permdiff demo` and README quickstart | in progress |
+| E1-S10 | `permdiff demo` and README quickstart | done |
 
 **E1-S1 Package skeleton and tooling.** FR: none directly; NFR-C1, NFR-D,
 NFR-Q, NFR-L. Deps: none.

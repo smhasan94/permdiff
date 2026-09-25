@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E1, [02-prd.md](../02-prd.md)
 **Complexity**: Large (10 stories, sets every convention)
-**Status**: in progress since 2026-09-25 (S1-S9 done)
+**Status**: done 2026-09-25; review pending
 
 ## Summary
 
@@ -270,7 +270,7 @@ scripts/quickstart_check.sh
 
 ## Acceptance
 
-- [ ] All ten stories done and marked in `03-epics.md`
-- [ ] Validation commands green on CI
-- [ ] `pip install .` in a clean venv, then `permdiff demo` prints a report with exit 2
-- [ ] `permdiff diff` on a real repo with a Python policy works end to end
+- [x] All ten stories done and marked in `03-epics.md`
+- [ ] Validation commands green on CI (local run green; CI not yet observed)
+- [x] `pip install .` in a clean venv, then `permdiff demo` prints a report with exit 2
+- [x] `permdiff diff` on a real repo with a Python policy works end to end

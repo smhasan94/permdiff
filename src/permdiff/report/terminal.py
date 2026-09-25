@@ -86,12 +86,15 @@ def _print_header(console: Console, report: Report) -> None:
         f"[bold]permdiff:[/bold] {escape(h.base_label)} → {escape(h.head_label)}   "
         f"({_calls(report.counts.evaluated)}{_window(report)})"
     )
-    base = (h.base_sha or "-")[:12]
-    head = "WORKTREE" if h.is_worktree else (h.head_sha or "-")[:12]
-    console.print(
-        f"[dim]  base {base}  head {head}  policy {escape(h.policy_path)}  "
-        f"engine {escape(h.engine)}[/dim]"
-    )
+    parts = []
+    if h.base_sha:
+        parts.append(f"base {h.base_sha[:12]}")
+    if h.is_worktree:
+        parts.append("head WORKTREE")
+    elif h.head_sha:
+        parts.append(f"head {h.head_sha[:12]}")
+    parts += [f"policy {escape(h.policy_path)}", f"engine {escape(h.engine)}"]
+    console.print(f"[dim]  {'  '.join(parts)}[/dim]")
 
 
 def _print_summary(console: Console, report: Report) -> None:

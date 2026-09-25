@@ -9,6 +9,7 @@ from typing import Any
 import click
 
 from permdiff import __version__
+from permdiff.cli.demo import demo_cmd
 from permdiff.cli.diff import diff_cmd
 from permdiff.cli.schema import schema_cmd
 from permdiff.errors import EXIT_GATE, EXIT_TOOL_ERROR, PermdiffError
@@ -63,3 +64,4 @@ def cli(ctx: click.Context, verbose: bool, debug: bool) -> None:
 
 cli.add_command(schema_cmd)
 cli.add_command(diff_cmd)
+cli.add_command(demo_cmd)

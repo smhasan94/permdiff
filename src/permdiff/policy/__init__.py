@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from permdiff.policy.source import (
     WORKTREE,
+    DirectorySource,
     GitRefSource,
     MaterializedPolicy,
     PolicySource,
@@ -13,6 +14,7 @@ from permdiff.policy.source import (
 
 __all__ = [
     "WORKTREE",
+    "DirectorySource",
     "GitRefSource",
     "MaterializedPolicy",
     "PolicySource",

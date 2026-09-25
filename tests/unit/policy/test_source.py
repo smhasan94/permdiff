@@ -8,7 +8,13 @@ from pathlib import Path
 import pytest
 
 from permdiff.errors import PolicyError
-from permdiff.policy.source import GitRefSource, MaterializedPolicy, WorktreeSource, source_for
+from permdiff.policy.source import (
+    DirectorySource,
+    GitRefSource,
+    MaterializedPolicy,
+    WorktreeSource,
+    source_for,
+)
 from tests.conftest import GitRepo
 
 
@@ -121,3 +127,19 @@ def test_worktree_source_copies_a_single_policy_file(git_repo: GitRepo) -> None:
     with src.materialize() as m:
         assert m.path.is_file()
         assert json.loads(m.path.read_text(encoding="utf-8")) == git_repo.head_rules
+
+
+def test_directory_source_uses_the_path_as_is(git_repo: GitRepo, tmp_path: Path) -> None:
+    src = DirectorySource(git_repo.path / "policy", "bundled")
+
+    with src.materialize() as m:
+        assert m.path == git_repo.path / "policy"
+        assert m.label == src.label == "bundled"
+        assert m.sha is None
+        assert not m.is_worktree
+
+    with (
+        pytest.raises(PolicyError, match="does not exist"),
+        DirectorySource(tmp_path / "missing", "x").materialize(),
+    ):
+        pass

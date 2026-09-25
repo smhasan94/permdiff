@@ -100,6 +100,25 @@ class WorktreeSource:
             yield MaterializedPolicy(path=dest, sha=None, label=WORKTREE, is_worktree=True)
 
 
+class DirectorySource:
+    """A policy directory used as-is (bundled demo fixtures, tests). No git, no copy."""
+
+    def __init__(self, path: Path, label: str) -> None:
+        self._path = path
+        self._label = label
+
+    @property
+    def label(self) -> str:
+        return self._label
+
+    @contextmanager
+    def materialize(self, *, keep: bool = False) -> Iterator[MaterializedPolicy]:
+        if not self._path.exists():
+            msg = f"policy path {self._path} does not exist"
+            raise PolicyError(msg)
+        yield MaterializedPolicy(path=self._path, sha=None, label=self._label, is_worktree=False)
+
+
 def source_for(repo: Path, ref: str, policy_path: str) -> PolicySource:
     """``WORKTREE`` selects the live tree; anything else is a git ref."""
     if ref == WORKTREE:

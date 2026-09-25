@@ -16,7 +16,7 @@ from permdiff.importers import registry as importers
 from permdiff.importers.base import ImportResult, ImportStats
 from permdiff.models import Counts, Report, ReportHeader, ToolCall
 from permdiff.models.limits import DEFAULT_MAX_RECORDS
-from permdiff.policy import source_for
+from permdiff.policy import PolicySource, source_for
 from permdiff.redact import new_salt
 from permdiff.replay import replay
 
@@ -89,12 +89,44 @@ def diff(
 
     Apply a ``Redactor`` built with the same ``salt`` before rendering.
     """
+    return diff_sources(
+        traces=traces,
+        base=source_for(repo, base, policy),
+        head=source_for(repo, head, policy),
+        policy_path=policy,
+        engine=engine,
+        engine_options=engine_options,
+        salt=salt,
+        verify_deterministic=verify_deterministic,
+        keep_temp=keep_temp,
+        import_stats=import_stats,
+        filtered=filtered,
+        allow_widening=allow_widening,
+    )
+
+
+def diff_sources(
+    *,
+    traces: Sequence[ToolCall],
+    base: PolicySource,
+    head: PolicySource,
+    policy_path: str,
+    engine: str,
+    engine_options: Mapping[str, Any] | None = None,
+    salt: bytes | None = None,
+    verify_deterministic: bool = False,
+    keep_temp: bool = False,
+    import_stats: ImportStats | None = None,
+    filtered: int = 0,
+    allow_widening: tuple[str, str] | None = None,
+) -> Report:
+    """``diff`` over explicit policy sources (git refs, the worktree, or plain directories)."""
     evaluator = engines.resolve(engine, **dict(engine_options or {}))
     run_salt = salt if salt is not None else new_salt()
     started = time.perf_counter()
     with (
-        source_for(repo, base, policy).materialize(keep=keep_temp) as base_policy,
-        source_for(repo, head, policy).materialize(keep=keep_temp) as head_policy,
+        base.materialize(keep=keep_temp) as base_policy,
+        head.materialize(keep=keep_temp) as head_policy,
     ):
         log.info("materialized policies in %.2fs", time.perf_counter() - started)
         started = time.perf_counter()
@@ -114,7 +146,7 @@ def diff(
             head_label=head_policy.label,
             head_sha=head_policy.sha,
             is_worktree=head_policy.is_worktree,
-            policy_path=policy,
+            policy_path=policy_path,
             engine=evaluator.name,
             window=_window(traces),
             salt=run_salt.hex(),
