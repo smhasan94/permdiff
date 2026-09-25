@@ -8,6 +8,7 @@ import sys
 import click
 
 from permdiff import __version__
+from permdiff.cli.schema import schema_cmd
 from permdiff.errors import PermdiffError
 
 PACKAGE_LOGGER = "permdiff"
@@ -32,6 +33,9 @@ def cli(ctx: click.Context, verbose: bool, debug: bool) -> None:
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose
     ctx.obj["debug"] = debug
+
+
+cli.add_command(schema_cmd)
 
 
 def main() -> int:

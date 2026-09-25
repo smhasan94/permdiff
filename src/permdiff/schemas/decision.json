@@ -1,0 +1,75 @@
+{
+  "$defs": {
+    "Effect": {
+      "enum": [
+        "allow",
+        "deny",
+        "require_approval",
+        "error"
+      ],
+      "title": "Effect",
+      "type": "string"
+    },
+    "ErrorKind": {
+      "enum": [
+        "missing_context",
+        "nondeterministic",
+        "eval_error",
+        "unsupported"
+      ],
+      "title": "ErrorKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://permdiff.dev/schemas/v1/decision.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "One engine verdict for one call.\n\n``effect == error`` always carries an ``error_kind``; other effects never do.",
+  "properties": {
+    "call_id": {
+      "title": "Call Id",
+      "type": "string"
+    },
+    "determining": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Determining",
+      "type": "array"
+    },
+    "effect": {
+      "$ref": "#/$defs/Effect"
+    },
+    "engine": {
+      "title": "Engine",
+      "type": "string"
+    },
+    "error_kind": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/ErrorKind"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "reasons": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Reasons",
+      "type": "array"
+    }
+  },
+  "required": [
+    "call_id",
+    "effect",
+    "engine"
+  ],
+  "title": "Decision",
+  "type": "object"
+}
