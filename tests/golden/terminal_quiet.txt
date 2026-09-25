@@ -1,0 +1,12 @@
+permdiff: origin/main → HEAD   (14 calls, 2026-09-18 → 2026-09-22)
+  base 0123456789ab  head 89abcdef0123  policy policy  engine opa
+  newly DENIED                3   aws.ec2.terminate_instance
+  newly ALLOWED               2   github.delete_branch   ⚠ widening
+  now REQUIRE_APPROVAL        2   stripe.refund   ⚠ widening
+  attribution changed         1   github.read
+  can't evaluate              2   missing context: principal.department
+  unchanged                   4
+
+imported 17, skipped 3 malformed
+recorded decisions disagree with base on 1 call (base ref may not be the deployed policy)
+exit 2 (widening found; --fail-on widen)

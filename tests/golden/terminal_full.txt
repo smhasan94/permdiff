@@ -1,0 +1,31 @@
+permdiff: origin/main → HEAD   (14 calls, 2026-09-18 → 2026-09-22)
+  base 0123456789ab  head 89abcdef0123  policy policy  engine opa
+  newly DENIED                3   aws.ec2.terminate_instance
+  newly ALLOWED               2   github.delete_branch   ⚠ widening
+  now REQUIRE_APPROVAL        2   stripe.refund   ⚠ widening
+  attribution changed         1   github.read
+  can't evaluate              2   missing context: principal.department
+  unchanged                   4
+
+widening  github.delete_branch  (2 calls)   deny → allow
+    call-001  sentinel-principal-9b1c@example.com  {"branch": "<str:21>"}  [branch protection removed]
+    call-002  sentinel-principal-9b1c@example.com  {"branch": "<str:21>"}  [branch protection removed]
+
+widening  stripe.refund  (1 call)   deny → require_approval
+    call-003  sentinel-principal-9b1c@example.com  {"amount": "<int>"}  [amount>500]
+
+tightening  aws.ec2.terminate_instance  (3 calls)   allow → deny
+    call-004  sentinel-principal-9b1c@example.com  {"meta": {"n": "<str:24>"}, "target": "<str:21>"}  [prod instances locked]
+    call-005  sentinel-principal-9b1c@example.com  {"meta": {"n": "<str:24>"}, "target": "<str:21>"}  [prod instances locked]
+    call-006  sentinel-principal-9b1c@example.com  {"meta": {"n": "<str:24>"}, "target": "<str:21>"}  [prod instances locked]
+
+tightening  stripe.refund  (1 call)   allow → require_approval
+    call-007  sentinel-principal-9b1c@example.com  {"amount": "<int>"}  [amount>500]
+
+can't evaluate  salesforce.update  (2 calls)   allow → error
+    call-008  sentinel-principal-9b1c@example.com  {"meta": {"n": "<str:24>"}, "target": "<str:21>"}  [principal.department]
+    call-009  sentinel-principal-9b1c@example.com  {"meta": {"n": "<str:24>"}, "target": "<str:21>"}  [principal.department]
+
+imported 17, skipped 3 malformed
+recorded decisions disagree with base on 1 call (base ref may not be the deployed policy)
+exit 2 (widening found; --fail-on widen)
