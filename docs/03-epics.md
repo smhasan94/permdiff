@@ -333,7 +333,7 @@ corpus; the hooks reference documents the `mcp__<server>__<tool>` naming.
 | # | Story | Status |
 |---|---|---|
 | E8-S1 | Transcript importer (`claude-code`) | done |
-| E8-S2 | Hook-log importer (`claude-code-hooks`) and the documented hook | todo |
+| E8-S2 | Hook-log importer (`claude-code-hooks`) and the documented hook | done |
 | E8-S3 | Registry, convert, docs, README quickstart | todo |
 
 **E8-S1 Transcript importer.** Deps: E1-S3, E5-S4 (registry, `read_lines`).

@@ -10,7 +10,7 @@ from typing import Any
 
 from permdiff.errors import TraceImportError
 from permdiff.importers.base import Importer
-from permdiff.importers.claude_code import ClaudeCodeImporter
+from permdiff.importers.claude_code import ClaudeCodeHooksImporter, ClaudeCodeImporter
 from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import JsonlImporter
 from permdiff.importers.otel import OtelImporter
@@ -24,9 +24,10 @@ _BUILTIN: tuple[Callable[..., Importer], ...] = (
     JsonlImporter,
     CustodyImporter,
     OtelImporter,
+    ClaudeCodeHooksImporter,
     ClaudeCodeImporter,
 )
-"""Detection order: permdiff JSONL first, then Custody, OTel, Claude Code."""
+"""Detection order: permdiff JSONL first, then Custody, OTel, Claude Code hooks, transcripts."""
 _ALIASES: dict[str, str] = {"permdiff": "jsonl"}
 
 

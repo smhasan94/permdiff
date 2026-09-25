@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E8; FR-L3 (widened 2026-09-25), FR-5, FR-7
 **Complexity**: Medium (3 stories, about two days)
-**Status**: in progress 2026-09-25 (S1 done)
+**Status**: in progress 2026-09-25 (S1, S2 done)
 
 ## Summary
 
