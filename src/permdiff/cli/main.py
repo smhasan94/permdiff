@@ -15,6 +15,7 @@ from permdiff.cli.convert import convert_cmd
 from permdiff.cli.demo import demo_cmd
 from permdiff.cli.diff import diff_cmd
 from permdiff.cli.init import init_cmd
+from permdiff.cli.record import record_group
 from permdiff.cli.render import render_cmd
 from permdiff.cli.schema import schema_cmd
 from permdiff.cli.setup import setup_group
@@ -83,3 +84,4 @@ cli.add_command(demo_cmd)
 cli.add_command(setup_group)
 cli.add_command(init_cmd)
 cli.add_command(render_cmd)
+cli.add_command(record_group)

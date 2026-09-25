@@ -23,7 +23,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E6 | Cedar evaluator | reviewed |
 | E7 | Performance, hardening, release preparation | reviewed |
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
-| E9 | `permdiff record`: Claude Code hook command and installer | todo |
+| E9 | `permdiff record`: Claude Code hook command and installer | in progress |
 
 ---
 
@@ -392,7 +392,7 @@ the recorder must write nothing to stdout and exit 0 on every path.
 
 | # | Story | Status |
 |---|---|---|
-| E9-S1 | `permdiff record claude-code` hook command | todo |
+| E9-S1 | `permdiff record claude-code` hook command | done |
 | E9-S2 | `permdiff record install claude-code` | todo |
 | E9-S3 | Docs, quickstart, round-trip test | todo |
 
