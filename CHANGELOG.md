@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 (unreleased)
+## 0.1.0 (2026-09-25)
 
 First release. `terraform plan` for AI agent permission changes.
 

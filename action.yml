@@ -51,7 +51,7 @@ inputs:
   version:
     description: permdiff version to install from PyPI; empty installs the action's own source.
     required: false
-    default: ""
+    default: "0.1.0"
   python-version:
     description: Python version for actions/setup-python.
     required: false
