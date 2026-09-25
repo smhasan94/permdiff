@@ -39,8 +39,8 @@ def test_maps_every_action_type_and_verdict() -> None:
     ]
     first = calls[0]
     assert first.id == "01J8Z9CUSTODY00000000000001"
-    assert first.principal.id == "sharukh"
-    assert first.principal.attrs == {"host": "macbook.local"}
+    assert first.principal.id == "dev-user"
+    assert first.principal.attrs == {"host": "workstation.local"}
     assert first.agent.id == "claude-code/2.x"
     assert first.tool.name == "Bash"
     assert first.arguments == {"command": "rm -rf ./build"}

@@ -19,8 +19,8 @@ traces yet)?
 2. Defer the Custody importer until Custody emits real traces.
 3. Adopt `custody.trace.v1` as policyplan's canonical schema.
 
-**Decision.** Option 1. Custody repo is `/Users/sharukhhasan/code/custody`
-(origin `smhasan94/custody`).
+**Decision.** Option 1. Custody repo is the local clone of
+`github.com/smhasan94/custody`.
 
 **Rationale.** Keeps Custody a first-class input without blocking on Custody
 implementation. Cheap to build; fixtures make the spec drift visible when

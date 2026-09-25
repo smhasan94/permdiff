@@ -11,7 +11,7 @@ importers, format auto-detection, and `permdiff convert`.
 
 ## Verified 2026-09-25 (re-read before starting)
 
-- **Custody** (`/Users/sharukhhasan/code/custody`, commit bb81683) is still planning
+- **Custody** (the local clone of `smhasan94/custody`, commit bb81683) is still planning
   documents only: no code, no emitted traces. `PLAN.md` §5 is the spec. Event fields:
   `schema`, `id` (ULID), `ts`, `workspace`, `session_id`, `source`, `actor{agent,user,host}`,
   `action{type,name,input_digest,input_redacted?,cwd,repo,branch}`,
