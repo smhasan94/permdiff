@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import sys
+from pathlib import Path
 from typing import Any
 
 import click
@@ -12,6 +13,7 @@ from permdiff import __version__
 from permdiff.cli.check import check_cmd
 from permdiff.cli.demo import demo_cmd
 from permdiff.cli.diff import diff_cmd
+from permdiff.cli.init import init_cmd
 from permdiff.cli.schema import schema_cmd
 from permdiff.cli.setup import setup_group
 from permdiff.errors import EXIT_GATE, EXIT_TOOL_ERROR, PermdiffError
@@ -55,13 +57,20 @@ def _configure_logging(verbose: bool, debug: bool) -> None:
 @click.version_option(__version__, prog_name="permdiff")
 @click.option("--verbose", is_flag=True, help="Print engine commands and timings.")
 @click.option("--debug", is_flag=True, help="Keep temp dirs and print their paths.")
+@click.option(
+    "--config",
+    type=click.Path(path_type=Path, dir_okay=False),
+    default=None,
+    help="permdiff.toml to use (default: nearest one up from the current directory).",
+)
 @click.pass_context
-def cli(ctx: click.Context, verbose: bool, debug: bool) -> None:
+def cli(ctx: click.Context, verbose: bool, debug: bool, config: Path | None) -> None:
     """terraform plan for AI agent permission changes."""
     _configure_logging(verbose, debug)
     ctx.ensure_object(dict)
     ctx.obj["verbose"] = verbose
     ctx.obj["debug"] = debug
+    ctx.obj["config"] = config
 
 
 cli.add_command(schema_cmd)
@@ -69,3 +78,4 @@ cli.add_command(diff_cmd)
 cli.add_command(check_cmd)
 cli.add_command(demo_cmd)
 cli.add_command(setup_group)
+cli.add_command(init_cmd)
