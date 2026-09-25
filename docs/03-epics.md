@@ -14,7 +14,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E3 | Reporting, grouping, config | reviewed |
 | E4 | GitHub Action | reviewed |
 | E5 | Importers: Custody, OTel, convert | reviewed |
-| E6 | Cedar evaluator | todo |
+| E6 | Cedar evaluator | in progress |
 | E7 | Performance, hardening, release preparation | todo |
 
 ---
@@ -255,7 +255,7 @@ Satisfies: FR-11, NFR-C4.
 
 | # | Story | Status |
 |---|---|---|
-| E6-S1 | Cedar policy loading, templates, batch evaluation | todo |
+| E6-S1 | Cedar policy loading, templates, batch evaluation | in progress |
 | E6-S2 | Approval annotation, errors, attribution, golden corpus | todo |
 
 **E6-S1 Cedar loading and evaluation.** AC-11.1, AC-11.2, AC-11.3, AC-11.7.
