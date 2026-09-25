@@ -22,7 +22,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E5 | Importers: Custody, OTel, convert | reviewed |
 | E6 | Cedar evaluator | reviewed |
 | E7 | Performance, hardening, release preparation | reviewed |
-| E8 | Claude Code importer: transcripts and hook logs | done |
+| E8 | Claude Code importer: transcripts and hook logs | reviewed |
 
 ---
 
