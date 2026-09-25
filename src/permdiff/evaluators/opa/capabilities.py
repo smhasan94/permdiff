@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from functools import cache
 from pathlib import Path
 from typing import Any, Final
@@ -58,6 +58,7 @@ def restricted_capabilities(
     allow: Iterable[str] = (),
     denied: Iterable[str] = DENIED_BUILTINS,
     cache_root: Path | None = None,
+    env: Mapping[str, str] | None = None,
 ) -> Path:
     """Write (once) and return the capabilities file with ``denied`` minus ``allow`` removed."""
     removed = set(denied) - set(allow)
@@ -65,7 +66,7 @@ def restricted_capabilities(
     caps["builtins"] = [b for b in caps.get("builtins", []) if b.get("name") not in removed]
     text = json.dumps(caps, sort_keys=True, separators=(",", ":"))
     digest = hashlib.sha256(text.encode("utf-8")).hexdigest()[:16]
-    root = cache_root if cache_root is not None else cache_dir()
+    root = cache_root if cache_root is not None else cache_dir(env)
     path = root / "opa" / "capabilities" / f"{digest}.json"
     if not path.is_file():
         path.parent.mkdir(parents=True, exist_ok=True)

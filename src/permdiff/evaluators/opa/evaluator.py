@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import tempfile
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -52,6 +52,8 @@ class OpaOptions(Frozen):
     """Explicit capabilities file; when unset the restricted default is generated."""
     nd_cache: Path | None = None
     """Recorded nondeterministic-builtin values (``nd_builtin_cache`` shape)."""
+    env: Mapping[str, str] | None = None
+    """Environment for binary and cache resolution; ``None`` means ``os.environ``."""
 
 
 @dataclass(frozen=True)
@@ -94,7 +96,7 @@ class OpaEvaluator:
     @property
     def binary(self) -> Path:
         if self._bin is None:
-            self._bin = resolve_binary(self.options.opa_bin)
+            self._bin = resolve_binary(self.options.opa_bin, env=self.options.env)
         return self._bin
 
     def _ensure_ready(self) -> None:
@@ -113,7 +115,9 @@ class OpaEvaluator:
             self._nd_bytes = render_nd_data(cache)
             log.info("nd-cache re-enables %s with recorded values", ", ".join(allowed))
         if self._capabilities is None:
-            self._capabilities = restricted_capabilities(self.binary, allow=allowed)
+            self._capabilities = restricted_capabilities(
+                self.binary, allow=allowed, env=self.options.env
+            )
         self._shim = render_shim(self.options.decision, nd_overrides=overrides)
         self._ready = True
 

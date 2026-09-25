@@ -11,6 +11,7 @@ from permdiff.errors import EngineError
 from permdiff.evaluators import registry
 from permdiff.evaluators.opa import OpaEvaluator, OpaOptions, UndefinedPolicy
 from permdiff.evaluators.opa import evaluator as evaluator_module
+from permdiff.evaluators.opa.binary import ENV_BIN, ENV_CACHE
 from permdiff.evaluators.opa.capabilities import load_capabilities
 from permdiff.models import Effect, ErrorKind, ToolCall
 from tests.conftest import OPA_FIXTURES
@@ -279,3 +280,14 @@ def test_explicit_capabilities_file_is_used_as_is(opa_bin: Path, tmp_path: Path)
     prepared = opa.prepare(OPA_FIXTURES / "http", label="b")
 
     assert prepared.compile_error is None  # type: ignore[attr-defined]
+
+
+def test_evaluator_env_scopes_cache_and_binary_lookup(opa_bin: Path, tmp_path: Path) -> None:
+    env = {ENV_BIN: str(opa_bin), ENV_CACHE: str(tmp_path / "scoped")}
+    opa = OpaEvaluator(OpaOptions(env=env))
+
+    prepared = opa.prepare(OPA_FIXTURES / "basic", label="b")
+
+    assert prepared.compile_error is None  # type: ignore[attr-defined]
+    assert opa.binary == opa_bin
+    assert (tmp_path / "scoped" / "opa" / "capabilities").is_dir()

@@ -7,6 +7,7 @@ import pytest
 
 from permdiff.errors import EngineError
 from permdiff.evaluators.opa import capabilities as caps
+from permdiff.evaluators.opa.binary import ENV_CACHE
 
 
 def _names(path: Path) -> set[str]:
@@ -52,3 +53,9 @@ def test_load_capabilities_failure_is_an_engine_error(tmp_path: Path) -> None:
 
     with pytest.raises(EngineError, match="opa capabilities failed"):
         caps.load_capabilities(fake)
+
+
+def test_restricted_capabilities_honours_env_cache_dir(opa_bin: Path, tmp_path: Path) -> None:
+    path = caps.restricted_capabilities(opa_bin, env={ENV_CACHE: str(tmp_path / "envcache")})
+
+    assert path.is_relative_to(tmp_path / "envcache")

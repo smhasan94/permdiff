@@ -95,13 +95,17 @@ def cached_path(version: str = OPA_VERSION, env: Mapping[str, str] | None = None
     return cache_dir(env) / "opa" / version / asset_for()
 
 
-def _read_all(opener: Opener, url: str) -> bytes:
+def _open_or_raise(opener: Opener, url: str) -> IO[bytes]:
     try:
-        with opener(url) as response:
-            return response.read()
+        return opener(url)
     except (URLError, OSError) as exc:
         msg = f"download failed for {url}: {exc}. Offline? Pass --opa-bin or set {ENV_BIN}"
         raise EngineError(msg) from exc
+
+
+def _read_all(opener: Opener, url: str) -> bytes:
+    with _open_or_raise(opener, url) as response:
+        return response.read()
 
 
 def expected_sha256(version: str, asset: str, *, opener: Opener | None = None) -> str:
@@ -149,14 +153,6 @@ def download(
         tmp.unlink(missing_ok=True)
     log.info("installed opa %s at %s", version, final)
     return final
-
-
-def _open_or_raise(opener: Opener, url: str) -> IO[bytes]:
-    try:
-        return opener(url)
-    except (URLError, OSError) as exc:
-        msg = f"download failed for {url}: {exc}. Offline? Pass --opa-bin or set {ENV_BIN}"
-        raise EngineError(msg) from exc
 
 
 def _check_executable(path: Path, *, source: str) -> Path:

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import logging
 from typing import Any
 
 import click
@@ -12,8 +11,6 @@ from permdiff.cli._render import emit_and_exit
 from permdiff.cli.diff import collect_output_options, output_flags, parse_salt
 from permdiff.errors import EngineError
 from permdiff.policy import DirectorySource
-
-log = logging.getLogger(__name__)
 
 ENGINES = ("auto", "opa", "python")
 FALLBACK_NOTE = (
