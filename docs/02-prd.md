@@ -401,10 +401,15 @@ Python:
 
 ```python
 from permdiff import ToolCall, Decision, Evaluator, Report, load_traces, diff
-report: Report = diff(traces=load_traces(["traces/*.jsonl"]),
-                      base="origin/main", head="HEAD",
-                      policy="policy/", engine="opa",
-                      decision="data.agent.authz.decision")
+
+report: Report = diff(
+    traces=load_traces(["traces/*.jsonl"]),
+    base="origin/main",
+    head="HEAD",
+    policy="policy/",
+    engine="opa",
+    decision="data.agent.authz.decision",
+)
 report.transitions, report.summary, report.to_markdown(), report.to_json()
 ```
 

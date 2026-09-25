@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E1, [02-prd.md](../02-prd.md)
 **Complexity**: Large (10 stories, sets every convention)
-**Status**: planned 2026-09-25
+**Status**: in progress since 2026-09-25 (S1 done)
 
 ## Summary
 
@@ -21,7 +21,7 @@ file. Conventions chosen:
 | Layout | `src/permdiff/<area>/` packages; one concept per module; files under 400 lines |
 | Naming | modules `snake_case`; classes `PascalCase`; constants `UPPER_SNAKE`; booleans `is_/has_/should_` |
 | Models | `pydantic.BaseModel` with `model_config = ConfigDict(frozen=True, extra="forbid")`; tuples not lists in frozen models; never mutate, always `model_copy(update=...)` |
-| Errors | one exception hierarchy in `permdiff/errors.py`: `PermdiffError` → `ImportError_`, `PolicyError`, `EngineError`, `ConfigError`, `GateFailed`; every message names file/line/ref/flag; CLI maps to exit codes in one place |
+| Errors | one exception hierarchy in `permdiff/errors.py`: `PermdiffError` → `ImportError_`, `PolicyError`, `EngineError`, `ConfigError`, `GateFailedError`; every message names file/line/ref/flag; CLI maps to exit codes in one place |
 | Logging | stdlib `logging`, logger per module (`logging.getLogger(__name__)`); `--verbose` = INFO, `--debug` = DEBUG; never `print` outside reporters |
 | Subprocess | `subprocess.run([...], check=False, capture_output=True, text=True)`; argument lists only; wrapper in `permdiff/_proc.py` |
 | Tests | `tests/unit/<area>/test_<module>.py`, `tests/integration/`, `tests/slow/` (marker `slow`, skipped by default); AAA structure; names `test_<behavior>_when_<condition>`; fixtures in `tests/conftest.py`; golden files in `tests/golden/` |

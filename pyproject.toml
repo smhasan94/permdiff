@@ -1,0 +1,114 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "permdiff"
+dynamic = ["version"]
+description = "terraform plan for AI agent permission changes: replay recorded tool calls against a policy at two git refs and report what changes"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Sharukh Hasan" }]
+keywords = ["authorization", "policy", "opa", "rego", "cedar", "ai-agents", "mcp", "ci"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Environment :: Console",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Security",
+  "Topic :: Software Development :: Quality Assurance",
+  "Typing :: Typed",
+]
+dependencies = [
+  "click>=8.1,<9",
+  "rich>=13,<16",
+  "pydantic>=2.7,<3",
+]
+
+[project.optional-dependencies]
+cedar = ["cedarpy~=4.12"]
+
+[project.scripts]
+permdiff = "permdiff.cli.main:cli"
+
+[project.urls]
+Homepage = "https://github.com/smhasan94/permdiff"
+Repository = "https://github.com/smhasan94/permdiff"
+Issues = "https://github.com/smhasan94/permdiff/issues"
+
+[dependency-groups]
+dev = [
+  "pytest>=9,<10",
+  "pytest-cov>=7,<8",
+  "hypothesis>=6.100",
+  "ruff>=0.16",
+  "mypy>=2,<3",
+  "jsonschema>=4.26",
+  "pip-audit>=2.10",
+]
+
+[tool.hatch.version]
+path = "src/permdiff/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/permdiff"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/permdiff", "tests", "README.md", "LICENSE", "pyproject.toml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = [
+  "E", "F", "W", "I", "N", "UP", "B", "S", "C4", "SIM", "RUF", "PTH", "ANN", "T20", "ERA", "PL",
+]
+ignore = [
+  "ANN401",  # Any is legitimate at JSON boundaries
+  "PLR2004", # magic-value comparisons in tests and small tables
+  "PLR0913", # click commands take many parameters
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "ANN", "PLR", "T20"]
+"scripts/**" = ["T20"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["permdiff"]
+
+[tool.mypy]
+strict = true
+python_version = "3.11"
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+warn_unreachable = true
+
+[[tool.mypy.overrides]]
+module = ["cedarpy", "cedarpy.*"]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["slow: long-running tests, skipped unless -m slow"]
+addopts = "-q -m 'not slow'"
+filterwarnings = ["error"]
+xfail_strict = true
+
+[tool.coverage.run]
+source = ["permdiff"]
+branch = true
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+skip_covered = true

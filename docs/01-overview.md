@@ -609,6 +609,7 @@ from pathlib import Path
 from permdiff import ToolCall, Decision
 from authz.engine import load_rules, check
 
+
 def evaluate(call: ToolCall, policy_dir: Path) -> Decision:
     rules = load_rules(policy_dir / "rules.yaml")
     verdict = check(rules, call.principal.id, call.tool.name, call.arguments, at=call.timestamp)

@@ -9,7 +9,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 
 | Epic | Title | Status |
 |---|---|---|
-| E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | todo |
+| E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | in progress |
 | E2 | OPA evaluator | todo |
 | E3 | Reporting, grouping, config | todo |
 | E4 | GitHub Action | todo |
@@ -30,8 +30,8 @@ subset), FR-18, FR-22, FR-24, FR-27 (initial). NFR-C1, NFR-D, NFR-Q, NFR-L.
 
 | # | Story | Status |
 |---|---|---|
-| E1-S1 | Package skeleton and tooling | todo |
-| E1-S2 | `ToolCall` and `Decision` models, JSON Schema | todo |
+| E1-S1 | Package skeleton and tooling | done |
+| E1-S2 | `ToolCall` and `Decision` models, JSON Schema | in progress |
 | E1-S3 | permdiff JSONL importer | todo |
 | E1-S4 | Evaluator protocol and Python callable evaluator | todo |
 | E1-S5 | Git policy loading | todo |
