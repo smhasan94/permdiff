@@ -4,9 +4,11 @@ from __future__ import annotations
 
 import importlib
 import logging
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from importlib.metadata import EntryPoint, entry_points
 from typing import Any
+
+from pydantic import ValidationError
 
 from permdiff.errors import EngineError
 from permdiff.evaluators.base import Evaluator
@@ -23,15 +25,35 @@ def _entry_points() -> Iterable[EntryPoint]:
     return entry_points(group=ENTRY_POINT_GROUP)
 
 
+def _make_opa(**options: Any) -> Evaluator:
+    from permdiff.evaluators.opa import (  # noqa: PLC0415  # keep CLI start fast
+        OpaEvaluator,
+        OpaOptions,
+    )
+
+    try:
+        return OpaEvaluator(OpaOptions(**options))
+    except (ValidationError, ValueError) as exc:
+        msg = f"invalid options for --engine opa: {exc}"
+        raise EngineError(msg) from exc
+
+
+_BUILTIN: dict[str, Callable[..., Evaluator]] = {"opa": _make_opa}
+
+
 def names() -> tuple[str, ...]:
-    """Engine names available via entry points (built-in adapters register the same way)."""
-    return tuple(sorted({ep.name for ep in _entry_points()}))
+    """Built-in engine names plus ``permdiff.evaluators`` entry points."""
+    return tuple(sorted(set(_BUILTIN) | {ep.name for ep in _entry_points()}))
 
 
 def resolve(engine_spec: str, **options: Any) -> Evaluator:
-    """Build the evaluator for ``engine_spec``; ``options`` go to entry-point factories."""
+    """Build the evaluator for ``engine_spec``; ``options`` go to the engine's factory."""
     if engine_spec.startswith(PYTHON_PREFIX):
+        if options:
+            log.debug("ignoring engine options for %s: %s", engine_spec, sorted(options))
         return _resolve_python(engine_spec)
+    if factory := _BUILTIN.get(engine_spec):
+        return factory(**options)
     for ep in _entry_points():
         if ep.name == engine_spec:
             return _load_entry_point(ep, options)

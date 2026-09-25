@@ -21,7 +21,11 @@ class PreparedPolicy(Protocol):
 
 @runtime_checkable
 class Evaluator(Protocol):
-    """One policy engine. Third parties register via the ``permdiff.evaluators`` entry point."""
+    """One policy engine. Third parties register via the ``permdiff.evaluators`` entry point.
+
+    Optional attributes the report reads when present: ``label`` (header engine text,
+    e.g. ``opa data.agent.authz.decision``) and ``undefined_policy`` (header note).
+    """
 
     name: str
 

@@ -66,7 +66,7 @@ def test_bad_python_spec_names_the_spec_and_problem(spec: str, fragment: str) ->
 
 def test_unknown_engine_lists_available_and_mentions_python_form() -> None:
     with pytest.raises(EngineError, match="--engine") as exc_info:
-        registry.resolve("opa")
+        registry.resolve("nope")
 
     assert "python:module.path:callable" in str(exc_info.value)
 

@@ -1,0 +1,150 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import pytest
+from click.testing import CliRunner, Result
+
+from permdiff.cli.main import cli
+from tests.conftest import git
+
+BASE_REGO = """package agent.authz
+
+import rego.v1
+
+default decision := {"effect": "deny", "rule": "default"}
+
+decision := {"effect": "allow", "rule": "read"} if input.tool.name == "github.read"
+
+decision := {"effect": "allow", "rule": "refund"} if input.tool.name == "stripe.refund"
+"""
+
+HEAD_REGO = """package agent.authz
+
+import rego.v1
+
+default decision := {"effect": "deny", "rule": "default"}
+
+decision := {"effect": "allow", "rule": "read"} if input.tool.name == "github.read"
+
+decision := {"effect": "require_approval", "reason": "amount>500", "rule": "refund-large"} if {
+    input.tool.name == "stripe.refund"
+    input.arguments.amount > 500
+}
+
+decision := {"effect": "allow", "rule": "refund-small"} if {
+    input.tool.name == "stripe.refund"
+    input.arguments.amount <= 500
+}
+
+decision := {"effect": "allow", "rule": "delete"} if input.tool.name == "github.delete_branch"
+"""
+
+
+@pytest.fixture
+def rego_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "repo"
+    (repo / "policy").mkdir(parents=True)
+    git(repo, "init", "-q", "-b", "main")
+    (repo / "policy" / "agent.rego").write_text(BASE_REGO, encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "base")
+    git(repo, "tag", "v-base")
+    (repo / "policy" / "agent.rego").write_text(HEAD_REGO, encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "head")
+    return repo
+
+
+@pytest.fixture
+def traces(tmp_path: Path) -> Path:
+    def rec(i: int, tool: str, amount: int | None = None) -> str:
+        return json.dumps(
+            {
+                "id": f"c{i}",
+                "timestamp": f"2026-09-2{i}T12:00:00Z",
+                "principal": {"id": f"user{i}"},
+                "agent": {"id": "bot"},
+                "tool": {"name": tool},
+                "arguments": {"amount": amount} if amount is not None else None,
+            }
+        )
+
+    path = tmp_path / "t.jsonl"
+    lines = [
+        rec(1, "github.read"),
+        rec(2, "stripe.refund", 900),
+        rec(3, "stripe.refund", 100),
+        rec(4, "github.delete_branch"),
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path
+
+
+def _run(repo: Path, traces: Path, opa_bin: Path, *extra: str) -> Result:
+    args = [
+        "diff",
+        "--repo",
+        str(repo),
+        "--base",
+        "v-base",
+        "--head",
+        "HEAD",
+        "--engine",
+        "opa",
+        "--opa-bin",
+        str(opa_bin),
+        "--traces",
+        str(traces),
+        "--no-color",
+        *extra,
+    ]
+    return CliRunner().invoke(cli, args)
+
+
+def test_opa_diff_end_to_end(rego_repo: Path, traces: Path, opa_bin: Path) -> None:
+    result = _run(rego_repo, traces, opa_bin)
+
+    assert result.exit_code == 2, result.output
+    out = result.stdout
+    assert "engine opa data.agent.authz.decision" in out
+    assert "newly ALLOWED               1   github.delete_branch   ⚠ widening" in out
+    assert "now REQUIRE_APPROVAL        1   stripe.refund" in out
+    assert (
+        "attribution changed         1   stripe.refund" in out
+    )  # rule renamed refund → refund-small
+    assert "unchanged                   1" in out
+    assert "[amount>500]" in out
+
+
+def test_opa_diff_custom_decision_path_and_undefined_error(
+    rego_repo: Path, traces: Path, opa_bin: Path
+) -> None:
+    result = _run(
+        rego_repo, traces, opa_bin, "--decision", "data.agent.authz.nope", "--undefined", "error"
+    )
+
+    assert result.exit_code == 0, result.output
+    assert (
+        "can't evaluate              4   eval error: data.agent.authz.nope is undefined"
+        in result.stdout
+    )
+
+
+def test_opa_diff_bad_decision_path_names_flag(
+    rego_repo: Path, traces: Path, opa_bin: Path
+) -> None:
+    result = _run(rego_repo, traces, opa_bin, "--decision", "agent.authz")
+
+    assert result.exit_code == 1
+    assert "--decision" in result.stderr
+
+
+def test_opa_diff_missing_binary_names_overrides(
+    rego_repo: Path, traces: Path, tmp_path: Path
+) -> None:
+    result = _run(rego_repo, traces, tmp_path / "no-opa")
+
+    assert result.exit_code == 1
+    assert "--opa-bin" in result.stderr

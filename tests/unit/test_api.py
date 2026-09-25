@@ -158,4 +158,6 @@ def test_diff_bad_ref_and_bad_engine_raise_typed_errors(git_repo: GitRepo) -> No
             traces=(), base="nope", head="HEAD", policy="policy", engine=ENGINE, repo=git_repo.path
         )
     with pytest.raises(EngineError, match="--engine"):
-        diff(traces=(), base="HEAD", head="HEAD", policy="policy", engine="opa", repo=git_repo.path)
+        diff(
+            traces=(), base="HEAD", head="HEAD", policy="policy", engine="nope", repo=git_repo.path
+        )

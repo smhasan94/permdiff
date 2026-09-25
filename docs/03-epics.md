@@ -118,8 +118,8 @@ Satisfies: FR-10, FR-25, NFR-C3, NFR-S3.
 | # | Story | Status |
 |---|---|---|
 | E2-S1 | OPA binary management and `permdiff setup opa` | done |
-| E2-S2 | Batch evaluation shim and result mapping | in progress |
-| E2-S3 | Time injection, capabilities restriction, nd-cache | todo |
+| E2-S2 | Batch evaluation shim and result mapping | done |
+| E2-S3 | Time injection, capabilities restriction, nd-cache | in progress |
 | E2-S4 | `permdiff check` and demo on OPA | todo |
 
 **E2-S1 OPA binary management.** FR-10 (AC-10.1), NFR-S3. Deps: E1.

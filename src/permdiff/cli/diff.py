@@ -64,6 +64,15 @@ def collect_output_options(kwargs: dict[str, Any]) -> OutputOptions:
     )
 
 
+ENGINE_OPTION_KEYS = ("decision", "opa_bin", "v0_compatible", "undefined")
+
+
+def engine_options(kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Pop engine-specific flags; only the ones actually given are forwarded."""
+    given = {key: kwargs.pop(key) for key in ENGINE_OPTION_KEYS}
+    return {k: v for k, v in given.items() if v not in (None, False)}
+
+
 def parse_salt(salt_hex: str | None) -> bytes | None:
     if salt_hex is None:
         return None
@@ -105,6 +114,15 @@ def actor() -> str:
 @click.option("--max-records", type=int, default=DEFAULT_MAX_RECORDS, show_default=True)
 @click.option("--allow-widening", metavar="REASON", help="Exit 0 on widening; record REASON.")
 @click.option("--verify-deterministic", is_flag=True, help="Evaluate twice; flag differences.")
+@click.option("--decision", default=None, help="OPA rule path, e.g. data.agent.authz.decision.")
+@click.option("--opa-bin", type=click.Path(path_type=Path), default=None, help="opa executable.")
+@click.option("--v0-compatible", is_flag=True, help="Pass --v0-compatible to opa.")
+@click.option(
+    "--undefined",
+    type=click.Choice(["deny", "error"]),
+    default=None,
+    help="What an undefined OPA rule means. [default: deny]",
+)
 @output_flags
 @click.pass_context
 def diff_cmd(ctx: click.Context, /, **kwargs: Any) -> None:
@@ -124,6 +142,7 @@ def diff_cmd(ctx: click.Context, /, **kwargs: Any) -> None:
         keep_temp=bool(ctx.obj and ctx.obj.get("debug")),
         import_stats=imported.stats,
         allow_widening=(allow_widening, actor()) if allow_widening else None,
+        engine_options=engine_options(kwargs),
         **kwargs,
     )
     emit_and_exit(ctx, report, opts)

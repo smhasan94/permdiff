@@ -153,9 +153,10 @@ def diff_sources(
             head_sha=head_policy.sha,
             is_worktree=head_policy.is_worktree,
             policy_path=policy_path,
-            engine=evaluator.name,
+            engine=getattr(evaluator, "label", evaluator.name),
             window=_window(traces),
             salt=run_salt.hex(),
+            undefined_policy=getattr(evaluator, "undefined_policy", None),
             generated_at=datetime.now(tz=UTC),
         )
     counts = _merge_counts(result.counts, import_stats, filtered)

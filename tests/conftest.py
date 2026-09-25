@@ -10,8 +10,11 @@ from pathlib import Path
 
 import pytest
 
+from permdiff.errors import EngineError
 from permdiff.models import ToolCall
 from tests.redaction_harness import sentinel_calls
+
+OPA_FIXTURES = Path(__file__).parent / "fixtures" / "opa"
 
 GIT_ENV = {
     "GIT_CONFIG_GLOBAL": os.devnull,
@@ -87,3 +90,14 @@ def git_repo(tmp_path: Path) -> GitRepo:
 def sentinel_corpus() -> tuple[ToolCall, ...]:
     """Calls seeded with unique PII-like strings; see ``tests/redaction_harness.py``."""
     return sentinel_calls()
+
+
+@pytest.fixture(scope="session")
+def opa_bin() -> Path:
+    """The pinned opa binary (downloaded once into the user cache); skips when offline."""
+    from permdiff.evaluators.opa.binary import resolve_binary  # noqa: PLC0415
+
+    try:
+        return resolve_binary()
+    except EngineError as exc:
+        pytest.skip(f"opa binary unavailable: {exc}")
