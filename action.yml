@@ -195,7 +195,8 @@ runs:
         inputs.comment == 'true' && github.event_name == 'pull_request'
         && github.event.pull_request.head.repo.full_name != github.repository
       shell: bash
-      run: echo "::notice::fork pull request: report written to the job summary and artifact instead of a comment"
+      run: |
+        echo "::notice::fork pull request; report written to the job summary and artifact instead of a comment"
 
     - name: Upload report artifact
       uses: actions/upload-artifact@v7
