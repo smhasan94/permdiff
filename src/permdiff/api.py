@@ -78,6 +78,7 @@ def load_traces(
 def diff(
     *,
     traces: Sequence[ToolCall],
+    window: tuple[datetime, datetime] | None = None,
     base: str,
     head: str,
     policy: str,
@@ -101,6 +102,7 @@ def diff(
         head=source_for(repo, head, policy),
         policy_path=policy,
         engine=engine,
+        window=window,
         engine_options=engine_options,
         salt=salt,
         verify_deterministic=verify_deterministic,
@@ -114,6 +116,7 @@ def diff(
 def diff_sources(
     *,
     traces: Sequence[ToolCall],
+    window: tuple[datetime, datetime] | None = None,
     base: PolicySource,
     head: PolicySource,
     policy_path: str,
@@ -155,7 +158,7 @@ def diff_sources(
             policy_path=policy_path,
             policy_files=_policy_files(head_policy.path),
             engine=getattr(evaluator, "label", evaluator.name),
-            window=_window(traces),
+            window=window if window is not None else _window(traces),
             salt=run_salt.hex(),
             undefined_policy=getattr(evaluator, "undefined_policy", None),
             generated_at=datetime.now(tz=UTC),

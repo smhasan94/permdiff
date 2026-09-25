@@ -24,7 +24,7 @@ def test_check_reports_counts_and_both_refs_ok(
     code, out, _ = _check(rego_repo, traces, "--engine", "opa", "--opa-bin", str(opa_bin))
 
     assert code == 0, out
-    assert "traces: 4 calls (0 skipped)" in out
+    assert "traces: 4 calls (0 skipped, 0 filtered out)" in out
     assert "v-base (" in out
     assert out.count(": ok") == 2
 

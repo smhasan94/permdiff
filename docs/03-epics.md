@@ -11,7 +11,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 |---|---|---|
 | E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | reviewed |
 | E2 | OPA evaluator | reviewed |
-| E3 | Reporting, grouping, config | in progress |
+| E3 | Reporting, grouping, config | done |
 | E4 | GitHub Action | todo |
 | E5 | Importers: Custody, OTel, convert | todo |
 | E6 | Cedar evaluator | todo |
@@ -165,7 +165,7 @@ Satisfies: FR-6, FR-16, FR-17 (completion), FR-19, FR-20, FR-21, FR-23.
 | E3-S3 | JSON reporter and report schema | done |
 | E3-S4 | SARIF reporter | done |
 | E3-S5 | Config file, env, `permdiff init` | done |
-| E3-S6 | Trace filters | in progress |
+| E3-S6 | Trace filters | done |
 
 **E3-S1 Grouping and sampling.** FR-16. Deps: E1.
 AC: AC-16.1, AC-16.2, AC-16.3; terminal reporter uses groups.

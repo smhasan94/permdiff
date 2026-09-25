@@ -13,9 +13,12 @@ from typing import Any, TypeVar
 
 import click
 
+from permdiff import api
 from permdiff.cli._render import FORMATS, OutputOptions, parse_show_args
 from permdiff.config import Config, load_config
 from permdiff.errors import ConfigError
+from permdiff.importers.base import ImportResult
+from permdiff.importers.filters import FilterResult, TraceFilters, apply_filters
 from permdiff.redact import RedactLevel
 from permdiff.report import FailOn
 from permdiff.report.grouping import GROUP_FIELDS, validate_group_by
@@ -110,6 +113,22 @@ def selection_flags(fn: F) -> F:
                 type=click.Path(path_type=Path, exists=True, dir_okay=False),
                 default=None,
                 help="Recorded nd_builtin_cache JSON.",
+            ),
+            click.option(
+                "--since",
+                default=None,
+                help="Keep calls at or after 7d|12h|30m (from the newest trace) or an ISO time.",
+            ),
+            click.option("--until", default=None, help="Keep calls at or before an ISO time."),
+            click.option("--tool", "tool_globs", multiple=True, help="Keep tools matching GLOB."),
+            click.option(
+                "--agent", "agent_globs", multiple=True, help="Keep agents matching GLOB."
+            ),
+            click.option(
+                "--principal",
+                "principal_globs",
+                multiple=True,
+                help="Keep principals matching GLOB.",
             ),
         ),
         fn,
@@ -251,6 +270,26 @@ def output_options(config: Config, kwargs: dict[str, Any]) -> OutputOptions:
         pr_comment=kwargs.pop("pr_comment"),
         include_decisions=kwargs.pop("include_decisions"),
     ).validated()
+
+
+def load_filtered_traces(
+    config: Config, kwargs: dict[str, Any]
+) -> tuple[ImportResult, FilterResult]:
+    """Import per config, then apply the window from config and the glob flags (FR-6)."""
+    filters = TraceFilters(
+        since=config.traces.since,
+        until=config.traces.until,
+        tool=tuple(kwargs.pop("tool_globs")),
+        agent=tuple(kwargs.pop("agent_globs")),
+        principal=tuple(kwargs.pop("principal_globs")),
+    )
+    imported = api.load_traces(
+        require_traces(config),
+        fmt=config.traces.format,
+        strict=config.traces.strict,
+        max_records=config.traces.max_records,
+    )
+    return imported, apply_filters(imported.calls, filters)
 
 
 def require_traces(config: Config) -> tuple[str, ...]:

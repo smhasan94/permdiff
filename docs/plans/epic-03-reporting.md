@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E3; FR-6, FR-16, FR-17, FR-19, FR-20, FR-21, FR-23
 **Complexity**: Medium (6 stories)
-**Status**: in progress since 2026-09-25 (plan re-read and updated after E1 and E2 landed)
+**Status**: done 2026-09-25; review pending
 
 ## Summary
 
@@ -134,6 +134,6 @@ uv run permdiff demo --format sarif > /tmp/p.sarif && uv run python -c "import j
 
 ## Acceptance
 
-- [ ] All six stories done and marked
-- [ ] Four formats render the demo; goldens committed
-- [ ] Sentinel test passes for every format
+- [x] All six stories done and marked
+- [x] Four formats render the demo; goldens committed
+- [x] Sentinel test passes for every format

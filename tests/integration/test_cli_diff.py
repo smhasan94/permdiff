@@ -288,3 +288,14 @@ def test_sarif_format_validates(run: Run) -> None:
         for r in doc["runs"][0]["results"]
     }
     assert uris == {"policy/rules.json"}
+
+
+def test_filters_narrow_the_corpus_and_show_the_window(run: Run) -> None:
+    result = run("--since", "2d", "--tool", "stripe.*", "--fail-on", "none", "--quiet")
+    bad = run("--since", "last week")
+
+    assert result.exit_code == 0, result.output
+    assert "(1 call, 2026-09-21 → 2026-09-21)" in result.stdout
+    assert "imported 3, skipped 1 malformed, filtered 2" in result.stdout
+    assert bad.exit_code == 1
+    assert "--since" in bad.stderr

@@ -7,8 +7,12 @@ from typing import Any
 
 import click
 
-from permdiff import api
-from permdiff.cli.settings import engine_options, require_traces, resolve_config, selection_flags
+from permdiff.cli.settings import (
+    engine_options,
+    load_filtered_traces,
+    resolve_config,
+    selection_flags,
+)
 from permdiff.errors import EXIT_OK, EXIT_TOOL_ERROR
 from permdiff.evaluators import registry
 from permdiff.policy import source_for
@@ -22,13 +26,11 @@ def check_cmd(ctx: click.Context, /, **kwargs: Any) -> None:
     repo: Path = kwargs.pop("repo")
     opa_bin: Path | None = kwargs.pop("opa_bin")
     config = resolve_config(ctx, repo, kwargs)
-    imported = api.load_traces(
-        require_traces(config),
-        fmt=config.traces.format,
-        strict=config.traces.strict,
-        max_records=config.traces.max_records,
+    imported, selected = load_filtered_traces(config, kwargs)
+    click.echo(
+        f"traces: {imported.stats.read:,} calls ({imported.stats.skipped:,} skipped, "
+        f"{selected.filtered:,} filtered out)"
     )
-    click.echo(f"traces: {imported.stats.read:,} calls ({imported.stats.skipped:,} skipped)")
     options = engine_options(config)
     if opa_bin is not None:
         options["opa_bin"] = opa_bin

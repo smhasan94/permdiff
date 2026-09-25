@@ -12,9 +12,9 @@ from permdiff import _proc, api
 from permdiff.cli._render import emit_and_exit
 from permdiff.cli.settings import (
     engine_options,
+    load_filtered_traces,
     output_flags,
     output_options,
-    require_traces,
     resolve_config,
     selection_flags,
 )
@@ -60,17 +60,13 @@ def diff_cmd(ctx: click.Context, /, **kwargs: Any) -> None:
     opts = output_options(config, kwargs)
     salt = parse_salt(kwargs.pop("salt_hex"))
     allow_widening = kwargs.pop("allow_widening")
-    imported = api.load_traces(
-        require_traces(config),
-        fmt=config.traces.format,
-        strict=config.traces.strict,
-        max_records=config.traces.max_records,
-    )
+    imported, selected = load_filtered_traces(config, kwargs)
     options = engine_options(config)
     if opa_bin is not None:
         options["opa_bin"] = opa_bin
     report = api.diff(
-        traces=imported.calls,
+        traces=selected.calls,
+        window=selected.window,
         base=config.policy.base,
         head=config.policy.head,
         policy=config.policy.path,
@@ -81,6 +77,7 @@ def diff_cmd(ctx: click.Context, /, **kwargs: Any) -> None:
         verify_deterministic=kwargs.pop("verify_deterministic"),
         keep_temp=bool(ctx.obj and ctx.obj.get("debug")),
         import_stats=imported.stats,
+        filtered=selected.filtered,
         allow_widening=(allow_widening, actor()) if allow_widening else None,
     )
     emit_and_exit(ctx, report, opts)
