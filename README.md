@@ -53,7 +53,32 @@ permdiff setup opa          # downloads opa 1.21.0 into your user cache, checksu
 permdiff demo --engine opa
 ```
 
-**2. Point it at your own policy and traces.**
+**2. Diff your Claude Code sessions (two minutes).**
+
+Claude Code keeps every session as a transcript under `~/.claude/projects/`, and
+permdiff reads them directly. Copy the example policy pair, put the two versions in two
+commits of a `policy/` directory, and replay your own sessions against them:
+
+```
+git clone -q https://github.com/smhasan94/permdiff permdiff-src
+git init -q policy-repo && cd policy-repo
+cp -r ../permdiff-src/examples/claude-code/policy_base policy
+git add -A && git commit -qm base && git tag v-base
+rm -r policy && cp -r ../permdiff-src/examples/claude-code/policy_head policy
+git add -A && git commit -qm head
+permdiff diff --from claude-code --traces ~/.claude/projects/*/*.jsonl \
+              --policy policy --engine python:permdiff.demo.engine:evaluate \
+              --base v-base --head HEAD --principal-from env:USER
+```
+
+The head policy asks approval for destructive `Bash` commands, denies writes outside the
+session's working directory, and newly allows `WebFetch`; the report lists each as a
+group with counts and redacted samples, and exits `2` for the widening. Transcripts hold
+file contents, so keep `--redact none` for local runs. The `claude-code-hooks` importer
+reads a `PreToolUse` hook log instead (a documented, stable input); both are described in
+[docs/importers.md](docs/importers.md).
+
+**3. Point it at your own policy and traces.**
 
 ```
 permdiff diff --base origin/main --head HEAD --policy policy/ \
@@ -74,7 +99,7 @@ you replay recorded values with `--nd-cache decision-log.json` (OPA's
 `nd_builtin_cache` shape). `permdiff check` validates traces and compiles both
 refs without diffing, which is what CI runs first.
 
-**3. Put it in CI.**
+**4. Put it in CI.**
 
 ```yaml
 name: permdiff
@@ -120,9 +145,9 @@ the JSON Schema. Reports redact argument values by default; `--show-args`
 reveals named keys and `--redact none` shows everything for local use.
 
 `--format markdown|json|sarif` and `permdiff render --from-json` produce the
-other outputs; `permdiff schema report` prints the JSON report's schema. The
-Cedar engine and the Custody and OpenTelemetry importers arrive in the next
-epics. The design is in `docs/01-overview.md`.
+other outputs; `permdiff schema report` prints the JSON report's schema.
+Importers (permdiff JSONL, Custody, OpenTelemetry GenAI, Claude Code) are in
+[docs/importers.md](docs/importers.md); the design is in `docs/01-overview.md`.
 
 ## Engines
 

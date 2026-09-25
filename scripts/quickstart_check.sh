@@ -30,4 +30,21 @@ set +e
 code=$?
 set -e
 [ "$code" -eq 2 ] || { echo "expected exit 2 from permdiff demo --engine opa, got $code" >&2; exit 1; }
+# The Claude Code quickstart: example policy pair in two commits, fixture transcript.
+work="$(mktemp -d)"
+git -C "$work" init -q -b main
+export GIT_AUTHOR_NAME=permdiff GIT_AUTHOR_EMAIL=permdiff@example.com
+export GIT_COMMITTER_NAME=permdiff GIT_COMMITTER_EMAIL=permdiff@example.com
+cp -r "$root/examples/claude-code/policy_base" "$work/policy"
+git -C "$work" add -A && git -C "$work" -c commit.gpgsign=false commit -qm base && git -C "$work" tag v-base
+rm -r "$work/policy" && cp -r "$root/examples/claude-code/policy_head" "$work/policy"
+git -C "$work" add -A && git -C "$work" -c commit.gpgsign=false commit -qm head
+set +e
+USER=dev-user "$venv/bin/permdiff" diff --repo "$work" --from claude-code \
+  --traces "$root/tests/fixtures/claude_code/session.jsonl" \
+  --policy policy --engine python:permdiff.demo.engine:evaluate \
+  --base v-base --head HEAD --principal-from env:USER --no-color
+code=$?
+set -e
+[ "$code" -eq 2 ] || { echo "expected exit 2 from the Claude Code quickstart, got $code" >&2; exit 1; }
 echo "quickstart OK"

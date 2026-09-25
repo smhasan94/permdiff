@@ -98,3 +98,20 @@ def test_convert_unwritable_output_is_a_clean_error(tmp_path: Path) -> None:
 
     assert result.exit_code == 1
     assert "error: cannot write" in result.stderr
+
+
+def test_convert_claude_code_transcripts_and_hook_logs(tmp_path: Path) -> None:
+    claude_code = FIXTURES / "claude_code"
+    for name, fmt, count in (
+        ("session.jsonl", "claude-code", 7),
+        ("hooks.jsonl", "claude-code-hooks", 2),
+    ):
+        out = tmp_path / f"{fmt}.jsonl"
+        result = CliRunner().invoke(cli, ["convert", str(claude_code / name), "-o", str(out)])
+        assert result.exit_code == 0, result.output
+        assert f"converted {count} calls (0 skipped)" in result.stderr
+        reread = JsonlImporter().read(out, strict=True)
+        assert len(reread.calls) == count
+        assert reread.calls[0].source is not None
+        assert reread.calls[0].source.format == fmt
+        assert reread.calls[0].tool.name == "Bash"

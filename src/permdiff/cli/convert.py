@@ -32,7 +32,11 @@ def to_jsonl_line(call: ToolCall) -> str:
 )
 @click.option("--strict", is_flag=True, help="Abort on the first malformed record.")
 @click.option("--max-records", type=int, default=DEFAULT_MAX_RECORDS, show_default=True)
-@click.option("--principal-from", default=None, help="OTel: attribute path for the principal.")
+@click.option(
+    "--principal-from",
+    default=None,
+    help="Principal source: OTel attribute path, or env:VAR / a top-level key for Claude Code.",
+)
 def convert_cmd(
     files: tuple[str, ...],
     fmt: str,

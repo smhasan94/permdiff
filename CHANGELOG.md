@@ -2,7 +2,12 @@
 
 ## Unreleased
 
-- Nothing yet.
+- Claude Code importers (FR-L3): `--from claude-code` reads session transcripts from
+  `~/.claude/projects/<slug>/` (one call per `tool_use` block, recorded deny from
+  `toolDenialKind`, `wireToolInputs` preferred over the model's input);
+  `--from claude-code-hooks` reads `PreToolUse` stdin logged by a documented `jq` hook that
+  adds `ts`. Both auto-detect, convert, and take `--principal-from env:VAR` or a top-level
+  key. `examples/claude-code/` holds a policy pair for the README quickstart.
 
 ## 0.1.0 (2026-09-25)
 

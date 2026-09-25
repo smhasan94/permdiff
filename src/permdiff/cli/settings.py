@@ -124,7 +124,10 @@ def selection_flags(fn: F) -> F:
             click.option(
                 "--principal-from",
                 default=None,
-                help="OTel: attribute path for the principal, e.g. resource.attr.service.name.",
+                help=(
+                    "Principal source: OTel attribute path (resource.attr.service.name); "
+                    "Claude Code env:VAR or a top-level key."
+                ),
             ),
             click.option("--tool", "tool_globs", multiple=True, help="Keep tools matching GLOB."),
             click.option(

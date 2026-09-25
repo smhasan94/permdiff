@@ -61,10 +61,71 @@ alias table in `importers/otel/mapping.py` absorbs renames (`gen_ai.system` →
 Most real OTel data does not record arguments (they are Opt-In), so argument-dependent
 rules report `can't evaluate` for those calls; the report says so.
 
+## Claude Code transcripts (`claude-code`)
+
+Reads the session transcripts Claude Code already writes to
+`~/.claude/projects/<slug>/<session>.jsonl` (subagent transcripts sit in
+`<session>/subagents/`). No setup: point `--traces` at the files. The format is
+**undocumented**; the mapping below was derived from transcripts written by Claude Code
+2.1.282 on 2026-09-25 (`tests/fixtures/claude_code/README.md`). Unknown keys and line
+types are ignored, so additive changes keep working; a breaking change shows up as
+skipped records with reasons.
+
+| Transcript | ToolCall |
+|---|---|
+| `message.content[].id` of each `tool_use` block on an `assistant` line | `id` (one call per block) |
+| line `timestamp` | `timestamp` |
+| `--principal-from env:VAR` or a top-level key of the line; else `unknown` with `context["claude_code.principal_missing"] = true` and one warning | `principal.id` |
+| `claude-code`, line `version` | `agent.id`, `agent.version` |
+| block `name`; `mcp__<server>__<tool>` sets `tool.server` and `tool.type = mcp` | `tool` |
+| `wireToolInputs[id]` (what ran; `context["claude_code.model_input_differs"]` when it differs), else block `input` | `arguments` |
+| `Bash` → `shell`; `file_path` / `notebook_path` / `path` → `file`; `url` → `url` | `resource` |
+| `sessionId`, `cwd`, `gitBranch`, last `permission-mode` line, `isSidechain`, `agentId` | `context` (`session_id`, `cwd`, `git_branch`, `permission_mode`, `claude_code.sidechain`, `claude_code.agent_id`) |
+| paired `tool_result` line: `toolDenialKind` (`permission-rule`, `user-rejected`, `automode-blocked`) → `deny`, kept in `context["claude_code.denial_kind"]`; a result without it → `allow`; no result → unset | `recorded.effect` |
+
+Transcripts contain what the agent read and wrote, including file contents in `Write`
+and `Edit` inputs. Reports redact argument values by default; keep `--redact none` and
+`--show-args` for local use.
+
+## Claude Code hook logs (`claude-code-hooks`)
+
+The documented, stable input: `PreToolUse` hook stdin
+([reference](https://code.claude.com/docs/en/hooks), read 2026-09-25), one object per
+line. The stdin carries no timestamp, so the hook must add one. In `~/.claude/settings.json`:
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -c '. + {ts: (now | todate)}' >> \"$HOME/.claude/permdiff-hooks.jsonl\""
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+| Hook stdin | ToolCall |
+|---|---|
+| `tool_use_id` when present, else a derived id (AC-1.3) | `id` |
+| `ts` (added by the hook; a line without it is rejected with the hook command in the reason) | `timestamp` |
+| `--principal-from env:VAR` or a top-level key; else `unknown` as above | `principal.id` |
+| `tool_name`, `tool_input` | `tool`, `arguments` (resource as above) |
+| `session_id`, `cwd`, `permission_mode`, `agent_id`, `agent_type` | `context` |
+| never set: hooks run before the decision | `recorded.effect` |
+
+Lines for other hook events (`PostToolUse`, …) in the same file are skipped silently.
+
 ## Auto-detection and `permdiff convert`
 
-`--from auto` (the default) sniffs each file in the order permdiff JSONL, Custody, OTel and
-logs the choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
+`--from auto` (the default) sniffs each file in the order permdiff JSONL, Custody, OTel, Claude Code
+hook log, Claude Code transcript and logs the choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
 message when the file is recognizably another format.
 
 ```
