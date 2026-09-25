@@ -1,11 +1,11 @@
-# policyplan (working name; repo: permdiff)
+# permdiff
 
 A "terraform plan" for AI agent permission changes. Replays recorded agent
 tool-call **decisions** (not LLM behavior) against a policy at two git refs
 and reports allow/deny/require-approval transitions. No models involved.
 
 ```
-policyplan diff --base origin/main --head HEAD --traces traces/*.jsonl
+permdiff diff --base origin/main --head HEAD --traces traces/*.jsonl
 ```
 
 Transitions reported: allow→deny (tightening), deny→allow (widening, always
@@ -48,7 +48,7 @@ for the core use case. Fewer features done well over breadth.
 
 ## Decisions expected to need the owner (halt when each comes up)
 
-- **Name.** Check for collisions.
+- **Name.** Decided: `permdiff` (see docs/decisions.md).
 - **v0.1 engines.** Which policy engines make v0.1.
 - **Require-approval modeling.** Generic or per engine.
 - **Nondeterministic policies.** Policies that do external data lookups.
