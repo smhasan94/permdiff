@@ -59,6 +59,17 @@ def output_flags(fn: F) -> F:
         click.option("--salt", "salt_hex", metavar="HEX", help="Fixed principal-hash salt."),
         click.option("--quiet", is_flag=True, help="Print only the summary block."),
         click.option("--no-color", is_flag=True, help="Disable ANSI colors."),
+        click.option(
+            "--output",
+            type=click.Path(path_type=Path, dir_okay=False),
+            default=None,
+            help="Write the report to FILE instead of stdout.",
+        ),
+        click.option(
+            "--pr-comment",
+            is_flag=True,
+            help="Markdown for a PR comment; refuses --redact none.",
+        ),
     )
     for decorate in reversed(decorators):
         fn = decorate(fn)
@@ -78,7 +89,9 @@ def collect_output_options(kwargs: dict[str, Any]) -> OutputOptions:
         show_attribution=kwargs.pop("show_attribution"),
         quiet=kwargs.pop("quiet"),
         no_color=kwargs.pop("no_color"),
-    )
+        output=kwargs.pop("output"),
+        pr_comment=kwargs.pop("pr_comment"),
+    ).validated()
 
 
 ENGINE_OPTION_KEYS = ("decision", "opa_bin", "v0_compatible", "undefined", "nd_cache")

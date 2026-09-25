@@ -64,3 +64,12 @@ def test_demo_rejects_unknown_engine() -> None:
 
     assert result.exit_code == 2
     assert "python" in result.stderr
+
+
+def test_demo_markdown_is_the_comment_users_will_see_and_small() -> None:
+    result = _run("--format", "markdown", "--salt", "00")
+
+    assert result.exit_code == 2
+    assert result.stdout.startswith("<!-- permdiff -->\n")
+    assert "<details>" in result.stdout
+    assert len(result.stdout.encode("utf-8")) < 60_000

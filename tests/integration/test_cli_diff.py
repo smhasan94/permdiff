@@ -245,3 +245,21 @@ def test_group_by_and_show_attribution_flags(run: Run) -> None:
     assert "more groups (--max-groups)" in result.stdout
     assert bad.exit_code == 1
     assert "--group-by" in bad.stderr
+
+
+def test_markdown_format_output_file_and_pr_comment(run: Run, tmp_path: Path) -> None:
+    out_file = tmp_path / "report.md"
+
+    to_stdout = run("--format", "markdown", "--salt", "00")
+    to_file = run("--pr-comment", "--salt", "00", "--output", str(out_file))
+    refused = run("--pr-comment", "--redact", "none")
+
+    assert to_stdout.exit_code == 2
+    assert to_stdout.stdout.startswith("<!-- permdiff -->\n")
+    assert "user1@example.com" not in to_stdout.stdout  # hashed outside the terminal
+    assert to_file.exit_code == 2
+    assert to_file.stdout == ""
+    assert out_file.read_text(encoding="utf-8") == to_stdout.stdout
+    assert "wrote markdown report" in to_file.stderr
+    assert refused.exit_code == 1
+    assert "--pr-comment refuses --redact none" in refused.stderr
