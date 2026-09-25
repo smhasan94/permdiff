@@ -81,3 +81,20 @@ def test_any_call_survives_the_jsonl_round_trip(call: ToolCall) -> None:
 
     reread = ToolCall.model_validate_json(line)
     assert reread.model_copy(update={"source": None}) == call.model_copy(update={"source": None})
+
+
+def test_convert_unwritable_output_is_a_clean_error(tmp_path: Path) -> None:
+    result = CliRunner().invoke(
+        cli,
+        [
+            "convert",
+            "--from",
+            "custody",
+            str(FIXTURES / "custody" / "digest_only.jsonl"),
+            "-o",
+            str(tmp_path / "missing-dir" / "out.jsonl"),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "error: cannot write" in result.stderr

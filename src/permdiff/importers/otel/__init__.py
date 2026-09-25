@@ -11,7 +11,6 @@ from permdiff.errors import TraceImportError
 from permdiff.importers.base import ImportResult, ImportStats
 from permdiff.importers.jsonl import summarize_validation_error
 from permdiff.importers.limits import RecordRejected
-from permdiff.importers.lines import first_nonblank_line
 from permdiff.importers.otel.fallback import find_arguments
 from permdiff.importers.otel.mapping import FORMAT_NAME, is_tool_span, to_toolcall
 from permdiff.importers.otel.spans import Span, iter_spans
@@ -30,11 +29,7 @@ class OtelImporter:
         self.principal_from = principal_from
 
     def detect(self, head: bytes) -> bool:
-        stripped = head.lstrip()
-        if not stripped.startswith(b"{"):
-            return False
-        line = first_nonblank_line(head)
-        return b'"resourceSpans"' in head[:8192] or (line is not None and b"resourceSpans" in line)
+        return head.lstrip().startswith(b"{") and b'"resourceSpans"' in head[:8192]
 
     def read(
         self, path: Path, *, strict: bool = False, max_records: int = DEFAULT_MAX_RECORDS

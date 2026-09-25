@@ -8,6 +8,7 @@ from pathlib import Path
 import click
 
 from permdiff import api
+from permdiff.errors import TraceImportError
 from permdiff.importers.jsonl import FORMAT_NAME
 from permdiff.models import Source, ToolCall
 from permdiff.models.limits import DEFAULT_MAX_RECORDS
@@ -47,7 +48,11 @@ def convert_cmd(
     )
     text = "".join(to_jsonl_line(c) for c in result.calls)
     if output is not None:
-        output.write_text(text, encoding="utf-8")
+        try:
+            output.write_text(text, encoding="utf-8")
+        except OSError as exc:
+            msg = f"cannot write {output}: {exc.strerror or exc}"
+            raise TraceImportError(msg) from exc
     else:
         sys.stdout.write(text)
     click.echo(
