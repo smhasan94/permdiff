@@ -4,12 +4,11 @@
 (todo / in progress / done / reviewed). Requirements in
 [02-prd.md](02-prd.md). Plans in `docs/plans/epic-NN-<slug>.md`.*
 
-**Status 2026-09-25.** All seven epics done and reviewed. 0.1.0 released: PyPI
+**Status 2026-09-25.** Seven 0.1.0 epics done and reviewed. 0.1.0 released: PyPI
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
-`main` is `0.2.0.dev0`. Next work is not planned yet; candidates are the PRD's later items
-(FR-L1 Langfuse, FR-L2 LangSmith, FR-L3 Claude Code hook logs, FR-L4 OPA decision logs,
-FR-L7 line-level OPA attribution, FR-L10 HTML report). Start a new epic with a Phase 3/4
-entry here and a plan under `docs/plans/`.
+`main` is `0.2.0.dev0`. 0.2.0 starts with E8 (Claude Code importer; decisions.md
+2026-09-25). Remaining later candidates: FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision
+logs, FR-L7 line-level OPA attribution, FR-L10 HTML report, FR-L11 record helpers.
 
 Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 `pip install`-able and demoable. Each story is sized for about one day.
@@ -23,6 +22,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E5 | Importers: Custody, OTel, convert | reviewed |
 | E6 | Cedar evaluator | reviewed |
 | E7 | Performance, hardening, release preparation | reviewed |
+| E8 | Claude Code importer: transcripts and hook logs | todo |
 
 ---
 
@@ -306,3 +306,69 @@ checklist from CLAUDE rules run and findings fixed.
 AC: `CHANGELOG.md`; version `0.1.0`; wheel and sdist build clean;
 `twine check` passes; Action tag plan (`v0`, `v0.1.0`) documented; README
 final; halt and hand to owner for publishing.
+
+---
+
+## E8 — Claude Code importer: transcripts and hook logs
+
+Goal: `permdiff diff --from claude-code --traces ~/.claude/projects/<slug>/*.jsonl` works
+on the transcripts a Claude Code user already has, with no setup; a documented hook gives
+the same result from a stable, official input.
+
+Satisfies: FR-L3 (widened 2026-09-25: transcripts and hook logs), FR-5 (auto-detect), FR-7
+(convert). Reuses NFR-P line and record caps, redaction (FR-12), `--principal-from`.
+
+Facts verified 2026-09-25 (hooks reference at code.claude.com/docs/en/hooks; 421 local
+transcripts from Claude Code 2.1.282): `PreToolUse` stdin has `session_id`, `cwd`,
+`permission_mode`, `tool_name`, `tool_input`, optional `agent_id`/`agent_type`, and no
+timestamp, user, or decision. Transcript `assistant` lines carry `timestamp` (ISO 8601 `Z`),
+`sessionId`, `cwd`, `version`, `gitBranch`, `isSidechain`, `agentId` (subagents), and
+`message.content[]` blocks `{type: "tool_use", id, name, input}`; `wireToolInputs[id]`
+holds the input as sent to the tool when it differs (Bash gets a `cd <cwd> &&` prefix).
+Paired `user` lines carry `{type: "tool_result", tool_use_id, is_error}` and, on a denial,
+`toolDenialKind` in `permission-rule | user-rejected | automode-blocked`. Some transcripts
+also carry `{type: "permission-mode", permissionMode}` lines. No MCP calls in the local
+corpus; the hooks reference documents the `mcp__<server>__<tool>` naming.
+
+| # | Story | Status |
+|---|---|---|
+| E8-S1 | Transcript importer (`claude-code`) | todo |
+| E8-S2 | Hook-log importer (`claude-code-hooks`) and the documented hook | todo |
+| E8-S3 | Registry, convert, docs, README quickstart | todo |
+
+**E8-S1 Transcript importer.** Deps: E1-S3, E5-S4 (registry, `read_lines`).
+AC-L3.1: every `tool_use` block in an `assistant` line becomes one `ToolCall`: `id` =
+block id, `timestamp` = line timestamp, `tool.name` = block name, `tool.server` and
+`tool.type = "mcp"` from `mcp__<server>__<tool>`, `arguments` = `wireToolInputs[id]` else
+`input`, `agent.id = "claude-code"`, `agent.version` = line `version`, context holds
+`session_id`, `cwd`, `git_branch`, `permission_mode` (last seen), `claude_code.sidechain`,
+`claude_code.agent_id`, `source.format = "claude-code"`.
+AC-L3.2: the matching `tool_result` sets `recorded.effect`: `toolDenialKind` present →
+deny (kind kept in context); result present without it → allow; no result → unset.
+AC-L3.3: principal from `--principal-from` (a top-level key or literal `env:USER`), else
+`unknown` with a counted header note, as in OTel.
+AC-L3.4: `resource.id` from `file_path`/`path`/`url`/`notebook_path` when present;
+`resource.type` `file` | `url` | `shell` | `null`.
+AC-L3.5: non-tool lines skip silently; malformed lines skip and count (strict aborts);
+line and record caps apply; extra keys ignored; fixtures are scrubbed real lines with a
+`SOURCE` note naming the Claude Code version.
+
+**E8-S2 Hook-log importer.** Deps: S1 (shared mapping).
+AC-L3.6: one `PreToolUse` stdin object per line; `hook_event_name != "PreToolUse"` skips
+silently; a `ts` key (added by the documented hook) is the timestamp; a line without `ts`
+is rejected with a reason that names the documented hook; `permission_mode`, `agent_id`,
+`agent_type` go to context; `source.format = "claude-code-hooks"`.
+AC-L3.7: `docs/importers.md` shows the `settings.json` hook (`jq -c '. + {ts: (now |
+todate)}' >> FILE`) and a test fixture produced by it.
+AC-L3.8: `recorded.effect` stays unset (hooks see no decision).
+
+**E8-S3 Registry, convert, docs, quickstart.** Deps: S1, S2.
+AC-L3.9: both importers auto-detect (transcript: first object has `sessionId`/`session_id`
+and `type`; hook log: `hook_event_name`) after the 0.1.0 formats; `--from` mismatch
+errors as AC-5.2; convert round-trip test.
+AC-L3.10: README section "Diff your Claude Code sessions" with an `examples/claude-code/`
+Python-engine policy pair (base allows `Bash`; head requires approval for a recursive
+forced delete in a `Bash` command and denies `Write` outside `cwd`) that produces
+transitions on the fixture; the quickstart runs in CI.
+AC-L3.11: `docs/importers.md` mapping tables for both formats and a caveat that the
+transcript format is undocumented and pinned by fixture version.
