@@ -198,8 +198,8 @@ Satisfies: FR-26.
 
 | # | Story | Status |
 |---|---|---|
-| E4-S1 | Composite action and comment upsert | in progress |
-| E4-S2 | Fork fallback, SARIF option, docs | todo |
+| E4-S1 | Composite action and comment upsert | done |
+| E4-S2 | Fork fallback, SARIF option, docs | in progress |
 
 **E4-S1 Composite action and comment upsert.** AC-26.1, AC-26.2, AC-26.5.
 Deps: E3.

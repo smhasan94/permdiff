@@ -299,3 +299,16 @@ def test_filters_narrow_the_corpus_and_show_the_window(run: Run) -> None:
     assert "imported 3, skipped 1 malformed, filtered 2" in result.stdout
     assert bad.exit_code == 1
     assert "--since" in bad.stderr
+
+
+def test_salt_defaults_to_repository_id_in_github_actions(
+    run: Run, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("GITHUB_REPOSITORY_ID", "123456")
+    a = run("--format", "json").stdout
+    b = run("--format", "json").stdout
+    monkeypatch.setenv("GITHUB_REPOSITORY_ID", "654321")
+    c = run("--format", "json").stdout
+
+    assert json.loads(a)["header"]["salt"] == json.loads(b)["header"]["salt"]
+    assert json.loads(a)["header"]["salt"] != json.loads(c)["header"]["salt"]

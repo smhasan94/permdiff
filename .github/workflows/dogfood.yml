@@ -1,0 +1,27 @@
+name: dogfood
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  demo-policy-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      # Make the working tree's demo policy differ from HEAD so the action has real
+      # transitions to report: the head policy dir gets the base rule table.
+      - run: cp src/permdiff/demo/policy_base/rules.py src/permdiff/demo/policy_head/rules.py
+      - uses: ./
+        with:
+          traces: src/permdiff/demo/corpus.jsonl
+          policy: src/permdiff/demo/policy_head
+          engine: python:permdiff.demo.engine:evaluate
+          base: HEAD
+          head: WORKTREE
+          fail-on: none
+          sarif: "true"

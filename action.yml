@@ -1,0 +1,213 @@
+name: permdiff
+description: >-
+  terraform plan for AI agent permission changes: replay recorded tool calls against the
+  policy at two git refs and post one sticky PR comment with what changed.
+author: Sharukh Hasan
+branding:
+  icon: shield
+  color: purple
+
+inputs:
+  traces:
+    description: Trace file or glob (permdiff JSONL, Custody, or OTel). Falls back to permdiff.toml.
+    required: false
+    default: ""
+  base:
+    description: Base git ref. Defaults to origin/<PR base branch>, else origin/main.
+    required: false
+    default: ""
+  head:
+    description: Head git ref (or WORKTREE).
+    required: false
+    default: "HEAD"
+  policy:
+    description: Policy path in the repository. Falls back to permdiff.toml.
+    required: false
+    default: ""
+  engine:
+    description: opa | python:module:callable. Falls back to permdiff.toml.
+    required: false
+    default: ""
+  decision:
+    description: OPA decision path, e.g. data.agent.authz.decision.
+    required: false
+    default: ""
+  fail-on:
+    description: widen | any-change | cant-evaluate | none
+    required: false
+    default: "widen"
+  comment:
+    description: Post or update the sticky PR comment (needs pull-requests write).
+    required: false
+    default: "true"
+  sarif:
+    description: Also write a SARIF file (see the sarif-file output).
+    required: false
+    default: "false"
+  config:
+    description: permdiff.toml path (default is the nearest one).
+    required: false
+    default: ""
+  version:
+    description: permdiff version to install from PyPI; empty installs the action's own source.
+    required: false
+    default: ""
+  python-version:
+    description: Python version for actions/setup-python.
+    required: false
+    default: "3.12"
+  extra-args:
+    description: Extra arguments appended to `permdiff diff`.
+    required: false
+    default: ""
+
+outputs:
+  exit-code:
+    description: 0 nothing matched fail-on, 2 matched, 1 permdiff failed.
+    value: ${{ steps.diff.outputs.exit-code }}
+  report-json:
+    description: Path to the JSON report.
+    value: ${{ steps.diff.outputs.report-json }}
+  report-markdown:
+    description: Path to the markdown report.
+    value: ${{ steps.render.outputs.report-markdown }}
+  sarif-file:
+    description: Path to the SARIF file when sarif is true.
+    value: ${{ steps.render.outputs.sarif-file }}
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-python@v7
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Install permdiff
+      shell: bash
+      env:
+        VERSION: ${{ inputs.version }}
+        ACTION_PATH: ${{ github.action_path }}
+      run: |
+        set -euo pipefail
+        if [ -n "$VERSION" ]; then
+          python -m pip install --quiet "permdiff==$VERSION"
+        else
+          python -m pip install --quiet "$ACTION_PATH"
+        fi
+        permdiff --version
+
+    - name: Resolve refs and arguments
+      id: args
+      shell: bash
+      env:
+        IN_BASE: ${{ inputs.base }}
+        IN_HEAD: ${{ inputs.head }}
+        IN_TRACES: ${{ inputs.traces }}
+        IN_POLICY: ${{ inputs.policy }}
+        IN_ENGINE: ${{ inputs.engine }}
+        IN_DECISION: ${{ inputs.decision }}
+        IN_CONFIG: ${{ inputs.config }}
+        IN_FAIL_ON: ${{ inputs.fail-on }}
+        BASE_REF: ${{ github.base_ref }}
+      run: |
+        set -euo pipefail
+        base="$IN_BASE"
+        if [ -z "$base" ]; then
+          if [ -n "$BASE_REF" ]; then base="origin/$BASE_REF"; else base="origin/main"; fi
+        fi
+        case "$base" in
+          origin/*) git fetch --no-tags --depth=1 origin "${base#origin/}" >/dev/null 2>&1 || true ;;
+        esac
+        args=(--base "$base" --head "$IN_HEAD" --fail-on "$IN_FAIL_ON")
+        [ -n "$IN_TRACES" ] && args+=(--traces "$IN_TRACES")
+        [ -n "$IN_POLICY" ] && args+=(--policy "$IN_POLICY")
+        [ -n "$IN_ENGINE" ] && args+=(--engine "$IN_ENGINE")
+        [ -n "$IN_DECISION" ] && args+=(--decision "$IN_DECISION")
+        global=()
+        [ -n "$IN_CONFIG" ] && global+=(--config "$IN_CONFIG")
+        printf 'args=%s\n' "${args[*]}" >> "$GITHUB_OUTPUT"
+        printf 'global=%s\n' "${global[*]:-}" >> "$GITHUB_OUTPUT"
+        printf 'base=%s\n' "$base" >> "$GITHUB_OUTPUT"
+
+    - name: permdiff check
+      shell: bash
+      run: |
+        set -euo pipefail
+        # shellcheck disable=SC2086
+        permdiff ${{ steps.args.outputs.global }} check ${{ steps.args.outputs.args }}
+
+    - name: permdiff diff
+      id: diff
+      shell: bash
+      env:
+        EXTRA: ${{ inputs.extra-args }}
+      run: |
+        set -uo pipefail
+        out="${RUNNER_TEMP}/permdiff"
+        mkdir -p "$out"
+        # shellcheck disable=SC2086
+        permdiff ${{ steps.args.outputs.global }} diff ${{ steps.args.outputs.args }} \
+          --format json --include-decisions --output "$out/report.json" $EXTRA
+        code=$?
+        if [ ! -s "$out/report.json" ]; then
+          echo "permdiff diff failed (exit $code)" >&2
+          exit "$code"
+        fi
+        echo "exit-code=$code" >> "$GITHUB_OUTPUT"
+        echo "report-json=$out/report.json" >> "$GITHUB_OUTPUT"
+        echo "dir=$out" >> "$GITHUB_OUTPUT"
+
+    - name: Render markdown and SARIF
+      id: render
+      shell: bash
+      env:
+        OUT: ${{ steps.diff.outputs.dir }}
+        SARIF: ${{ inputs.sarif }}
+      run: |
+        set -euo pipefail
+        permdiff render --from-json "$OUT/report.json" --format markdown --output "$OUT/report.md"
+        permdiff render --from-json "$OUT/report.json" --format terminal --quiet
+        echo "report-markdown=$OUT/report.md" >> "$GITHUB_OUTPUT"
+        if [ "$SARIF" = "true" ]; then
+          permdiff render --from-json "$OUT/report.json" --format sarif --output "$OUT/permdiff.sarif"
+          echo "sarif-file=$OUT/permdiff.sarif" >> "$GITHUB_OUTPUT"
+        fi
+        cat "$OUT/report.md" >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upsert PR comment
+      if: >-
+        inputs.comment == 'true' && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name == github.repository
+      uses: actions/github-script@v9
+      env:
+        REPORT_MD: ${{ steps.render.outputs.report-markdown }}
+        ACTION_PATH: ${{ github.action_path }}
+      with:
+        script: |
+          const fs = require("fs");
+          const upsert = require(`${process.env.ACTION_PATH}/action/comment.js`);
+          const body = fs.readFileSync(process.env.REPORT_MD, "utf8");
+          const result = await upsert({ github, context, core }, { body });
+          core.info(`comment: ${result.action}`);
+
+    - name: Note fork fallback
+      if: >-
+        inputs.comment == 'true' && github.event_name == 'pull_request'
+        && github.event.pull_request.head.repo.full_name != github.repository
+      shell: bash
+      run: echo "::notice::fork pull request: report written to the job summary and artifact instead of a comment"
+
+    - name: Upload report artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: permdiff-report
+        path: ${{ steps.diff.outputs.dir }}
+        if-no-files-found: ignore
+
+    - name: Propagate exit code
+      shell: bash
+      env:
+        CODE: ${{ steps.diff.outputs.exit-code }}
+      run: |
+        echo "permdiff exit code: $CODE"
+        exit "$CODE"

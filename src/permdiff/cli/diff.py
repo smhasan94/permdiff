@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 from pathlib import Path
 from typing import Any
@@ -32,8 +33,15 @@ def actor() -> str:
     return result.stdout.strip() or "unknown"
 
 
+REPO_ID_ENV = "GITHUB_REPOSITORY_ID"
+
+
 def parse_salt(salt_hex: str | None) -> bytes | None:
+    """``--salt HEX``; in GitHub Actions a repository-scoped default keeps hashes stable."""
     if salt_hex is None:
+        repo_id = os.environ.get(REPO_ID_ENV)
+        if repo_id:
+            return hashlib.sha256(f"permdiff:{repo_id}".encode()).digest()[:16]
         return None
     try:
         salt = bytes.fromhex(salt_hex)
