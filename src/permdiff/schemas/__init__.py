@@ -13,6 +13,7 @@ from typing import Any, Final
 from pydantic import BaseModel
 
 from permdiff.models import Decision, ToolCall
+from permdiff.report.json_ import JsonReport
 
 SCHEMA_DIALECT: Final = "https://json-schema.org/draft/2020-12/schema"
 SCHEMA_ID_BASE: Final = "https://permdiff.dev/schemas/v1"
@@ -20,13 +21,14 @@ SCHEMA_ID_BASE: Final = "https://permdiff.dev/schemas/v1"
 _MODELS: Final[dict[str, type[BaseModel]]] = {
     "toolcall": ToolCall,
     "decision": Decision,
+    "report": JsonReport,
 }
 
 SCHEMA_NAMES: Final[tuple[str, ...]] = tuple(_MODELS)
 
 
 def json_schema(name: str) -> dict[str, Any]:
-    """Generated JSON Schema (draft 2020-12) for ``toolcall`` or ``decision``."""
+    """Generated JSON Schema (draft 2020-12) for ``toolcall``, ``decision``, or ``report``."""
     try:
         model = _MODELS[name]
     except KeyError:

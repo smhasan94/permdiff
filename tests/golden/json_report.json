@@ -1,0 +1,718 @@
+{
+  "permdiff_report": "1",
+  "header": {
+    "base_label": "origin/main",
+    "base_sha": "0123456789abcdef0123456789abcdef01234567",
+    "head_label": "HEAD",
+    "head_sha": "89abcdef0123456789abcdef0123456789abcdef",
+    "is_worktree": false,
+    "policy_path": "policy",
+    "engine": "opa",
+    "window": null,
+    "salt": "000102030405060708090a0b0c0d0e0f",
+    "undefined_policy": null,
+    "generated_at": "2026-09-25T12:00:00Z"
+  },
+  "exit_code": 2,
+  "fail_on": "widen",
+  "gate_reason": "widening found; --fail-on widen",
+  "counts": {
+    "imported": 17,
+    "skipped": 3,
+    "filtered": 0,
+    "evaluated": 14,
+    "by_class": {
+      "widening": 3,
+      "tightening": 4,
+      "cant_evaluate": 2,
+      "attribution_change": 1,
+      "unchanged": 4
+    },
+    "recorded_disagreements": 1
+  },
+  "summary": [
+    {
+      "label": "newly DENIED",
+      "count": 3,
+      "detail": "aws.ec2.terminate_instance",
+      "is_widening": false
+    },
+    {
+      "label": "newly ALLOWED",
+      "count": 2,
+      "detail": "github.delete_branch",
+      "is_widening": true
+    },
+    {
+      "label": "now REQUIRE_APPROVAL",
+      "count": 2,
+      "detail": "stripe.refund",
+      "is_widening": true
+    },
+    {
+      "label": "attribution changed",
+      "count": 1,
+      "detail": "github.read",
+      "is_widening": false
+    },
+    {
+      "label": "can't evaluate",
+      "count": 2,
+      "detail": "missing context: principal.department",
+      "is_widening": false
+    },
+    {
+      "label": "unchanged",
+      "count": 4,
+      "detail": "",
+      "is_widening": false
+    }
+  ],
+  "group_by": [
+    "tool"
+  ],
+  "groups": [
+    {
+      "cls": "widening",
+      "key": {
+        "tool": "github.delete_branch"
+      },
+      "label": "github.delete_branch",
+      "count": 2,
+      "effects": "deny \u2192 allow",
+      "reasons": [
+        "branch protection removed"
+      ],
+      "samples": [
+        {
+          "call": {
+            "id": "call-001",
+            "timestamp": "2026-09-18T16:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "github.delete_branch",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "branch": "<str:21>"
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-001",
+            "effect": "deny",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-001",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [
+              "branch protection removed"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "widening"
+        },
+        {
+          "call": {
+            "id": "call-002",
+            "timestamp": "2026-09-18T23:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "github.delete_branch",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "branch": "<str:21>"
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-002",
+            "effect": "deny",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-002",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [
+              "branch protection removed"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "widening"
+        }
+      ]
+    },
+    {
+      "cls": "widening",
+      "key": {
+        "tool": "stripe.refund"
+      },
+      "label": "stripe.refund",
+      "count": 1,
+      "effects": "deny \u2192 require_approval",
+      "reasons": [
+        "amount>500"
+      ],
+      "samples": [
+        {
+          "call": {
+            "id": "call-003",
+            "timestamp": "2026-09-19T06:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "stripe.refund",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "amount": "<int>"
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-003",
+            "effect": "deny",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-003",
+            "effect": "require_approval",
+            "error_kind": null,
+            "reasons": [
+              "amount>500"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "widening"
+        }
+      ]
+    },
+    {
+      "cls": "tightening",
+      "key": {
+        "tool": "aws.ec2.terminate_instance"
+      },
+      "label": "aws.ec2.terminate_instance",
+      "count": 3,
+      "effects": "allow \u2192 deny",
+      "reasons": [
+        "prod instances locked"
+      ],
+      "samples": [
+        {
+          "call": {
+            "id": "call-004",
+            "timestamp": "2026-09-19T13:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "aws.ec2.terminate_instance",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "target": "<str:21>",
+              "meta": {
+                "n": "<str:24>"
+              }
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-004",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-004",
+            "effect": "deny",
+            "error_kind": null,
+            "reasons": [
+              "prod instances locked"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "tightening"
+        },
+        {
+          "call": {
+            "id": "call-005",
+            "timestamp": "2026-09-19T20:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "aws.ec2.terminate_instance",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "target": "<str:21>",
+              "meta": {
+                "n": "<str:24>"
+              }
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-005",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-005",
+            "effect": "deny",
+            "error_kind": null,
+            "reasons": [
+              "prod instances locked"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "tightening"
+        },
+        {
+          "call": {
+            "id": "call-006",
+            "timestamp": "2026-09-20T03:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "aws.ec2.terminate_instance",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "target": "<str:21>",
+              "meta": {
+                "n": "<str:24>"
+              }
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-006",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-006",
+            "effect": "deny",
+            "error_kind": null,
+            "reasons": [
+              "prod instances locked"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "tightening"
+        }
+      ]
+    },
+    {
+      "cls": "tightening",
+      "key": {
+        "tool": "stripe.refund"
+      },
+      "label": "stripe.refund",
+      "count": 1,
+      "effects": "allow \u2192 require_approval",
+      "reasons": [
+        "amount>500"
+      ],
+      "samples": [
+        {
+          "call": {
+            "id": "call-007",
+            "timestamp": "2026-09-20T10:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "stripe.refund",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "amount": "<int>"
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-007",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-007",
+            "effect": "require_approval",
+            "error_kind": null,
+            "reasons": [
+              "amount>500"
+            ],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "cls": "tightening"
+        }
+      ]
+    },
+    {
+      "cls": "cant_evaluate",
+      "key": {
+        "tool": "salesforce.update"
+      },
+      "label": "salesforce.update",
+      "count": 2,
+      "effects": "allow \u2192 error",
+      "reasons": [
+        "principal.department"
+      ],
+      "samples": [
+        {
+          "call": {
+            "id": "call-008",
+            "timestamp": "2026-09-20T17:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "salesforce.update",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "target": "<str:21>",
+              "meta": {
+                "n": "<str:24>"
+              }
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-008",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-008",
+            "effect": "error",
+            "error_kind": "missing_context",
+            "reasons": [
+              "principal.department"
+            ],
+            "determining": [],
+            "engine": "opa"
+          },
+          "cls": "cant_evaluate"
+        },
+        {
+          "call": {
+            "id": "call-009",
+            "timestamp": "2026-09-21T00:00:00Z",
+            "principal": {
+              "id": "principal:6d614a89",
+              "type": "user",
+              "attrs": {
+                "department": "<str:28>"
+              }
+            },
+            "agent": {
+              "id": "support-bot",
+              "version": "1.4.0",
+              "attrs": {}
+            },
+            "tool": {
+              "name": "salesforce.update",
+              "server": null,
+              "type": null
+            },
+            "arguments": {
+              "target": "<str:21>",
+              "meta": {
+                "n": "<str:24>"
+              }
+            },
+            "resource": {
+              "type": "generic",
+              "id": "<str:25>",
+              "attrs": {}
+            },
+            "context": {
+              "cwd": "<str:25>"
+            },
+            "recorded": {
+              "effect": null,
+              "policy_hash": null
+            },
+            "source": null
+          },
+          "base": {
+            "call_id": "call-009",
+            "effect": "allow",
+            "error_kind": null,
+            "reasons": [],
+            "determining": [
+              "p"
+            ],
+            "engine": "opa"
+          },
+          "head": {
+            "call_id": "call-009",
+            "effect": "error",
+            "error_kind": "missing_context",
+            "reasons": [
+              "principal.department"
+            ],
+            "determining": [],
+            "engine": "opa"
+          },
+          "cls": "cant_evaluate"
+        }
+      ]
+    }
+  ],
+  "truncated_groups": 0,
+  "allow_widening": null,
+  "decisions": null
+}

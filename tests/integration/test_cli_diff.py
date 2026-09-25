@@ -203,7 +203,7 @@ def test_debug_keeps_policy_temp_dirs(run: Run, caplog: pytest.LogCaptureFixture
 
 
 def test_unsupported_format_is_rejected(run: Run) -> None:
-    result = run("--format", "json")
+    result = run("--format", "html")
 
     assert result.exit_code == 2
     assert "terminal" in result.stderr
@@ -263,3 +263,15 @@ def test_markdown_format_output_file_and_pr_comment(run: Run, tmp_path: Path) ->
     assert "wrote markdown report" in to_file.stderr
     assert refused.exit_code == 1
     assert "--pr-comment refuses --redact none" in refused.stderr
+
+
+def test_json_format_and_include_decisions(run: Run) -> None:
+    plain = run("--format", "json", "--salt", "00")
+    full = run("--format", "json", "--salt", "00", "--include-decisions")
+
+    assert plain.exit_code == 2
+    doc = json.loads(plain.stdout)
+    assert doc["permdiff_report"] == "1"
+    assert doc["decisions"] is None
+    assert "hunter2" not in plain.stdout
+    assert len(json.loads(full.stdout)["decisions"]) == 3

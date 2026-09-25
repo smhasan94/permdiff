@@ -12,10 +12,18 @@ import click
 from permdiff.errors import ConfigError
 from permdiff.models import Report
 from permdiff.redact import RedactLevel, Redactor
-from permdiff.report import FailOn, ReportView, build_view, gate, render_markdown, render_terminal
+from permdiff.report import (
+    FailOn,
+    ReportView,
+    build_view,
+    gate,
+    render_json,
+    render_markdown,
+    render_terminal,
+)
 from permdiff.report.grouping import DEFAULT_GROUP_BY, DEFAULT_MAX_GROUPS, DEFAULT_SAMPLES
 
-FORMATS = ("terminal", "markdown")
+FORMATS = ("terminal", "markdown", "json")
 PRINCIPAL_SHOWN_IN = frozenset({"terminal"})
 """Formats that print principal ids verbatim (overview §3.6); every other format hashes them."""
 
@@ -34,6 +42,7 @@ class OutputOptions:
     no_color: bool = False
     output: Path | None = None
     pr_comment: bool = False
+    include_decisions: bool = False
 
     @property
     def show_principal(self) -> bool:
@@ -86,6 +95,13 @@ def emit_and_exit(ctx: click.Context, report: Report, opts: OutputOptions) -> No
 def render(view: ReportView, opts: OutputOptions, *, exit_code: int) -> str:
     if opts.fmt == "markdown":
         return render_markdown(view, exit_code=exit_code, fail_on=opts.fail_on)
+    if opts.fmt == "json":
+        return render_json(
+            view,
+            exit_code=exit_code,
+            fail_on=opts.fail_on,
+            include_decisions=opts.include_decisions,
+        )
     return render_terminal(
         view,
         exit_code=exit_code,

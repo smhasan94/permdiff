@@ -53,8 +53,8 @@ def test_toolcall_schema_accepts_overview_example_and_rejects_missing_tool() -> 
 
 
 def test_unknown_schema_name_is_an_error() -> None:
-    with pytest.raises(KeyError, match="report"):
-        schemas.json_schema("report")
+    with pytest.raises(KeyError, match="nope"):
+        schemas.json_schema("nope")
 
 
 def test_schema_text_is_deterministic_and_newline_terminated() -> None:

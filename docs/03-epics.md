@@ -162,8 +162,8 @@ Satisfies: FR-6, FR-16, FR-17 (completion), FR-19, FR-20, FR-21, FR-23.
 |---|---|---|
 | E3-S1 | Grouping and sampling | done |
 | E3-S2 | Markdown reporter | done |
-| E3-S3 | JSON reporter and report schema | in progress |
-| E3-S4 | SARIF reporter | todo |
+| E3-S3 | JSON reporter and report schema | done |
+| E3-S4 | SARIF reporter | in progress |
 | E3-S5 | Config file, env, `permdiff init` | todo |
 | E3-S6 | Trace filters | todo |
 

@@ -1,0 +1,701 @@
+{
+  "$defs": {
+    "Agent": {
+      "additionalProperties": false,
+      "properties": {
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Agent",
+      "type": "object"
+    },
+    "Counts": {
+      "additionalProperties": false,
+      "description": "Footer numbers. ``evaluated`` equals the sum of ``by_class`` (AC-13.1).",
+      "properties": {
+        "by_class": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "propertyNames": {
+            "$ref": "#/$defs/TransitionClass"
+          },
+          "title": "By Class",
+          "type": "object"
+        },
+        "evaluated": {
+          "default": 0,
+          "title": "Evaluated",
+          "type": "integer"
+        },
+        "filtered": {
+          "default": 0,
+          "title": "Filtered",
+          "type": "integer"
+        },
+        "imported": {
+          "default": 0,
+          "title": "Imported",
+          "type": "integer"
+        },
+        "recorded_disagreements": {
+          "default": 0,
+          "title": "Recorded Disagreements",
+          "type": "integer"
+        },
+        "skipped": {
+          "default": 0,
+          "title": "Skipped",
+          "type": "integer"
+        }
+      },
+      "title": "Counts",
+      "type": "object"
+    },
+    "Decision": {
+      "additionalProperties": false,
+      "description": "One engine verdict for one call.\n\n``effect == error`` always carries an ``error_kind``; other effects never do.",
+      "properties": {
+        "call_id": {
+          "title": "Call Id",
+          "type": "string"
+        },
+        "determining": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Determining",
+          "type": "array"
+        },
+        "effect": {
+          "$ref": "#/$defs/Effect"
+        },
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "error_kind": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ErrorKind"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        }
+      },
+      "required": [
+        "call_id",
+        "effect",
+        "engine"
+      ],
+      "title": "Decision",
+      "type": "object"
+    },
+    "Effect": {
+      "enum": [
+        "allow",
+        "deny",
+        "require_approval",
+        "error"
+      ],
+      "title": "Effect",
+      "type": "string"
+    },
+    "ErrorKind": {
+      "enum": [
+        "missing_context",
+        "nondeterministic",
+        "eval_error",
+        "unsupported"
+      ],
+      "title": "ErrorKind",
+      "type": "string"
+    },
+    "FailOn": {
+      "enum": [
+        "widen",
+        "any-change",
+        "cant-evaluate",
+        "none"
+      ],
+      "title": "FailOn",
+      "type": "string"
+    },
+    "JsonGroup": {
+      "additionalProperties": false,
+      "properties": {
+        "cls": {
+          "$ref": "#/$defs/TransitionClass"
+        },
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "effects": {
+          "title": "Effects",
+          "type": "string"
+        },
+        "key": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Key",
+          "type": "object"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Reasons",
+          "type": "array"
+        },
+        "samples": {
+          "items": {
+            "$ref": "#/$defs/Transition"
+          },
+          "title": "Samples",
+          "type": "array"
+        }
+      },
+      "required": [
+        "cls",
+        "key",
+        "label",
+        "count",
+        "effects",
+        "reasons",
+        "samples"
+      ],
+      "title": "JsonGroup",
+      "type": "object"
+    },
+    "Principal": {
+      "additionalProperties": false,
+      "properties": {
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "type": {
+          "default": "user",
+          "title": "Type",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "Principal",
+      "type": "object"
+    },
+    "Recorded": {
+      "additionalProperties": false,
+      "description": "What the runtime actually did, when the source knows. Never a decision input.",
+      "properties": {
+        "effect": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Effect"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "policy_hash": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Policy Hash"
+        }
+      },
+      "title": "Recorded",
+      "type": "object"
+    },
+    "ReportHeader": {
+      "additionalProperties": false,
+      "properties": {
+        "base_label": {
+          "title": "Base Label",
+          "type": "string"
+        },
+        "base_sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Base Sha"
+        },
+        "engine": {
+          "title": "Engine",
+          "type": "string"
+        },
+        "generated_at": {
+          "format": "date-time",
+          "title": "Generated At",
+          "type": "string"
+        },
+        "head_label": {
+          "title": "Head Label",
+          "type": "string"
+        },
+        "head_sha": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Head Sha"
+        },
+        "is_worktree": {
+          "title": "Is Worktree",
+          "type": "boolean"
+        },
+        "policy_path": {
+          "title": "Policy Path",
+          "type": "string"
+        },
+        "salt": {
+          "title": "Salt",
+          "type": "string"
+        },
+        "undefined_policy": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Undefined Policy"
+        },
+        "window": {
+          "anyOf": [
+            {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "format": "date-time",
+                  "type": "string"
+                },
+                {
+                  "format": "date-time",
+                  "type": "string"
+                }
+              ],
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Window"
+        }
+      },
+      "required": [
+        "base_label",
+        "base_sha",
+        "head_label",
+        "head_sha",
+        "is_worktree",
+        "policy_path",
+        "engine",
+        "salt",
+        "generated_at"
+      ],
+      "title": "ReportHeader",
+      "type": "object"
+    },
+    "Resource": {
+      "additionalProperties": false,
+      "properties": {
+        "attrs": {
+          "additionalProperties": true,
+          "title": "Attrs",
+          "type": "object"
+        },
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        }
+      },
+      "title": "Resource",
+      "type": "object"
+    },
+    "Source": {
+      "additionalProperties": false,
+      "properties": {
+        "format": {
+          "title": "Format",
+          "type": "string"
+        },
+        "locator": {
+          "title": "Locator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "format",
+        "locator"
+      ],
+      "title": "Source",
+      "type": "object"
+    },
+    "SummaryRow": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "title": "Count",
+          "type": "integer"
+        },
+        "detail": {
+          "title": "Detail",
+          "type": "string"
+        },
+        "is_widening": {
+          "default": false,
+          "title": "Is Widening",
+          "type": "boolean"
+        },
+        "label": {
+          "title": "Label",
+          "type": "string"
+        }
+      },
+      "required": [
+        "label",
+        "count",
+        "detail"
+      ],
+      "title": "SummaryRow",
+      "type": "object"
+    },
+    "Tool": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "server": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Server"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Tool",
+      "type": "object"
+    },
+    "ToolCall": {
+      "additionalProperties": false,
+      "description": "One recorded agent tool call. Every importer produces it; every evaluator consumes it.",
+      "properties": {
+        "agent": {
+          "$ref": "#/$defs/Agent"
+        },
+        "arguments": {
+          "anyOf": [
+            {
+              "additionalProperties": true,
+              "type": "object"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Arguments"
+        },
+        "context": {
+          "additionalProperties": true,
+          "title": "Context",
+          "type": "object"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "principal": {
+          "$ref": "#/$defs/Principal"
+        },
+        "recorded": {
+          "$ref": "#/$defs/Recorded"
+        },
+        "resource": {
+          "$ref": "#/$defs/Resource"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Source"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timestamp": {
+          "format": "date-time",
+          "title": "Timestamp",
+          "type": "string"
+        },
+        "tool": {
+          "$ref": "#/$defs/Tool"
+        }
+      },
+      "required": [
+        "id",
+        "timestamp",
+        "principal",
+        "agent",
+        "tool"
+      ],
+      "title": "ToolCall",
+      "type": "object"
+    },
+    "Transition": {
+      "additionalProperties": false,
+      "properties": {
+        "base": {
+          "$ref": "#/$defs/Decision"
+        },
+        "call": {
+          "$ref": "#/$defs/ToolCall"
+        },
+        "cls": {
+          "$ref": "#/$defs/TransitionClass"
+        },
+        "head": {
+          "$ref": "#/$defs/Decision"
+        }
+      },
+      "required": [
+        "call",
+        "base",
+        "head",
+        "cls"
+      ],
+      "title": "Transition",
+      "type": "object"
+    },
+    "TransitionClass": {
+      "enum": [
+        "widening",
+        "tightening",
+        "attribution_change",
+        "cant_evaluate",
+        "unchanged"
+      ],
+      "title": "TransitionClass",
+      "type": "string"
+    }
+  },
+  "$id": "https://permdiff.dev/schemas/v1/report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "The ``--format json`` document. Field order is the wire order.",
+  "properties": {
+    "allow_widening": {
+      "anyOf": [
+        {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "string"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Allow Widening"
+    },
+    "counts": {
+      "$ref": "#/$defs/Counts"
+    },
+    "decisions": {
+      "anyOf": [
+        {
+          "items": {
+            "$ref": "#/$defs/Transition"
+          },
+          "type": "array"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Decisions"
+    },
+    "exit_code": {
+      "title": "Exit Code",
+      "type": "integer"
+    },
+    "fail_on": {
+      "$ref": "#/$defs/FailOn"
+    },
+    "gate_reason": {
+      "title": "Gate Reason",
+      "type": "string"
+    },
+    "group_by": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Group By",
+      "type": "array"
+    },
+    "groups": {
+      "items": {
+        "$ref": "#/$defs/JsonGroup"
+      },
+      "title": "Groups",
+      "type": "array"
+    },
+    "header": {
+      "$ref": "#/$defs/ReportHeader"
+    },
+    "permdiff_report": {
+      "const": "1",
+      "default": "1",
+      "title": "Permdiff Report",
+      "type": "string"
+    },
+    "summary": {
+      "items": {
+        "$ref": "#/$defs/SummaryRow"
+      },
+      "title": "Summary",
+      "type": "array"
+    },
+    "truncated_groups": {
+      "title": "Truncated Groups",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "header",
+    "exit_code",
+    "fail_on",
+    "gate_reason",
+    "counts",
+    "summary",
+    "group_by",
+    "groups",
+    "truncated_groups",
+    "allow_widening"
+  ],
+  "title": "JsonReport",
+  "type": "object"
+}

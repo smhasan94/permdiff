@@ -70,6 +70,11 @@ def output_flags(fn: F) -> F:
             is_flag=True,
             help="Markdown for a PR comment; refuses --redact none.",
         ),
+        click.option(
+            "--include-decisions",
+            is_flag=True,
+            help="JSON: include every call's base and head decision.",
+        ),
     )
     for decorate in reversed(decorators):
         fn = decorate(fn)
@@ -91,6 +96,7 @@ def collect_output_options(kwargs: dict[str, Any]) -> OutputOptions:
         no_color=kwargs.pop("no_color"),
         output=kwargs.pop("output"),
         pr_comment=kwargs.pop("pr_comment"),
+        include_decisions=kwargs.pop("include_decisions"),
     ).validated()
 
 
