@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E7; NFR-P, NFR-S, NFR-Q5, NFR-L2
 **Complexity**: Small (3 stories)
-**Status**: planned 2026-09-25
+**Status**: reviewed 2026-09-25 (code-review low: findings fixed in 04cb831; 0.1.0 released)
 
 ## Summary
 
