@@ -8,7 +8,16 @@ from pathlib import Path
 
 import pytest
 
-from permdiff.record.claude_code import TIMESTAMP_KEY, append_line, stamp
+from permdiff.errors import ConfigError
+from permdiff.record.claude_code import (
+    TIMESTAMP_KEY,
+    append_line,
+    hook_entry,
+    is_installed,
+    load_settings,
+    merge_hook,
+    stamp,
+)
 
 NOW = datetime(2026, 9, 25, 8, 48, 25, 500_000, tzinfo=UTC)
 
@@ -64,3 +73,54 @@ def test_append_line_propagates_os_errors(tmp_path: Path) -> None:
 
     with pytest.raises(OSError, match="file"):
         append_line(blocker / "hooks.jsonl", {"a": 1})
+
+
+def test_hook_entry_quotes_the_output_path() -> None:
+    entry = hook_entry(Path("/home/dev/my logs/hooks.jsonl"), executable="/opt/bin/permdiff")
+
+    assert entry["matcher"] == ""
+    (hook,) = entry["hooks"]
+    assert hook["type"] == "command"
+    assert (
+        hook["command"]
+        == "/opt/bin/permdiff record claude-code --out '/home/dev/my logs/hooks.jsonl'"
+    )
+    assert hook["timeout"] == 5
+
+
+def test_merge_hook_appends_and_leaves_the_input_alone() -> None:
+    entry = hook_entry(Path("/home/dev/h.jsonl"))
+    existing = {
+        "model": "opus",
+        "hooks": {
+            "PreToolUse": [{"matcher": "Bash", "hooks": [{"type": "command", "command": "x"}]}]
+        },
+    }
+    snapshot = json.dumps(existing, sort_keys=True)
+
+    merged = merge_hook(existing, entry)
+
+    assert json.dumps(existing, sort_keys=True) == snapshot
+    assert merged["model"] == "opus"
+    assert merged["hooks"]["PreToolUse"][0]["matcher"] == "Bash"
+    assert merged["hooks"]["PreToolUse"][1] == entry
+    assert not is_installed(existing)
+    assert is_installed(merged)
+    assert merge_hook({}, entry) == {"hooks": {"PreToolUse": [entry]}}
+
+
+def test_is_installed_ignores_malformed_hook_sections() -> None:
+    assert not is_installed({"hooks": "nope"})
+    assert not is_installed({"hooks": {"PreToolUse": [None, {"hooks": "x"}, {"hooks": [{}]}]}})
+
+
+def test_load_settings_reads_missing_as_empty_and_rejects_bad_json(tmp_path: Path) -> None:
+    assert load_settings(tmp_path / "absent.json") == {}
+    bad = tmp_path / "bad.json"
+    bad.write_text("{oops")
+    with pytest.raises(ConfigError, match=r"bad\.json"):
+        load_settings(bad)
+    array = tmp_path / "array.json"
+    array.write_text("[]")
+    with pytest.raises(ConfigError, match="object"):
+        load_settings(array)

@@ -393,7 +393,7 @@ the recorder must write nothing to stdout and exit 0 on every path.
 | # | Story | Status |
 |---|---|---|
 | E9-S1 | `permdiff record claude-code` hook command | done |
-| E9-S2 | `permdiff record install claude-code` | todo |
+| E9-S2 | `permdiff record install claude-code` | done |
 | E9-S3 | Docs, quickstart, round-trip test | todo |
 
 **E9-S1 Hook command.** Deps: E8-S2.

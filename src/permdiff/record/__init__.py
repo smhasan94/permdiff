@@ -7,7 +7,23 @@ from permdiff.record.claude_code import (
     DEFAULT_SETTINGS,
     HOOK_COMMAND,
     append_line,
+    hook_entry,
+    is_installed,
+    load_settings,
+    merge_hook,
     stamp,
+    write_settings,
 )
 
-__all__ = ["DEFAULT_OUT", "DEFAULT_SETTINGS", "HOOK_COMMAND", "append_line", "stamp"]
+__all__ = [
+    "DEFAULT_OUT",
+    "DEFAULT_SETTINGS",
+    "HOOK_COMMAND",
+    "append_line",
+    "hook_entry",
+    "is_installed",
+    "load_settings",
+    "merge_hook",
+    "stamp",
+    "write_settings",
+]

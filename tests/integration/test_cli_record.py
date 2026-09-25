@@ -107,3 +107,79 @@ def test_default_out_is_under_the_claude_home(
 
     assert result.exit_code == 0, result.output
     assert (tmp_path / ".claude" / "permdiff-hooks.jsonl").exists()
+
+
+def install(*args: str) -> tuple[int, str, str]:
+    result = CliRunner().invoke(cli, ["record", "install", "claude-code", *args])
+    return result.exit_code, result.stdout, result.stderr
+
+
+def test_install_prints_the_entry_and_writes_nothing(tmp_path: Path) -> None:
+    settings = tmp_path / "settings.json"
+
+    code, stdout, _ = install("--settings", str(settings), "--out", str(tmp_path / "h.jsonl"))
+
+    assert code == 0
+    assert not settings.exists()
+    entry_text, note = stdout.rsplit("\n", 2)[0], stdout.strip().splitlines()[-1]
+    entry = json.loads(entry_text)
+    assert entry["matcher"] == ""
+    assert "record claude-code --out" in entry["hooks"][0]["command"]
+    assert str(tmp_path / "h.jsonl") in entry["hooks"][0]["command"]
+    assert note == f"would add this PreToolUse hook to {settings} (pass --write)"
+
+
+def test_install_write_creates_merges_backs_up_and_is_idempotent(tmp_path: Path) -> None:
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({"model": "opus", "hooks": {"Stop": []}}))
+    out = tmp_path / "h.jsonl"
+
+    code, stdout, _ = install("--settings", str(settings), "--out", str(out), "--write")
+    first = settings.read_bytes()
+    code2, stdout2, _ = install("--settings", str(settings), "--out", str(out), "--write")
+
+    assert code == 0
+    assert stdout.strip().splitlines()[-1] == f"installed the PreToolUse hook in {settings}"
+    doc = json.loads(first)
+    assert doc["model"] == "opus"
+    assert doc["hooks"]["Stop"] == []
+    (entry,) = doc["hooks"]["PreToolUse"]
+    assert "record claude-code" in entry["hooks"][0]["command"]
+    assert json.loads((tmp_path / "settings.json.bak").read_text()) == {
+        "model": "opus",
+        "hooks": {"Stop": []},
+    }
+    assert code2 == 0
+    assert stdout2.strip().splitlines()[-1] == f"already installed in {settings}; nothing changed"
+    assert settings.read_bytes() == first
+
+
+def test_install_write_creates_a_missing_settings_file(tmp_path: Path) -> None:
+    settings = tmp_path / "new" / "settings.json"
+
+    code, _, _ = install("--settings", str(settings), "--write")
+
+    assert code == 0
+    assert not (tmp_path / "new" / "settings.json.bak").exists()
+    doc = json.loads(settings.read_text())
+    assert list(doc) == ["hooks"]
+    assert "permdiff-hooks.jsonl" in doc["hooks"]["PreToolUse"][0]["hooks"][0]["command"]
+
+
+def test_install_refuses_an_unparsable_settings_file(tmp_path: Path) -> None:
+    settings = tmp_path / "settings.json"
+    settings.write_text("{oops")
+
+    code, _, stderr = install("--settings", str(settings), "--write")
+
+    assert code == 1
+    assert str(settings) in stderr
+    assert settings.read_text() == "{oops"
+    assert not (tmp_path / "settings.json.bak").exists()
+
+
+def test_install_rejects_unknown_agents() -> None:
+    result = CliRunner().invoke(cli, ["record", "install", "cursor"])
+
+    assert result.exit_code == 2
+    assert "claude-code" in result.stderr
