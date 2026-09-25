@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import cedarpy
+from pydantic import model_validator
 
 from permdiff.evaluators.base import PreparedPolicy
 from permdiff.evaluators.cedar.loader import PolicyBundle, PolicyMeta, load_bundle, validate
@@ -18,8 +19,6 @@ from permdiff.evaluators.cedar.request import (
     check_template,
     missing_name,
 )
-from pydantic import model_validator
-
 from permdiff.models import Decision, Effect, ErrorKind, Frozen, ToolCall
 
 log = logging.getLogger(__name__)

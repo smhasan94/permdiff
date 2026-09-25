@@ -14,7 +14,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E3 | Reporting, grouping, config | reviewed |
 | E4 | GitHub Action | reviewed |
 | E5 | Importers: Custody, OTel, convert | reviewed |
-| E6 | Cedar evaluator | done |
+| E6 | Cedar evaluator | reviewed |
 | E7 | Performance, hardening, release preparation | todo |
 
 ---
