@@ -9,6 +9,7 @@ from pathlib import Path
 
 from permdiff.errors import TraceImportError
 from permdiff.importers.base import Importer
+from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import JsonlImporter
 
 log = logging.getLogger(__name__)
@@ -16,7 +17,8 @@ log = logging.getLogger(__name__)
 ENTRY_POINT_GROUP = "permdiff.importers"
 _SNIFF_BYTES = 8192
 
-_BUILTIN: tuple[Importer, ...] = (JsonlImporter(),)
+_BUILTIN: tuple[Importer, ...] = (JsonlImporter(), CustodyImporter())
+"""Detection order: permdiff JSONL first, then Custody, then OTel."""
 _ALIASES: dict[str, str] = {"permdiff": "jsonl"}
 
 
