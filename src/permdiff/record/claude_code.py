@@ -52,7 +52,11 @@ _INSTALLED_MARKER = "record claude-code"
 
 def hook_entry(out: Path, executable: str = HOOK_COMMAND) -> dict[str, Any]:
     """The ``settings.json`` ``PreToolUse`` entry that runs the recorder for every tool."""
-    prefix = HOOK_COMMAND if executable == HOOK_COMMAND else f"{executable} record claude-code"
+    prefix = (
+        HOOK_COMMAND
+        if executable == HOOK_COMMAND
+        else f"{shlex.quote(executable)} record claude-code"
+    )
     command = f"{prefix} --out {shlex.quote(str(out))}"
     return {
         "matcher": "",

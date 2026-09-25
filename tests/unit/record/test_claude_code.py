@@ -76,14 +76,16 @@ def test_append_line_propagates_os_errors(tmp_path: Path) -> None:
 
 
 def test_hook_entry_quotes_the_output_path() -> None:
-    entry = hook_entry(Path("/home/dev/my logs/hooks.jsonl"), executable="/opt/bin/permdiff")
+    entry = hook_entry(
+        Path("/home/dev/my logs/hooks.jsonl"), executable="/Users/some one/.local/bin/permdiff"
+    )
 
     assert entry["matcher"] == ""
     (hook,) = entry["hooks"]
     assert hook["type"] == "command"
-    assert (
-        hook["command"]
-        == "/opt/bin/permdiff record claude-code --out '/home/dev/my logs/hooks.jsonl'"
+    assert hook["command"] == (
+        "'/Users/some one/.local/bin/permdiff' record claude-code"
+        " --out '/home/dev/my logs/hooks.jsonl'"
     )
     assert hook["timeout"] == 5
 
@@ -124,3 +126,9 @@ def test_load_settings_reads_missing_as_empty_and_rejects_bad_json(tmp_path: Pat
     array.write_text("[]")
     with pytest.raises(ConfigError, match="object"):
         load_settings(array)
+
+
+def test_hook_entry_default_executable_is_the_bare_command() -> None:
+    entry = hook_entry(Path("/home/dev/hooks.jsonl"))
+
+    assert entry["hooks"][0]["command"] == "permdiff record claude-code --out /home/dev/hooks.jsonl"

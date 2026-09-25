@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E9; FR-L11 (scoped 2026-09-25)
 **Complexity**: Small (3 stories, about one day)
-**Status**: done 2026-09-25 (S1–S3); review pending
+**Status**: reviewed 2026-09-25 (code-review low: 1 finding fixed, unquoted executable path in the hook command)
 
 ## Summary
 
