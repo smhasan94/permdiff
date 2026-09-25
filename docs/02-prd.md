@@ -1,8 +1,8 @@
 # permdiff: product requirements
 
 *Status: Phase 2 deliverable, 2026-09-25. Builds on [01-overview.md](01-overview.md).
-Decisions in [decisions.md](decisions.md). Items marked **OPEN** are listed in
-§9 and block v0.1 until answered.*
+Decisions in [decisions.md](decisions.md). All open questions were answered on 2026-09-25;
+see §9 and [decisions.md](decisions.md).*
 
 ## 1. Goals
 
@@ -72,7 +72,7 @@ Reads `custody.trace.v1` events (Custody `PLAN.md` §5).
 - AC-3.4 Docs state the importer is derived from the spec, not verified
   against real Custody output.
 
-**FR-4 OpenTelemetry GenAI importer** (**OPEN-3**: v0.1 or later)
+**FR-4 OpenTelemetry GenAI importer** (v0.1, decided 2026-09-25)
 Reads OTLP/JSON (`resourceSpans`) files and JSONL (one `TracesData` per line).
 - AC-4.1 Imports spans with `gen_ai.operation.name == "execute_tool"` or name
   prefix `execute_tool ` / `tools/call `.
@@ -310,7 +310,7 @@ Reads OTLP/JSON (`resourceSpans`) files and JSONL (one `TracesData` per line).
 
 ## 5. Non-functional requirements
 
-**NFR-P Performance** (**OPEN-1**: confirm target)
+**NFR-P Performance** (confirmed 2026-09-25)
 - NFR-P1 100,000 calls, one engine, both refs, diffed and reported in under
   60 s wall-clock on a 2023-class laptop (Apple M2 or equivalent), measured
   by a benchmark script in the repo and recorded in the README. Proposed
@@ -366,8 +366,8 @@ Reads OTLP/JSON (`resourceSpans`) files and JSONL (one `TracesData` per line).
 - NFR-O2 Errors are actionable: every error message names the file, line,
   ref, or flag involved.
 
-**NFR-L Licensing and distribution** (**OPEN-2**: license)
-- NFR-L1 Proposed Apache-2.0 (matches the ecosystem: OPA, Cedar, TOLAP,
+**NFR-L Licensing and distribution** (decided 2026-09-25)
+- NFR-L1 Apache-2.0 (matches the ecosystem: OPA, Cedar, TOLAP,
   Custody's competitors) with `LICENSE` and SPDX headers.
 - NFR-L2 Wheel and sdist built with `hatchling`; `py.typed`; no publishing
   by the agent (standing rule 5).
@@ -413,10 +413,9 @@ Entry point group `permdiff.evaluators` for third-party adapters; group
 
 ## 7. v0.1 scope vs later
 
-**v0.1 (installable, demoable, CI-usable):** FR-1, FR-2, FR-3, FR-5, FR-6,
+**v0.1 (installable, demoable, CI-usable):** FR-1, FR-2, FR-3, FR-4, FR-5, FR-6,
 FR-7, FR-8, FR-9, FR-10, FR-11, FR-12, FR-13, FR-14, FR-15, FR-16, FR-17,
 FR-18, FR-19, FR-20, FR-21, FR-22, FR-23, FR-24, FR-25, FR-26, FR-27.
-FR-4 (OTel) is **OPEN-3**.
 
 **Later:** FR-L1 through FR-L11.
 
@@ -438,21 +437,11 @@ Cedar and importers, then the Action.
 
 ## 9. Open questions
 
-Blocking v0.1 (halt):
+Blocking questions were answered on 2026-09-25 (see decisions.md):
 
-- **OPEN-1 Performance target.** Confirm NFR-P1 (100K calls < 60 s, both refs,
-  M2-class laptop) and the proposed budget split. Recommendation: confirm as
-  written; OPA alone is 0.62 s per ref so the target is comfortable, and the
-  budget leaves room for pydantic parsing of 100K records.
-- **OPEN-2 License.** Not specified in the brief. Recommendation: Apache-2.0.
-  Alternatives: MIT (simpler, no patent grant), MPL-2.0 (file-level
-  copyleft; unusual for CLIs in this ecosystem).
-- **OPEN-3 v0.1 importer set.** The brief lists JSONL as v0.1 and
-  Langfuse/LangSmith as later, leaving OTel and Custody ambiguous.
-  Recommendation: v0.1 = JSONL + Custody + OTel `execute_tool` spans (basic,
-  AC-4.1–4.5), because OTel is the only vendor-neutral source and Custody is
-  cheap. Alternative: JSONL + Custody only, OTel in v0.2, which shortens the
-  path to the Action by roughly two days.
+- OPEN-1 Performance target: confirmed as NFR-P1 (60 s, budget as written).
+- OPEN-2 License: Apache-2.0.
+- OPEN-3 v0.1 importer set: JSONL + Custody + OTel `execute_tool` spans.
 
 Non-blocking (decided here, revisit on feedback):
 

@@ -122,3 +122,43 @@ allow. Option 3 would block users with one unrelated `http.send` rule.
 
 **Rationale.** Traces contain PII; one misconfigured Action must not leak it
 into a PR. Keys without values still make diffs readable.
+
+## 2026-09-25 — Performance target
+
+**Question.** Confirm NFR-P1: 100K calls, both refs, diffed and reported in
+under 60 s wall-clock on an M2-class laptop, with budget import ≤ 20 s,
+evaluation ≤ 10 s per ref, classify + report ≤ 10 s, 10 s headroom.
+
+**Options.** 60 s as written; 30 s (forces msgspec and early tuning); 120 s
+(no engineering benefit).
+
+**Decision.** 60 s as written.
+
+**Rationale.** OPA batch evaluation measures 0.62 s per ref, so the target is
+comfortable and leaves room for pydantic parsing.
+
+## 2026-09-25 — License
+
+**Question.** The brief did not specify a license.
+
+**Options.** Apache-2.0; MIT; MPL-2.0.
+
+**Decision.** Apache-2.0.
+
+**Rationale.** Patent grant; matches OPA, Cedar, TOLAP, and the surrounding
+ecosystem.
+
+## 2026-09-25 — v0.1 importer set
+
+**Question.** Brief marks JSONL as v0.1 and Langfuse/LangSmith as later; OTel
+and Custody ambiguous.
+
+**Options.**
+1. JSONL + Custody + OTel `execute_tool` spans.
+2. JSONL + Custody; OTel in v0.2.
+3. JSONL only.
+
+**Decision.** Option 1.
+
+**Rationale.** OTel is the only vendor-neutral source; Custody importer is
+cheap and spec-derived. Costs roughly two days before the Action ships.
