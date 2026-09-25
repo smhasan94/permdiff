@@ -6,7 +6,7 @@
       "tool": {
         "driver": {
           "name": "permdiff",
-          "version": "0.1.0.dev0",
+          "version": "0.1.0",
           "informationUri": "https://github.com/smhasan94/permdiff",
           "rules": [
             {

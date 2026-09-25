@@ -507,6 +507,13 @@ Threats and mitigations:
   warning for importers and is an error for engines; built-in names always win
   a collision. Installing a plugin is a code-execution decision the user makes
   with `pip`.
+- **Policy-authored text (learned in the E7 security review).** `Decision.reasons`
+  and `determining` come from the policy engine, so a policy can echo raw
+  argument values into them. Under `safe`, every string or number the call
+  carries (arguments, attributes, context, principal id, resource id) is
+  scrubbed out of that text and the text is capped at 200 characters; the
+  sentinel harness covers a policy that echoes trace values. Reason text is
+  still policy-author controlled and can carry anything the policy invents.
 - **Cedar (learned in E6).** Evaluation is in-process and pure; request
   templates are validated at engine construction; JSON nulls are dropped from
   context rather than passed through; policies are validated against the

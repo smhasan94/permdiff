@@ -56,6 +56,9 @@ def iter_spans(path: Path) -> Iterator[Span]:
     text = decode_utf8(raw, locator=str(path))
     try:
         document = json.loads(text)
+    except RecursionError as exc:
+        msg = f"{path}: JSON nested too deeply"
+        raise TraceImportError(msg) from exc
     except ValueError:
         document = None
     if isinstance(document, Mapping):
@@ -69,6 +72,9 @@ def iter_spans(path: Path) -> Iterator[Span]:
             continue
         try:
             document = json.loads(line)
+        except RecursionError as exc:
+            msg = f"{path}:{lineno}: JSON nested too deeply"
+            raise TraceImportError(msg) from exc
         except ValueError as exc:
             msg = f"{path}:{lineno}: invalid JSON: {exc}"
             raise TraceImportError(msg) from exc

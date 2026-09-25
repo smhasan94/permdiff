@@ -20,7 +20,8 @@ permdiff: origin/main → HEAD   (4,812 calls, 2026-09-18 → 2026-09-25)
 
 ## Status
 
-Pre-release. Under construction; see `docs/03-epics.md` for progress.
+0.1.0, prepared and awaiting publication (see `docs/release.md`). Progress by epic is
+in `docs/03-epics.md`; changes in `CHANGELOG.md`.
 
 ## Install
 

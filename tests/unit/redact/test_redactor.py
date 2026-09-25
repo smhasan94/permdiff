@@ -17,6 +17,7 @@ from permdiff.models import (
     Transition,
 )
 from permdiff.redact import RedactLevel, Redactor, new_salt, placeholder
+from permdiff.redact.redactor import scrub_text, trace_values
 from tests.redaction_harness import SENTINELS, assert_no_sentinels
 from tests.strategies import json_values, tool_calls
 
@@ -215,3 +216,46 @@ def test_report_redaction_covers_every_transition_and_keeps_header(
     assert (
         Redactor(level=RedactLevel.NONE).transition(report.transitions[0]) is report.transitions[0]
     )
+
+
+def test_reasons_echoing_trace_values_are_scrubbed_and_capped(
+    sentinel_corpus: tuple[ToolCall, ...],
+) -> None:
+    call = sentinel_corpus[0]
+    echo = (
+        f"denied: charge {SENTINELS['arg_top']} by {SENTINELS['principal_id']} "
+        f"({SENTINELS['context']})"
+    )
+    base = Decision(
+        call_id=call.id,
+        effect=Effect.DENY,
+        reasons=(echo, "x" * 500),
+        determining=(SENTINELS["arg_nested"],),
+        engine="e",
+    )
+    head = Decision(call_id=call.id, effect=Effect.ALLOW, reasons=("amount>500",), engine="e")
+
+    out = Redactor(salt=SALT).transition(Transition.build(call, base, head))
+
+    assert_no_sentinels(out.model_dump_json())
+    assert out.base.reasons[0] == "denied: charge <redacted> by <redacted> (<redacted>)"
+    assert len(out.base.reasons[1]) == 200
+    assert out.base.determining == ("<redacted>",)
+    assert out.head.reasons == ("amount>500",)
+    assert SENTINELS["arg_top"] in trace_values(call)
+    assert scrub_text("plain", ()) == "plain"
+
+
+def test_show_args_values_are_not_scrubbed_from_reasons(
+    sentinel_corpus: tuple[ToolCall, ...],
+) -> None:
+    call = sentinel_corpus[0]
+    decision = Decision(
+        call_id=call.id, effect=Effect.DENY, reasons=(f"charge {SENTINELS['arg_top']}",), engine="e"
+    )
+
+    out = Redactor(salt=SALT, show_args=frozenset({"charge_id"})).transition(
+        Transition.build(call, decision, decision)
+    )
+
+    assert SENTINELS["arg_top"] in out.base.reasons[0]

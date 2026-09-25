@@ -7,7 +7,9 @@ from typing import Any
 import pytest
 
 from permdiff.errors import TraceImportError
+from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import FORMAT_NAME, JsonlImporter
+from permdiff.importers.otel import OtelImporter
 from permdiff.models.limits import MAX_LINE_BYTES, MAX_NESTING
 
 RECORD: dict[str, Any] = {
@@ -157,3 +159,19 @@ def test_missing_file_is_an_import_error(tmp_path: Path) -> None:
 )
 def test_detect_recognizes_permdiff_records(head: bytes, expected: bool) -> None:
     assert JsonlImporter().detect(head) is expected
+
+
+def test_deeply_nested_json_is_rejected_cleanly_by_every_importer(tmp_path: Path) -> None:
+    deep = "[" * 100_000 + "1" + "]" * 100_000
+    path = tmp_path / "deep.jsonl"
+    path.write_text(deep + "\n", encoding="utf-8")
+
+    for importer in (JsonlImporter(), CustodyImporter()):
+        result = importer.read(path)
+        assert result.calls == ()
+        assert (
+            "nested too deeply" in result.stats.skipped_locators[0]
+            or "recursion" in result.stats.skipped_locators[0].lower()
+        )
+    with pytest.raises(TraceImportError, match="nested too deeply"):
+        OtelImporter().read(path)

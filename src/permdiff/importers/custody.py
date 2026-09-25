@@ -158,6 +158,9 @@ def _parse_line(text: str, locator: str) -> ToolCall:
     except json.JSONDecodeError as exc:
         msg = f"invalid JSON: {exc.msg} at column {exc.colno}"
         raise RecordRejected(msg) from exc
+    except RecursionError as exc:
+        msg = "JSON nested too deeply"
+        raise RecordRejected(msg) from exc
     if not isinstance(event, Mapping):
         msg = "expected a JSON object"
         raise RecordRejected(msg)

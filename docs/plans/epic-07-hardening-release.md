@@ -46,6 +46,6 @@ uv build && uv run twine check dist/*
 
 ## Acceptance
 
-- [ ] All three stories done and marked
-- [ ] README shows measured numbers under target
-- [ ] Owner handed a ready-to-publish 0.1.0
+- [x] All three stories done and marked
+- [x] README shows measured numbers under target (6.5 s Python, 11.8 s OPA, under 1 GiB)
+- [x] Owner handed a ready-to-publish 0.1.0 (docs/release.md); publishing itself is the owner's

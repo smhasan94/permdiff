@@ -57,3 +57,13 @@ def business_hours(call: ToolCall, policy_dir: Path) -> str:
 
 
 not_callable = "I am a string"
+
+
+def echo_arguments(call: ToolCall, policy_dir: Path) -> Decision:
+    """A policy that formats raw argument values into its reason text."""
+    return Decision(
+        call_id=call.id,
+        effect=Effect.ALLOW,
+        reasons=(f"allowed with args {json.dumps(call.arguments or {}, sort_keys=True)}",),
+        engine="echo",
+    )

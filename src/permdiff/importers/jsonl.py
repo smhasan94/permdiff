@@ -49,6 +49,9 @@ def _parse_line(text: str, locator: str) -> ToolCall:
         call = ToolCall.model_validate_json(text)
     except ValidationError as exc:
         raise RecordRejected(summarize_validation_error(exc)) from exc
+    except RecursionError as exc:
+        msg = "JSON nested too deeply"
+        raise RecordRejected(msg) from exc
     if call.source is None:
         return call.model_copy(update={"source": Source(format=FORMAT_NAME, locator=locator)})
     return call

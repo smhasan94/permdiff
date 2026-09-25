@@ -282,8 +282,8 @@ Satisfies: NFR-P1–P4, NFR-S2, NFR-S5, NFR-S7, NFR-Q5, NFR-L2.
 | # | Story | Status |
 |---|---|---|
 | E7-S1 | Benchmark script and CI regression gate | todo |
-| E7-S2 | Security hardening pass | in progress |
-| E7-S3 | Release preparation | todo |
+| E7-S2 | Security hardening pass | done |
+| E7-S3 | Release preparation | done |
 
 **E7-S1 Benchmark.** NFR-P1–P4. Deps: E2, E3.
 AC: `bench/` script generating 100K synthetic calls; runs OPA and Python

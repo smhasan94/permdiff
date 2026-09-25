@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import posixpath
+import re
 import tarfile
 from pathlib import Path
 
@@ -24,7 +25,7 @@ def normalize_policy_path(policy_path: str) -> str:
     if not policy_path.strip() or cleaned in {".", ""}:
         msg = f"policy path {policy_path!r} is empty; pass --policy <dir>"
         raise PolicyError(msg)
-    if cleaned.startswith(("/", "../")) or cleaned == "..":
+    if cleaned.startswith(("/", "../")) or cleaned == ".." or re.match(r"^[A-Za-z]:", cleaned):
         msg = f"policy path {policy_path!r} must be relative to the repo and stay inside it"
         raise PolicyError(msg)
     return cleaned

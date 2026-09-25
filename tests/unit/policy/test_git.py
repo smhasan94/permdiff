@@ -79,7 +79,9 @@ def test_archive_missing_path_names_path_and_ref(git_repo: GitRepo, tmp_path: Pa
     assert git_repo.base_sha[:7] in message
 
 
-@pytest.mark.parametrize("bad", ["../etc", "/abs/path", "policy/../..", ""])
+@pytest.mark.parametrize(
+    "bad", ["../etc", "/abs/path", "policy/../..", "", "C:/policy", "c:\\policy"]
+)
 def test_unsafe_policy_paths_are_rejected(bad: str) -> None:
     with pytest.raises(PolicyError, match="policy path"):
         gitmod.normalize_policy_path(bad)

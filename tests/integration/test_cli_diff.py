@@ -312,3 +312,18 @@ def test_salt_defaults_to_repository_id_in_github_actions(
 
     assert json.loads(a)["header"]["salt"] == json.loads(b)["header"]["salt"]
     assert json.loads(a)["header"]["salt"] != json.loads(c)["header"]["salt"]
+
+
+def test_policy_reasons_echoing_arguments_are_scrubbed_in_reports(run: Run) -> None:
+    result = run(
+        "--engine",
+        "python:tests.fixtures.py_engine.rules:echo_arguments",
+        "--format",
+        "markdown",
+        "--fail-on",
+        "none",
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "hunter2" not in result.stdout
+    assert "<redacted>" in result.stdout

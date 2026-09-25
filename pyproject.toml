@@ -7,7 +7,7 @@ name = "permdiff"
 dynamic = ["version"]
 description = "terraform plan for AI agent permission changes: replay recorded tool calls against a policy at two git refs and report what changes"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.11.4"  # tarfile extraction filter (PEP 706)
 license = "Apache-2.0"
 license-files = ["LICENSE"]
 authors = [{ name = "Sharukh Hasan" }]
@@ -54,6 +54,7 @@ dev = [
   "jsonschema>=4.26",
   "pip-audit>=2.10",
   "types-jsonschema>=4.26",
+  "twine>=7,<8",
 ]
 
 [tool.hatch.version]

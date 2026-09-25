@@ -1,25 +1,33 @@
 """Redaction (FR-17). Applied once to a ``Report`` before any reporter sees it (AC-17.5).
 
 ``safe`` keeps structure and identifiers that policies key on (tool, agent,
-resource type, reasons) and replaces everything that can carry PII: argument,
+resource type) and replaces everything that can carry PII: argument,
 attribute and context values become ``<type:len>`` placeholders with keys
 kept; principal ids become a salted SHA-256 prefix; resource ids are
-placeholdered. ``none`` is the identity, for local use only.
+placeholdered. Policy-authored text (``Decision.reasons`` and ``determining``)
+is shown, but any trace value echoed into it (a policy that formats an
+argument into its reason) is scrubbed and the text is length-capped, because
+that text is policy-author controlled, not permdiff controlled. ``none`` is
+the identity, for local use only.
 """
 
 from __future__ import annotations
 
 import hashlib
 import secrets
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from enum import StrEnum
 from typing import Any
 
-from permdiff.models import Report, ToolCall, Transition
+from permdiff.models import Decision, Report, ToolCall, Transition
 
 SALT_BYTES = 16
 PRINCIPAL_PREFIX = "principal:"
 PRINCIPAL_HASH_CHARS = 8
+MAX_REASON_CHARS = 200
+SCRUBBED = "<redacted>"
+_MIN_SCRUB_LEN = 3
+"""Trace values shorter than this are not scrubbed from reasons (too many false hits)."""
 
 
 class RedactLevel(StrEnum):
@@ -60,6 +68,43 @@ def placeholder(value: Any) -> Any:
     if isinstance(value, list | tuple):
         return [placeholder(v) for v in value]
     return _scalar_placeholder(value)
+
+
+def _string_leaves(value: Any, out: list[str]) -> None:
+    if isinstance(value, Mapping):
+        for v in value.values():
+            _string_leaves(v, out)
+    elif isinstance(value, list | tuple):
+        for v in value:
+            _string_leaves(v, out)
+    elif isinstance(value, str):
+        out.append(value)
+    elif isinstance(value, int | float) and not isinstance(value, bool):
+        out.append(str(value))
+
+
+def trace_values(call: ToolCall, *, skip_keys: frozenset[str] = frozenset()) -> tuple[str, ...]:
+    """Every string or number in the call that redaction hides, longest first."""
+    leaves: list[str] = [call.principal.id]
+    if call.resource.id:
+        leaves.append(call.resource.id)
+    for source in (
+        {k: v for k, v in (call.arguments or {}).items() if k not in skip_keys},
+        call.principal.attrs,
+        call.agent.attrs,
+        call.resource.attrs,
+        call.context,
+    ):
+        _string_leaves(source, leaves)
+    return tuple(sorted({v for v in leaves if len(v) >= _MIN_SCRUB_LEN}, key=len, reverse=True))
+
+
+def scrub_text(text: str, values: Sequence[str], *, limit: int = MAX_REASON_CHARS) -> str:
+    """Replace echoed trace values with ``<redacted>`` and cap the length."""
+    for value in values:
+        if value in text:
+            text = text.replace(value, SCRUBBED)
+    return text if len(text) <= limit else text[: limit - 1] + "…"
 
 
 class Redactor:
@@ -121,9 +166,25 @@ class Redactor:
         )
 
     def transition(self, transition: Transition) -> Transition:
+        """Redact the call, then scrub echoed trace values out of both decisions' text."""
         if self.level is RedactLevel.NONE:
             return transition
-        return transition.model_copy(update={"call": self.call(transition.call)})
+        values = trace_values(transition.call, skip_keys=self.show_args)
+        return transition.model_copy(
+            update={
+                "call": self.call(transition.call),
+                "base": self.decision(transition.base, values),
+                "head": self.decision(transition.head, values),
+            }
+        )
+
+    def decision(self, decision: Decision, values: Sequence[str]) -> Decision:
+        return decision.model_copy(
+            update={
+                "reasons": tuple(scrub_text(r, values) for r in decision.reasons),
+                "determining": tuple(scrub_text(d, values) for d in decision.determining),
+            }
+        )
 
     def report(self, report: Report) -> Report:
         if self.level is RedactLevel.NONE:
