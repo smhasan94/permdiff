@@ -12,7 +12,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | reviewed |
 | E2 | OPA evaluator | reviewed |
 | E3 | Reporting, grouping, config | reviewed |
-| E4 | GitHub Action | todo |
+| E4 | GitHub Action | in progress |
 | E5 | Importers: Custody, OTel, convert | todo |
 | E6 | Cedar evaluator | todo |
 | E7 | Performance, hardening, release preparation | todo |
@@ -198,7 +198,7 @@ Satisfies: FR-26.
 
 | # | Story | Status |
 |---|---|---|
-| E4-S1 | Composite action and comment upsert | todo |
+| E4-S1 | Composite action and comment upsert | in progress |
 | E4-S2 | Fork fallback, SARIF option, docs | todo |
 
 **E4-S1 Composite action and comment upsert.** AC-26.1, AC-26.2, AC-26.5.

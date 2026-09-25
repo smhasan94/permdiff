@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E4; FR-26
 **Complexity**: Small (2 stories)
-**Status**: planned 2026-09-25
+**Status**: in progress since 2026-09-25 (plan re-read and updated)
 
 ## Summary
 
@@ -10,6 +10,30 @@ A composite action at the repo root that installs a pinned permdiff, runs
 `check` then `diff --format json`, renders markdown, and upserts one marked PR
 comment. Degrades to job summary and artifact on read-only tokens. Optional
 SARIF file output. The repo dogfoods it.
+
+## Updated 2026-09-25 (re-read before starting)
+
+- Action versions verified via the GitHub releases API on 2026-09-25: `actions/checkout@v7`,
+  `actions/setup-python@v7`, `actions/github-script@v9`, `actions/upload-artifact@v7`,
+  `actions/cache@v6`, `github/codeql-action/upload-sarif@v4`.
+- `action/render.py` is dropped. The E3 JSON envelope already carries everything the
+  markdown and SARIF renderers need, so the package gains `permdiff render --from-json
+  report.json --format markdown|sarif`, and the action calls that. No logic lives in the
+  action.
+- `pip install permdiff==<version>` cannot work before the package is published (standing
+  rule 5 forbids publishing). `version: ""` (the default until release) installs from
+  `${{ github.action_path }}`, and the dogfood workflow uses that.
+- Standing rule 2 (no branches, no PRs) conflicts with the acceptance item "dogfood PR shows
+  one comment that updates in place". The comment upsert is unit-tested with a mocked
+  octokit, and the dogfood workflow runs on pushes to `main` where it exercises the
+  job-summary path. PR-based verification is left to the owner; halted for a decision at the
+  end of the epic (recorded in decisions.md when answered).
+- Fork detection: `github.event.pull_request.head.repo.full_name != github.repository`
+  selects the summary-plus-artifact path; a comment attempt that fails with 403 also falls
+  back to the summary so a missing `pull-requests: write` permission never fails the job.
+- Salt: the action passes `--salt` derived from `GITHUB_REPOSITORY_ID` so hashes are stable
+  across runs within a repository and the sticky comment update is a no-op when nothing
+  changed.
 
 ## Patterns to mirror
 
@@ -21,7 +45,7 @@ Sticky-comment marker pattern (`<!-- permdiff -->`, list → find → update/cre
 | File | Action | Why |
 |---|---|---|
 | `action.yml` | CREATE | composite action; inputs `traces`, `base`, `head`, `policy`, `engine`, `decision`, `fail-on`, `sarif`, `version`, `config`, `python-version`, `comment` (bool) |
-| `action/render.py` | CREATE | thin wrapper: JSON → markdown/SARIF via `permdiff` API (keeps logic in the package) |
+| `src/permdiff/cli/render.py` | CREATE | `permdiff render --from-json FILE --format markdown\|sarif\|terminal` |
 | `action/comment.js` | CREATE | upsert script used by `github-script` |
 | `.github/workflows/dogfood.yml` | CREATE | runs the action on the demo fixture for every PR to this repo |
 | `src/permdiff/cli/diff.py` | UPDATE | `--salt` default from `GITHUB_REPOSITORY_ID` when present; `--allow-widening` actor from `GITHUB_ACTOR` |
