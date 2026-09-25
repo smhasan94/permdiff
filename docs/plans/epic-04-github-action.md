@@ -115,4 +115,4 @@ node --test action/
 ## Acceptance
 
 - [x] Both stories done and marked
-- [ ] Dogfood PR shows one comment that updates in place and fails the check on the demo widening (owner verification; see decisions.md 2026-09-25; the push-triggered dogfood run and the mocked-octokit unit tests cover what the agent can run)
+- [x] Dogfood PR shows one comment that updates in place (verified on PR #1, 2026-09-25); the dogfood job runs with `fail-on: none` by design so `main` stays green

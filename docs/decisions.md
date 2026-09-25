@@ -176,5 +176,8 @@ updates in place. Standing rule 2 forbids the agent from creating branches or PR
 2. Owner grants a one-time exception for the agent to open and close a verification PR.
 3. Accept the unit test plus the push-triggered dogfood run as sufficient.
 
-**Decision.** Pending. Until answered, E4 is marked done with this item recorded here and
-in `docs/plans/epic-04-github-action.md`.
+**Decision.** Resolved 2026-09-25 via option 2 in spirit: the owner opened PR #1
+(`verify-comment`, a docstring-only change to the demo head policy) and asked the agent to
+verify. Observed: exactly one `<!-- permdiff -->` comment, updated in place on each push
+(`updated_at` advanced, `base` SHA in the body changed), all 11 checks green (8 test cells,
+quickstart, bench, dogfood). The branch is a throwaway; close PR #1 without merging.

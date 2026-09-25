@@ -6,10 +6,11 @@ repository owner.
 ## 0.1.0
 
 1. Confirm `main` is green: `ci`, `bench`, and `dogfood` workflows on the release commit.
-2. Verify the sticky PR comment once by hand: open a throwaway pull request that changes
-   `src/permdiff/demo/policy_head/rules.py`, confirm one `<!-- permdiff -->` comment
-   appears, push a second commit, confirm the same comment updates in place, close the PR
-   (see `docs/decisions.md`, 2026-09-25, open item).
+2. Sticky PR comment: verified on PR #1 on 2026-09-25 (one comment, updated in place across
+   pushes; see `docs/decisions.md`). Close PR #1 without merging and delete
+   `verify-comment`. For future releases, a docstring-only change to
+   `src/permdiff/demo/policy_head/rules.py` on a throwaway PR re-runs the check; a real
+   rule change would fail the demo's exact-count tests.
 3. Build and check the distribution:
 
    ```
