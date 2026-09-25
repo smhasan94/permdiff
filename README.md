@@ -73,6 +73,34 @@ you replay recorded values with `--nd-cache decision-log.json` (OPA's
 `nd_builtin_cache` shape). `permdiff check` validates traces and compiles both
 refs without diffing, which is what CI runs first.
 
+**3. Put it in CI.**
+
+```yaml
+name: permdiff
+on: pull_request
+permissions:
+  contents: read
+  pull-requests: write
+jobs:
+  permdiff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with: { fetch-depth: 0 }
+      - uses: smhasan94/permdiff@v0
+        with:
+          traces: traces/*.jsonl
+```
+
+The action runs `permdiff check`, then `diff`, and upserts one PR comment marked
+`<!-- permdiff -->` that updates in place on every push. The check fails on
+widening (`fail-on: widen`). Fork PRs, whose token is read-only, get the same
+report in the job summary and as an artifact. `sarif: "true"` adds a SARIF file
+for `github/codeql-action/upload-sarif@v4`. Inputs and outputs are in
+[docs/action.md](docs/action.md). Save the flags once with `permdiff init` and
+commit `permdiff.toml`; flags override environment variables
+(`PERMDIFF_REPORT_FAIL_ON=none`) which override the file.
+
 For a Python policy adapter instead:
 
 ```
@@ -90,8 +118,10 @@ Traces are JSONL, one `ToolCall` per line; `permdiff schema toolcall` prints
 the JSON Schema. Reports redact argument values by default; `--show-args`
 reveals named keys and `--redact none` shows everything for local use.
 
-The Cedar engine, markdown/JSON/SARIF output, and the GitHub Action arrive in
-the next epics. The design is in `docs/01-overview.md`.
+`--format markdown|json|sarif` and `permdiff render --from-json` produce the
+other outputs; `permdiff schema report` prints the JSON report's schema. The
+Cedar engine and the Custody and OpenTelemetry importers arrive in the next
+epics. The design is in `docs/01-overview.md`.
 
 ## Engines
 

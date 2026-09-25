@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E4; FR-26
 **Complexity**: Small (2 stories)
-**Status**: in progress since 2026-09-25 (plan re-read and updated)
+**Status**: done 2026-09-25; review pending; PR verification pending owner
 
 ## Summary
 
@@ -88,7 +88,7 @@ github.repository` → fork → summary path.
 ## Tasks
 
 1. **E4-S1 action + upsert** — tests: `action/comment.js` unit-tested with a mocked octokit (node test runner, no npm deps); `render.py` tested via pytest; dogfood workflow green on a PR to this repo (manual verification recorded in the story). Action: files above.
-2. **E4-S2 fork fallback, SARIF, docs** — tests: fallback path exercised by a workflow matrix that sets `permissions: {pull-requests: read}`; SARIF file produced and validated with the E3 schema test; README and `docs/action.md`.
+2. **E4-S2 fork fallback, SARIF, docs** — the fork path is a condition in `action.yml` (head repo differs) plus the 403 fallback in `comment.js`, both unit-tested; a permissions matrix workflow was dropped because a same-repo push cannot simulate a fork token. SARIF via `permdiff render`; README and `docs/action.md`.
 
 ## Test strategy
 
@@ -114,5 +114,5 @@ node --test action/
 
 ## Acceptance
 
-- [ ] Both stories done and marked
-- [ ] Dogfood PR shows one comment that updates in place and fails the check on the demo widening
+- [x] Both stories done and marked
+- [ ] Dogfood PR shows one comment that updates in place and fails the check on the demo widening (owner verification; see decisions.md 2026-09-25; the push-triggered dogfood run and the mocked-octokit unit tests cover what the agent can run)

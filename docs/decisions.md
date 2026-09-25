@@ -162,3 +162,19 @@ and Custody ambiguous.
 
 **Rationale.** OTel is the only vendor-neutral source; Custody importer is
 cheap and spec-derived. Costs roughly two days before the Action ships.
+
+## 2026-09-25: verifying the GitHub Action's sticky comment (open, needs owner)
+
+**Question.** E4 acceptance asks for a dogfood pull request showing one comment that
+updates in place. Standing rule 2 forbids the agent from creating branches or PRs.
+
+**Options.**
+1. Owner opens a throwaway PR against this repository after handover and confirms the
+   comment appears once and updates on a second push (recommended: zero rule changes;
+   the upsert logic is unit-tested against a mocked octokit and the summary path runs on
+   every push to `main` via `.github/workflows/dogfood.yml`).
+2. Owner grants a one-time exception for the agent to open and close a verification PR.
+3. Accept the unit test plus the push-triggered dogfood run as sufficient.
+
+**Decision.** Pending. Until answered, E4 is marked done with this item recorded here and
+in `docs/plans/epic-04-github-action.md`.
