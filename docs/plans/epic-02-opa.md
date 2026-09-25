@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E2; FR-10, FR-25; NFR-C3, NFR-S3
 **Complexity**: Medium (4 stories)
-**Status**: planned 2026-09-25
+**Status**: in progress since 2026-09-25 (plan re-read and updated after an OPA 1.21.0 spike; see "Verified 2026-09-25")
 
 ## Summary
 
@@ -11,6 +11,49 @@ corpus through a generated shim, with per-call time injection, restricted
 capabilities, optional recorded nondeterministic-builtin values, and a
 configurable result mapping. Add `permdiff check`. Switch `permdiff demo` to
 OPA when available.
+
+## Verified 2026-09-25 (spike against a real `opa` 1.21.0 binary)
+
+Facts that changed the plan below:
+
+- **OPA 1.21.0 is the current release** (published 2026-09-24). Release assets are
+  `opa_{darwin,linux}_{amd64,arm64}`, `opa_linux_*_static`, `opa_windows_amd64.exe`,
+  each with a `.sha256` sibling. Pin the static Linux builds (no glibc dependency) and
+  the plain macOS/Windows builds. Checksums recorded in `binary.py`.
+- **`-b` and `-d` do not mix.** With `--bundle`, extra `-d` data files are undefined.
+  Load the policy dir, the shim, and the cases file all with `-d`.
+- **`with` applies to a whole expression**, so the shim binds
+  `v := <decision> with input as c.call with time.now_ns as c.ts_ns` on its own line and
+  then builds `{"id": c.id, "value": v}`. Per-case time injection verified (a
+  business-hours rule flips between 04:00 and 14:00 UTC timestamps).
+- **Undefined decisions drop the case from the comprehension**, so "id missing from
+  results" is the undefined signal (AC-10.8).
+- **`--strict-builtin-errors` aborts the whole batch on the first builtin error** with
+  a message but no case id. Without it, a builtin error silently makes the rule body
+  fail, and a `default deny` then masquerades as a real deny. Decision: keep strict
+  mode and **bisect** on `eval_builtin_error`: split the case list in halves and
+  re-evaluate until each failing call is isolated (`error/eval_error` with the OPA
+  message), capped at `MAX_BISECT_FAILURES = 64` isolated calls; beyond the cap the
+  remaining unresolved chunk is marked `error/eval_error` wholesale with a note.
+- **Restricted capabilities work at both `opa check` and `opa eval`**: a policy using
+  `http.send` fails with `undefined function http.send` (rego_type_error), which names
+  the builtin for AC-10.6. Build the file from `opa capabilities --current` minus the
+  denylist; keys present: `builtins`, `features`, `future_keywords`, `wasm_abi_versions`.
+- **nd-cache requires the builtin to stay in capabilities**, because
+  `with http.send as mock` type-checks against capabilities. In nd-cache mode the
+  listed builtins are re-enabled and replaced by shim functions that look up
+  `data.permdiff_nd[<builtin>][json.marshal(args)]`. A cache miss calls
+  `to_number("permdiff-nd-miss:<builtin>:<key>")` so strict mode raises an
+  identifiable builtin error that the bisect attributes to the call
+  (`error/nondeterministic`, naming builtin and key). Verified: hits return recorded
+  values; misses without strict mode would have silently become `deny`.
+- **Data root**: cases live under `data.permdiff_cases` and the shim is
+  `package permdiff` (base and virtual documents at the same prefix also worked, but a
+  separate root avoids the question).
+- **Performance**: 100K cases (27 MB `cases.json`) evaluate in 1.24 s wall-clock for
+  one `opa eval` on an M-series laptop. Budget of 10 s per ref holds with room.
+- No `opa` binary is installed on the development machine; tests must resolve one via
+  `binary.py` (download once into the user cache) and skip with a clear reason offline.
 
 ## Patterns to mirror
 
@@ -49,10 +92,10 @@ def download(version: str, dest_dir: Path) -> Path   # verifies sha256, atomic r
 # evaluators/opa/shim.py
 SHIM_PACKAGE = "permdiff"
 def render_shim(decision_path: str, *, nd_overrides: Sequence[NdOverride] = ()) -> str
-#   results := [r | some c in data.permdiff.cases
-#                   r := {"id": c.id, "value": <decision_path> with input as c.call
-#                                                with time.now_ns as c.ts_ns <nd withs>}]
-def render_cases(calls: Sequence[ToolCall]) -> bytes   # {"cases": [{"id","ts_ns","call": <ToolCall JSON>}]}
+#   results contains r if { some c in data.permdiff_cases
+#       v := <decision_path> with input as c.call with time.now_ns as c.ts_ns <nd withs>
+#       r := {"id": c.id, "value": v} }
+def render_cases(calls: Sequence[ToolCall]) -> bytes   # {"permdiff_cases": [{"id","ts_ns","call": <ToolCall JSON>}]}
 
 # evaluators/opa/mapping.py
 class UndefinedPolicy(StrEnum): DENY, ERROR
@@ -81,9 +124,10 @@ class OpaEvaluator:
 ```
 
 `opa eval` invocation: `[opa, "eval", "--format", "json", "--strict-builtin-errors",
-"--capabilities", caps, "-b", policy_dir, "-d", shim_path, "-d", cases_path,
-"data.permdiff.results"]` plus `--v0-compatible` when set. Output parsed from
-`result[0].expressions[0].value`.
+"--capabilities", caps, "-d", policy_dir, "-d", shim_path, "-d", cases_path,
+"data.permdiff.results"]` plus `--v0-compatible` when set (never `-b`; see Verified).
+Output parsed from `result[0].expressions[0].value`; an `errors[0].code ==
+"eval_builtin_error"` response triggers the bisect described above.
 
 ## Tasks
 
@@ -113,7 +157,8 @@ uv run permdiff demo --engine opa
 | Risk | Likelihood | Mitigation |
 |---|---|---|
 | `opa` release asset naming or checksum URL changes | Low | pin exact URLs per version in `binary.py`; test resolves the table for current version in CI weekly |
-| Comprehension memory for 100K cases with large arguments | Medium | stream `cases.json`; measure RSS in slow test; document `--since` for huge corpora |
+| Comprehension memory for 100K cases with large arguments | Low (1.24 s / 27 MB measured) | measure RSS in slow test; document `--since` for huge corpora |
+| Many builtin errors make the bisect expensive | Low | cap isolated failures at 64, then mark the rest wholesale; log the count |
 | Policies that reference `data.*` documents beyond the policy dir | Medium | `-b policy_dir` loads `data.json`/`data.yaml` in it; document; later flag `--data` |
 | `with time.now_ns` not honored inside functions called by the decision rule | Low | verified by OPA docs and local test in research; covered by business-hours fixture |
 | Capabilities file omits builtins a policy legitimately needs (e.g., `time.*` ok, `crypto.*`) | Low | denylist only, not allowlist; `[opa] capabilities = path` override |
