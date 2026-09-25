@@ -10,6 +10,9 @@ from pathlib import Path
 
 import pytest
 
+from permdiff.models import ToolCall
+from tests.redaction_harness import sentinel_calls
+
 GIT_ENV = {
     "GIT_CONFIG_GLOBAL": os.devnull,
     "GIT_CONFIG_NOSYSTEM": "1",
@@ -78,3 +81,9 @@ def git_repo(tmp_path: Path) -> GitRepo:
         base_rules=base_rules,
         head_rules=head_rules,
     )
+
+
+@pytest.fixture
+def sentinel_corpus() -> tuple[ToolCall, ...]:
+    """Calls seeded with unique PII-like strings; see ``tests/redaction_harness.py``."""
+    return sentinel_calls()
