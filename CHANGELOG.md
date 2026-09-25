@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- `permdiff record claude-code`, a Claude Code `PreToolUse` hook command that stamps the
+  event with `ts` and appends it to `~/.claude/permdiff-hooks.jsonl` (never writes stdout,
+  always exits 0), and `permdiff record install claude-code [--write]` to print or merge
+  the `settings.json` entry (FR-L11).
+
 ## 0.2.0 (2026-09-25)
 
 - Claude Code importers (FR-L3): `--from claude-code` reads session transcripts from

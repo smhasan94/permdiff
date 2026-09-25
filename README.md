@@ -74,8 +74,10 @@ permdiff diff --from claude-code --traces ~/.claude/projects/*/*.jsonl \
 The head policy asks approval for destructive `Bash` commands, denies writes outside the
 session's working directory, and newly allows `WebFetch`; the report lists each as a
 group with counts and redacted samples, and exits `2` for the widening. Transcripts hold
-file contents, so keep `--redact none` for local runs. The `claude-code-hooks` importer
-reads a `PreToolUse` hook log instead (a documented, stable input); both are described in
+file contents, so keep `--redact none` for local runs. For a documented, stable input
+instead of the transcript format, `permdiff record install claude-code --write` adds a
+`PreToolUse` hook that appends every tool call to `~/.claude/permdiff-hooks.jsonl`, which
+`--from claude-code-hooks` reads; both are described in
 [docs/importers.md](docs/importers.md).
 
 **3. Point it at your own policy and traces.**

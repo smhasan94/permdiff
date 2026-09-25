@@ -47,4 +47,11 @@ USER=dev-user "$venv/bin/permdiff" diff --repo "$work" --from claude-code \
 code=$?
 set -e
 [ "$code" -eq 2 ] || { echo "expected exit 2 from the Claude Code quickstart, got $code" >&2; exit 1; }
+# The recorder: one PreToolUse event through the installed hook command, then imported.
+hooks="$work/hooks.jsonl"
+printf '%s\n' '{"hook_event_name":"PreToolUse","session_id":"s","cwd":"/p","tool_name":"Bash","tool_input":{"command":"ls"},"tool_use_id":"toolu_qs"}' \
+  | "$venv/bin/permdiff" record claude-code --out "$hooks"
+[ "$(wc -l < "$hooks" | tr -d ' ')" -eq 1 ] || { echo "expected one recorded line in $hooks" >&2; exit 1; }
+"$venv/bin/permdiff" convert --from claude-code-hooks "$hooks" | grep -q '"toolu_qs"' || { echo "recorded event did not import" >&2; exit 1; }
+"$venv/bin/permdiff" record install claude-code --settings "$work/settings.json" --out "$hooks" --write | grep -q "installed the PreToolUse hook"
 echo "quickstart OK"

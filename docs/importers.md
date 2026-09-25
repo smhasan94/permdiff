@@ -91,7 +91,19 @@ and `Edit` inputs. Reports redact argument values by default; keep `--redact non
 
 The documented, stable input: `PreToolUse` hook stdin
 ([reference](https://code.claude.com/docs/en/hooks), read 2026-09-25), one object per
-line. The stdin carries no timestamp, so the hook must add one. In `~/.claude/settings.json`:
+line. The stdin carries no timestamp, so the hook must add one. permdiff ships the hook:
+
+```
+permdiff record install claude-code            # prints the settings.json entry
+permdiff record install claude-code --write    # merges it into ~/.claude/settings.json (backup first)
+```
+
+The entry runs `permdiff record claude-code --out ~/.claude/permdiff-hooks.jsonl` before
+every tool call. The recorder stamps the event with `ts`, appends one line, never writes
+to stdout, and always exits 0, so it cannot block or change a tool call. The file is not
+rotated; truncate it when you like. Without permdiff on Claude Code's `PATH` (the
+installer writes the absolute path it finds), or if you prefer no Python in the hook, the
+manual equivalent with `jq` is:
 
 ```json
 {
