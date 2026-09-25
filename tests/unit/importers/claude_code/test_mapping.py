@@ -37,7 +37,9 @@ def test_split_tool(name: str, expected: tuple[str | None, str | None]) -> None:
         ("Read", {"file_path": 3}, {}),
     ],
 )
-def test_resource_of(tool: str, arguments: dict | None, expected: dict) -> None:
+def test_resource_of(
+    tool: str, arguments: dict[str, object] | None, expected: dict[str, str]
+) -> None:
     assert resource_of(tool, arguments) == expected
 
 
