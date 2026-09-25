@@ -40,6 +40,20 @@ def _escape(value: str) -> str:
     return value.replace("\\", "\\\\").replace('"', '\\"')
 
 
+def check_template(template: str) -> str:
+    """Reject unknown ``{field}`` placeholders up front (at engine construction)."""
+    unknown = [
+        m.group(1) for m in _PLACEHOLDER.finditer(template) if m.group(1) not in TEMPLATE_FIELDS
+    ]
+    if unknown:
+        msg = (
+            f"template {template!r} uses unknown field(s) {', '.join(unknown)}; "
+            f"choose from {', '.join(TEMPLATE_FIELDS)}"
+        )
+        raise ValueError(msg)
+    return template
+
+
 def render(template: str, call: ToolCall) -> str:
     """``User::"{principal.id}"`` → ``User::"alice"``.
 

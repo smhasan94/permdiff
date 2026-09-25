@@ -12,7 +12,14 @@ import cedarpy
 
 from permdiff.evaluators.base import PreparedPolicy
 from permdiff.evaluators.cedar.loader import PolicyBundle, PolicyMeta, load_bundle, validate
-from permdiff.evaluators.cedar.request import MissingTemplateValue, build_request, missing_name
+from permdiff.evaluators.cedar.request import (
+    MissingTemplateValue,
+    build_request,
+    check_template,
+    missing_name,
+)
+from pydantic import model_validator
+
 from permdiff.models import Decision, Effect, ErrorKind, Frozen, ToolCall
 
 log = logging.getLogger(__name__)
@@ -30,6 +37,12 @@ class CedarOptions(Frozen):
     resource: str = DEFAULT_RESOURCE
     approval_annotation: str = "require_approval"
     now_key: str = "now"
+
+    @model_validator(mode="after")
+    def _templates_use_known_fields(self) -> CedarOptions:
+        for name in ("principal", "action", "resource"):
+            check_template(getattr(self, name))  # raises ValueError naming the field
+        return self
 
 
 @dataclass(frozen=True)

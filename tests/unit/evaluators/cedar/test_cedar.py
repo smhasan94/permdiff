@@ -244,3 +244,10 @@ def test_nulls_are_dropped_from_the_context() -> None:
     assert ctx["c"] == {"e": 2}
     assert "a" not in ctx
     assert "version" not in ctx["call"]["agent"]
+
+
+def test_bad_template_field_is_an_engine_error_at_construction() -> None:
+    with pytest.raises(EngineError, match=r"principal\.email") as exc_info:
+        registry.resolve("cedar", principal='User::"{principal.email}"')
+
+    assert "--engine cedar" in str(exc_info.value)
