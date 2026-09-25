@@ -2,12 +2,44 @@
 
 **Source**: [03-epics.md](../03-epics.md) E5; FR-3, FR-4, FR-5, FR-7
 **Complexity**: Medium (4 stories)
-**Status**: planned 2026-09-25
+**Status**: in progress since 2026-09-25 (plan re-read and updated)
 
 ## Summary
 
 Add Custody `custody.trace.v1` and OpenTelemetry GenAI `execute_tool` span
 importers, format auto-detection, and `permdiff convert`.
+
+## Verified 2026-09-25 (re-read before starting)
+
+- **Custody** (`/Users/sharukhhasan/code/custody`, commit bb81683) is still planning
+  documents only: no code, no emitted traces. `PLAN.md` §5 is the spec. Event fields:
+  `schema`, `id` (ULID), `ts`, `workspace`, `session_id`, `source`, `actor{agent,user,host}`,
+  `action{type,name,input_digest,input_redacted?,cwd,repo,branch}`,
+  `decision{verdict,policy_hash,rule_ids,detector_hits,latency_us,adjudication}`, `chain`.
+  `action.type` ∈ exec | file_read | file_write | file_delete | network | tool_call |
+  mcp_call | llm_call; `verdict` ∈ allow | block | warn | observe. Mapping: `actor.user` →
+  principal (type `user`), `actor.agent` → agent id, `actor.host` and `source` → principal
+  attrs / context, `action.name` → tool name, `action.type` → tool type, `action.cwd`,
+  `repo`, `branch`, `session_id`, `workspace` → context, `input_redacted` → arguments
+  (absent → `None`, noted as digest-only), `decision.verdict` → recorded effect (`block` →
+  deny; `warn`/`observe` → allow), `decision.policy_hash` → recorded policy hash,
+  `decision.rule_ids` kept in context under `custody.rule_ids`. Unknown `schema` rejected.
+- **OTel GenAI** (semantic-conventions-genai `main`, fetched 2026-09-25, Development
+  stability): execute-tool spans have `gen_ai.operation.name = execute_tool`, span name
+  `execute_tool {gen_ai.tool.name}`, attributes `gen_ai.tool.name` (required),
+  `gen_ai.tool.call.id`, `gen_ai.tool.type`, `gen_ai.tool.description`,
+  `gen_ai.agent.name` (and `gen_ai.agent.id` from agent spans), `gen_ai.conversation.id`,
+  and Opt-In `gen_ai.tool.call.arguments` (any: JSON string or kvlist). MCP client spans
+  are named `{mcp.method.name} {target}` (`tools/call Flights`) with `mcp.method.name`,
+  `gen_ai.tool.name`, `mcp.session.id`, and the same Opt-In arguments. Parent inference
+  spans carry Opt-In `gen_ai.output.messages` whose assistant parts include
+  `{"type": "tool_call", "id", "name", "arguments"}`. `gen_ai.system` was renamed
+  `gen_ai.provider.name`; kept as an alias only. `enduser.id` / `user.id` come from the
+  general conventions (span or resource attributes).
+- OTLP/JSON encoding: `resourceSpans[].resource.attributes[]`, `scopeSpans[].spans[]`,
+  attribute values as typed `AnyValue` objects (`stringValue`, `boolValue`, `intValue` as a
+  string, `doubleValue`, `arrayValue.values`, `kvlistValue.values`, `bytesValue`),
+  `startTimeUnixNano` as a decimal string, `spanId`/`parentSpanId` hex.
 
 ## Patterns to mirror
 

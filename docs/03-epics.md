@@ -13,7 +13,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E2 | OPA evaluator | reviewed |
 | E3 | Reporting, grouping, config | reviewed |
 | E4 | GitHub Action | reviewed |
-| E5 | Importers: Custody, OTel, convert | todo |
+| E5 | Importers: Custody, OTel, convert | in progress |
 | E6 | Cedar evaluator | todo |
 | E7 | Performance, hardening, release preparation | todo |
 
@@ -223,7 +223,7 @@ Satisfies: FR-3, FR-4, FR-5 (auto-detect), FR-7.
 
 | # | Story | Status |
 |---|---|---|
-| E5-S1 | Custody importer | todo |
+| E5-S1 | Custody importer | in progress |
 | E5-S2 | OTel importer: OTLP JSON and JSONL, `execute_tool` spans | todo |
 | E5-S3 | OTel parent-span argument fallback and aliases | todo |
 | E5-S4 | Auto-detection and `permdiff convert` | todo |
