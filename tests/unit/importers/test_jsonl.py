@@ -162,6 +162,11 @@ def test_detect_recognizes_permdiff_records(head: bytes, expected: bool) -> None
 
 
 def test_deeply_nested_json_is_rejected_cleanly_by_every_importer(tmp_path: Path) -> None:
+    """Never an uncaught RecursionError: a skip with a locator, or a TraceImportError.
+
+    Python 3.14's decoder parses deep nesting without recursing, so the rejection
+    message differs by version; the property under test is the clean rejection.
+    """
     deep = "[" * 100_000 + "1" + "]" * 100_000
     path = tmp_path / "deep.jsonl"
     path.write_text(deep + "\n", encoding="utf-8")
@@ -169,9 +174,7 @@ def test_deeply_nested_json_is_rejected_cleanly_by_every_importer(tmp_path: Path
     for importer in (JsonlImporter(), CustodyImporter()):
         result = importer.read(path)
         assert result.calls == ()
-        assert (
-            "nested too deeply" in result.stats.skipped_locators[0]
-            or "recursion" in result.stats.skipped_locators[0].lower()
-        )
-    with pytest.raises(TraceImportError, match="nested too deeply"):
+        assert result.stats.skipped == 1
+        assert result.stats.skipped_locators[0].startswith(f"{path}:1")
+    with pytest.raises(TraceImportError, match=r"deep\.jsonl"):
         OtelImporter().read(path)
