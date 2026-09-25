@@ -3,7 +3,7 @@
 permdiff is never published by the agent (standing rule 5). Everything below is for the
 repository owner.
 
-## 0.2.0 (prepared 2026-09-25; owner publishes)
+## 0.2.0 (released 2026-09-25: PyPI, tags v0.2.0 and v0 at 31d5406; GitHub release pending)
 
 1. Confirm `main` is green on the release commit (`ci`, `bench`, `dogfood`).
 2. Build and check from a clean tree (the agent ran this once):
