@@ -275,3 +275,16 @@ def test_json_format_and_include_decisions(run: Run) -> None:
     assert doc["decisions"] is None
     assert "hunter2" not in plain.stdout
     assert len(json.loads(full.stdout)["decisions"]) == 3
+
+
+def test_sarif_format_validates(run: Run) -> None:
+    result = run("--format", "sarif", "--salt", "00")
+
+    assert result.exit_code == 2
+    doc = json.loads(result.stdout)
+    assert doc["version"] == "2.1.0"
+    uris = {
+        r["locations"][0]["physicalLocation"]["artifactLocation"]["uri"]
+        for r in doc["runs"][0]["results"]
+    }
+    assert uris == {"policy/rules.json"}

@@ -94,6 +94,7 @@ def sample_report(*, allow_widening: tuple[str, str] | None = None) -> Report:
         head_sha="89abcdef0123456789abcdef0123456789abcdef",
         is_worktree=False,
         policy_path="policy",
+        policy_files=("agent.rego", "data.json"),
         engine="opa",
         salt=FIXED_SALT.hex(),
         generated_at=GENERATED_AT,

@@ -7,6 +7,10 @@
     "head_sha": "89abcdef0123456789abcdef0123456789abcdef",
     "is_worktree": false,
     "policy_path": "policy",
+    "policy_files": [
+      "agent.rego",
+      "data.json"
+    ],
     "engine": "opa",
     "window": null,
     "salt": "000102030405060708090a0b0c0d0e0f",

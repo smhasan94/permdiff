@@ -153,6 +153,7 @@ def diff_sources(
             head_sha=head_policy.sha,
             is_worktree=head_policy.is_worktree,
             policy_path=policy_path,
+            policy_files=_policy_files(head_policy.path),
             engine=getattr(evaluator, "label", evaluator.name),
             window=_window(traces),
             salt=run_salt.hex(),
@@ -163,6 +164,18 @@ def diff_sources(
     return Report(
         header=header, transitions=result.transitions, counts=counts, allow_widening=allow_widening
     )
+
+
+def _policy_files(root: Path, limit: int = 200) -> tuple[str, ...]:
+    """Relative paths of regular files under ``root`` (or ``root`` itself), sorted, capped."""
+    if root.is_file():
+        return (root.name,)
+    files = sorted(
+        p.relative_to(root).as_posix()
+        for p in root.rglob("*")
+        if p.is_file() and not p.name.startswith(".")
+    )
+    return tuple(files[:limit])
 
 
 def _window(traces: Sequence[ToolCall]) -> tuple[datetime, datetime] | None:

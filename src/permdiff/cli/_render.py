@@ -19,11 +19,12 @@ from permdiff.report import (
     gate,
     render_json,
     render_markdown,
+    render_sarif,
     render_terminal,
 )
 from permdiff.report.grouping import DEFAULT_GROUP_BY, DEFAULT_MAX_GROUPS, DEFAULT_SAMPLES
 
-FORMATS = ("terminal", "markdown", "json")
+FORMATS = ("terminal", "markdown", "json", "sarif")
 PRINCIPAL_SHOWN_IN = frozenset({"terminal"})
 """Formats that print principal ids verbatim (overview §3.6); every other format hashes them."""
 
@@ -95,6 +96,8 @@ def emit_and_exit(ctx: click.Context, report: Report, opts: OutputOptions) -> No
 def render(view: ReportView, opts: OutputOptions, *, exit_code: int) -> str:
     if opts.fmt == "markdown":
         return render_markdown(view, exit_code=exit_code, fail_on=opts.fail_on)
+    if opts.fmt == "sarif":
+        return render_sarif(view, exit_code=exit_code, fail_on=opts.fail_on)
     if opts.fmt == "json":
         return render_json(
             view,

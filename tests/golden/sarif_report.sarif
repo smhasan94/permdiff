@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "permdiff",
+          "version": "0.1.0.dev0",
+          "informationUri": "https://github.com/smhasan94/permdiff",
+          "rules": [
+            {
+              "id": "permdiff/widening",
+              "name": "widening",
+              "shortDescription": {
+                "text": "Calls newly allowed or less restricted"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "security-severity": "8.0"
+              }
+            },
+            {
+              "id": "permdiff/tightening",
+              "name": "tightening",
+              "shortDescription": {
+                "text": "Calls newly denied or more restricted"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "3.0"
+              }
+            },
+            {
+              "id": "permdiff/cant-evaluate",
+              "name": "cant_evaluate",
+              "shortDescription": {
+                "text": "Calls the policy could not evaluate"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "security-severity": "4.0"
+              }
+            },
+            {
+              "id": "permdiff/attribution-change",
+              "name": "attribution_change",
+              "shortDescription": {
+                "text": "Same effect, different determining policy"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "1.0"
+              }
+            },
+            {
+              "id": "permdiff/unchanged",
+              "name": "unchanged",
+              "shortDescription": {
+                "text": "Decision unchanged"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "security-severity": "0.0"
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "permdiff/widening",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "widening: github.delete_branch (2 calls, deny \u2192 allow). Reasons: branch protection removed."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "policy/agent.rego"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "github.delete_branch",
+                  "kind": "function"
+                },
+                {
+                  "name": "principal:6d614a89",
+                  "kind": "member"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "863fcc9b03622177ad1524e9a5c8be6312d164928d1361c0bf99db886da0ac03"
+          },
+          "properties": {
+            "count": 2,
+            "transition": "widening",
+            "effects": "deny \u2192 allow",
+            "group": {
+              "tool": "github.delete_branch"
+            },
+            "security-severity": "8.0"
+          }
+        },
+        {
+          "ruleId": "permdiff/widening",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "widening: stripe.refund (1 call, deny \u2192 require_approval). Reasons: amount>500."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "policy/agent.rego"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "stripe.refund",
+                  "kind": "function"
+                },
+                {
+                  "name": "principal:6d614a89",
+                  "kind": "member"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "8c123ee2cc129da8ad186ff925d7be9453e5281d823969441b4a09de24a56526"
+          },
+          "properties": {
+            "count": 1,
+            "transition": "widening",
+            "effects": "deny \u2192 require_approval",
+            "group": {
+              "tool": "stripe.refund"
+            },
+            "security-severity": "8.0"
+          }
+        },
+        {
+          "ruleId": "permdiff/tightening",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "tightening: aws.ec2.terminate_instance (3 calls, allow \u2192 deny). Reasons: prod instances locked."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "policy/agent.rego"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "aws.ec2.terminate_instance",
+                  "kind": "function"
+                },
+                {
+                  "name": "principal:6d614a89",
+                  "kind": "member"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "bf2732b625f88c4a64ffff43d15cc15c3a1315ea51d6b0542ced0f31e27b0eb7"
+          },
+          "properties": {
+            "count": 3,
+            "transition": "tightening",
+            "effects": "allow \u2192 deny",
+            "group": {
+              "tool": "aws.ec2.terminate_instance"
+            },
+            "security-severity": "3.0"
+          }
+        },
+        {
+          "ruleId": "permdiff/tightening",
+          "ruleIndex": 1,
+          "level": "warning",
+          "message": {
+            "text": "tightening: stripe.refund (1 call, allow \u2192 require_approval). Reasons: amount>500."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "policy/agent.rego"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "stripe.refund",
+                  "kind": "function"
+                },
+                {
+                  "name": "principal:6d614a89",
+                  "kind": "member"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "61ad590521ca7e32619d5c25f6d9a3908c7cde328bdb49f5e76182be6c175734"
+          },
+          "properties": {
+            "count": 1,
+            "transition": "tightening",
+            "effects": "allow \u2192 require_approval",
+            "group": {
+              "tool": "stripe.refund"
+            },
+            "security-severity": "3.0"
+          }
+        },
+        {
+          "ruleId": "permdiff/cant-evaluate",
+          "ruleIndex": 2,
+          "level": "warning",
+          "message": {
+            "text": "cant evaluate: salesforce.update (2 calls, allow \u2192 error). Reasons: principal.department."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "policy/agent.rego"
+                },
+                "region": {
+                  "startLine": 1
+                }
+              },
+              "logicalLocations": [
+                {
+                  "name": "salesforce.update",
+                  "kind": "function"
+                },
+                {
+                  "name": "principal:6d614a89",
+                  "kind": "member"
+                }
+              ]
+            }
+          ],
+          "partialFingerprints": {
+            "primaryLocationLineHash": "204efa8255fdf24abe753acd01d3b8b885529b38a0d0113adffa9c3c1ecf1ef5"
+          },
+          "properties": {
+            "count": 2,
+            "transition": "cant_evaluate",
+            "effects": "allow \u2192 error",
+            "group": {
+              "tool": "salesforce.update"
+            },
+            "security-severity": "4.0"
+          }
+        }
+      ],
+      "properties": {
+        "base": {
+          "label": "origin/main",
+          "sha": "0123456789abcdef0123456789abcdef01234567"
+        },
+        "head": {
+          "label": "HEAD",
+          "sha": "89abcdef0123456789abcdef0123456789abcdef",
+          "worktree": false
+        },
+        "policy": "policy",
+        "engine": "opa",
+        "salt": "000102030405060708090a0b0c0d0e0f",
+        "counts": {
+          "imported": 17,
+          "skipped": 3,
+          "filtered": 0,
+          "evaluated": 14,
+          "by_class": {
+            "widening": 3,
+            "tightening": 4,
+            "cant_evaluate": 2,
+            "attribution_change": 1,
+            "unchanged": 4
+          },
+          "recorded_disagreements": 1
+        },
+        "exitCode": 2,
+        "failOn": "widen",
+        "truncatedGroups": 0
+      },
+      "versionControlProvenance": [
+        {
+          "repositoryUri": "https://github.com/smhasan94/permdiff",
+          "revisionId": "89abcdef0123456789abcdef0123456789abcdef"
+        }
+      ]
+    }
+  ]
+}

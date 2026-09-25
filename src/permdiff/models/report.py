@@ -40,6 +40,8 @@ class ReportHeader(Frozen):
     head_sha: str | None
     is_worktree: bool
     policy_path: str
+    policy_files: tuple[str, ...] = ()
+    """Files under the head policy path, relative, sorted; SARIF anchors results here."""
     engine: str
     window: tuple[datetime, datetime] | None = None
     salt: str

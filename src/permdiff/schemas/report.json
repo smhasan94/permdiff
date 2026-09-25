@@ -308,6 +308,14 @@
           "title": "Is Worktree",
           "type": "boolean"
         },
+        "policy_files": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Policy Files",
+          "type": "array"
+        },
         "policy_path": {
           "title": "Policy Path",
           "type": "string"
