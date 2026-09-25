@@ -44,6 +44,8 @@ class TracesConfig(Frozen):
     until: str | None = None
     strict: bool = False
     max_records: int = DEFAULT_MAX_RECORDS
+    principal_from: str | None = None
+    """OTel: attribute path for the principal, e.g. ``resource.attr.service.name``."""
 
 
 class ReportConfig(Frozen):

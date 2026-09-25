@@ -46,17 +46,24 @@ def load_traces(
     fmt: str = AUTO_FORMAT,
     strict: bool = False,
     max_records: int = DEFAULT_MAX_RECORDS,
+    importer_options: Mapping[str, Any] | None = None,
 ) -> ImportResult:
     """Read every file (globs expanded) into canonical calls, in path order.
 
-    ``fmt`` is an importer name or ``auto`` to sniff each file (FR-5).
+    ``fmt`` is an importer name or ``auto`` to sniff each file (FR-5). ``importer_options``
+    reach importers that accept them (for example ``principal_from`` for OTel).
     """
+    options = dict(importer_options or {})
     calls: list[ToolCall] = []
     read = skipped = 0
     locators: list[str] = []
     started = time.perf_counter()
     for path in _expand(paths):
-        importer = importers.detect(path) if fmt == AUTO_FORMAT else importers.get(fmt)
+        importer = (
+            importers.detect(path, **options)
+            if fmt == AUTO_FORMAT
+            else importers.get(fmt, **options)
+        )
         result = importer.read(path, strict=strict, max_records=max_records)
         calls.extend(result.calls)
         if len(calls) > max_records:

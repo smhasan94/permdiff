@@ -37,6 +37,7 @@ CONFIG_FLAGS: dict[str, tuple[str, str]] = {
     "max_records": ("traces", "max_records"),
     "since": ("traces", "since"),
     "until": ("traces", "until"),
+    "principal_from": ("traces", "principal_from"),
     "decision": ("opa", "decision"),
     "v0_compatible": ("opa", "v0_compatible"),
     "undefined": ("opa", "undefined"),
@@ -120,6 +121,11 @@ def selection_flags(fn: F) -> F:
                 help="Keep calls at or after 7d|12h|30m (from the newest trace) or an ISO time.",
             ),
             click.option("--until", default=None, help="Keep calls at or before an ISO time."),
+            click.option(
+                "--principal-from",
+                default=None,
+                help="OTel: attribute path for the principal, e.g. resource.attr.service.name.",
+            ),
             click.option("--tool", "tool_globs", multiple=True, help="Keep tools matching GLOB."),
             click.option(
                 "--agent", "agent_globs", multiple=True, help="Keep agents matching GLOB."
@@ -282,11 +288,15 @@ def load_filtered_traces(
         agent=tuple(kwargs.pop("agent_globs")),
         principal=tuple(kwargs.pop("principal_globs")),
     )
+    importer_options = (
+        {"principal_from": config.traces.principal_from} if config.traces.principal_from else {}
+    )
     imported = api.load_traces(
         require_traces(config),
         fmt=config.traces.format,
         strict=config.traces.strict,
         max_records=config.traces.max_records,
+        importer_options=importer_options,
     )
     return imported, apply_filters(imported.calls, filters)
 

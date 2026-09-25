@@ -111,7 +111,7 @@ def test_broken_entry_points_are_ignored_with_warning(
     monkeypatch.setattr(registry, "_entry_points", lambda: eps)
 
     with caplog.at_level("WARNING", logger=registry.__name__):
-        assert registry.names() == ("jsonl", "custody")
+        assert registry.names() == ("jsonl", "custody", "otel")
 
     messages = " ".join(r.getMessage() for r in caplog.records)
     assert "crash" in messages

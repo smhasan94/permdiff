@@ -224,8 +224,8 @@ Satisfies: FR-3, FR-4, FR-5 (auto-detect), FR-7.
 | # | Story | Status |
 |---|---|---|
 | E5-S1 | Custody importer | done |
-| E5-S2 | OTel importer: OTLP JSON and JSONL, `execute_tool` spans | in progress |
-| E5-S3 | OTel parent-span argument fallback and aliases | todo |
+| E5-S2 | OTel importer: OTLP JSON and JSONL, `execute_tool` spans | done |
+| E5-S3 | OTel parent-span argument fallback and aliases | in progress |
 | E5-S4 | Auto-detection and `permdiff convert` | todo |
 
 **E5-S1 Custody importer.** FR-3. Deps: E1-S3.

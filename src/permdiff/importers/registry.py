@@ -3,21 +3,23 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from importlib.metadata import EntryPoint, entry_points
 from pathlib import Path
+from typing import Any
 
 from permdiff.errors import TraceImportError
 from permdiff.importers.base import Importer
 from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import JsonlImporter
+from permdiff.importers.otel import OtelImporter
 
 log = logging.getLogger(__name__)
 
 ENTRY_POINT_GROUP = "permdiff.importers"
 _SNIFF_BYTES = 8192
 
-_BUILTIN: tuple[Importer, ...] = (JsonlImporter(), CustodyImporter())
+_BUILTIN: tuple[Callable[..., Importer], ...] = (JsonlImporter, CustodyImporter, OtelImporter)
 """Detection order: permdiff JSONL first, then Custody, then OTel."""
 _ALIASES: dict[str, str] = {"permdiff": "jsonl"}
 
@@ -42,28 +44,40 @@ def _load_external() -> list[Importer]:
     return loaded
 
 
-def all_importers() -> tuple[Importer, ...]:
+def _builtins(**options: Any) -> list[Importer]:
+    """Instantiate built-ins; options go to the ones whose constructor accepts them."""
+    instances: list[Importer] = []
+    for factory in _BUILTIN:
+        try:
+            instances.append(factory(**options) if options else factory())
+        except TypeError:
+            instances.append(factory())
+    return instances
+
+
+def all_importers(**options: Any) -> tuple[Importer, ...]:
     """Built-ins, then external, with built-in names taking precedence on collision."""
-    taken = {i.name for i in _BUILTIN}
+    builtins = _builtins(**options)
+    taken = {i.name for i in builtins}
     external = [i for i in _load_external() if i.name not in taken]
-    return (*_BUILTIN, *external)
+    return (*builtins, *external)
 
 
 def names() -> tuple[str, ...]:
     return tuple(i.name for i in all_importers())
 
 
-def get(name: str) -> Importer:
+def get(name: str, **options: Any) -> Importer:
     """Importer by name (``--from``). Unknown names list what is available."""
     wanted = _ALIASES.get(name, name)
-    for importer in all_importers():
+    for importer in all_importers(**options):
         if importer.name == wanted:
             return importer
     msg = f"unknown importer {name!r} for --from; available: {', '.join(names())}"
     raise TraceImportError(msg)
 
 
-def detect(path: Path) -> Importer:
+def detect(path: Path, **options: Any) -> Importer:
     """First importer whose ``detect`` accepts the file head (``--from auto``)."""
     try:
         with path.open("rb") as fh:
@@ -71,7 +85,7 @@ def detect(path: Path) -> Importer:
     except OSError as exc:
         msg = f"cannot read {path}: {exc.strerror or exc}"
         raise TraceImportError(msg) from exc
-    for importer in all_importers():
+    for importer in all_importers(**options):
         if importer.detect(head):
             log.info("detected format %s for %s", importer.name, path)
             return importer
