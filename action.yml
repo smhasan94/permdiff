@@ -134,7 +134,7 @@ runs:
         # extra-args is split like a shell would, so quoted reasons stay one argument.
         python - "$EXTRA" > "$out/extra.args" <<'PY'
         import shlex, sys
-        print("\n".join(shlex.split(sys.argv[1])))
+        sys.stdout.write("".join(token + "\n" for token in shlex.split(sys.argv[1])))
         PY
         echo "dir=$out" >> "$GITHUB_OUTPUT"
         echo "base=$base" >> "$GITHUB_OUTPUT"
