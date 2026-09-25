@@ -38,6 +38,14 @@ permdiff --version
 
 More arrives with each story. The design is in `docs/01-overview.md`.
 
+## Engines
+
+`--engine python:module.path:callable` calls your own Python function with
+signature `(call: ToolCall, policy_dir: Path) -> Decision | str` for every
+trace. **This imports and runs arbitrary code from the current environment**
+with your permissions; point it only at code you would run directly. OPA and
+Cedar adapters arrive in later stories.
+
 ## License
 
 Apache-2.0.
