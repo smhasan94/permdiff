@@ -319,7 +319,8 @@ def test_policy_reasons_echoing_arguments_are_scrubbed_in_reports(run: Run) -> N
         "--engine",
         "python:tests.fixtures.py_engine.rules:echo_arguments",
         "--format",
-        "markdown",
+        "json",
+        "--include-decisions",
         "--fail-on",
         "none",
     )
