@@ -3,7 +3,7 @@
 permdiff is never published by the agent (standing rule 5). Everything below is for the
 repository owner.
 
-## 0.1.0
+## 0.1.0 (released 2026-09-25: PyPI, tags v0.1.0 and v0 at 98cd323, GitHub release created)
 
 1. Confirm `main` is green: `ci`, `bench`, and `dogfood` workflows on the release commit.
 2. Sticky PR comment: verified on PR #1 on 2026-09-25 (one comment, updated in place across
