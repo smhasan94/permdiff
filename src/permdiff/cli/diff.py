@@ -3,16 +3,15 @@
 from __future__ import annotations
 
 import os
-import subprocess
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, TypeVar
 
 import click
 
-from permdiff import api
+from permdiff import _proc, api
 from permdiff.cli._render import FORMATS, OutputOptions, emit_and_exit, parse_show_args
-from permdiff.errors import ConfigError
+from permdiff.errors import ConfigError, ProcError
 from permdiff.models.limits import DEFAULT_MAX_RECORDS
 from permdiff.redact import RedactLevel
 from permdiff.report import FailOn
@@ -54,8 +53,8 @@ def output_flags(fn: F) -> F:
 
 def collect_output_options(kwargs: dict[str, Any]) -> OutputOptions:
     """Pop the ``output_flags`` values out of a command's kwargs."""
-    kwargs.pop("fmt_out")
     return OutputOptions(
+        fmt=kwargs.pop("fmt_out"),
         fail_on=FailOn(kwargs.pop("fail_on")),
         redact=RedactLevel(kwargs.pop("redact")),
         show_args=parse_show_args(kwargs.pop("show_args")),
@@ -84,15 +83,10 @@ def actor() -> str:
     if name := os.environ.get("GITHUB_ACTOR"):
         return name
     try:
-        completed = subprocess.run(
-            ["git", "config", "user.name"],  # noqa: S607
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-    except OSError:
+        result = _proc.run(["git", "config", "user.name"])
+    except ProcError:
         return "unknown"
-    return completed.stdout.strip() or "unknown"
+    return result.stdout.strip() or "unknown"
 
 
 @click.command("diff")

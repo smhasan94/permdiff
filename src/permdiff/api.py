@@ -57,8 +57,14 @@ def load_traces(
     started = time.perf_counter()
     for path in _expand(paths):
         importer = importers.detect(path) if fmt == AUTO_FORMAT else importers.get(fmt)
-        result = importer.read(path, strict=strict, max_records=max_records - len(calls))
+        result = importer.read(path, strict=strict, max_records=max_records)
         calls.extend(result.calls)
+        if len(calls) > max_records:
+            msg = (
+                f"{path}: corpus exceeds max_records={max_records} across --traces files; "
+                "raise the cap or split the run"
+            )
+            raise TraceImportError(msg)
         read += result.stats.read
         skipped += result.stats.skipped
         locators.extend(result.stats.skipped_locators)

@@ -72,8 +72,9 @@ def test_load_traces_unmatched_glob_names_the_flag(tmp_path: Path) -> None:
         load_traces([])
 
 
-def test_load_traces_cap_spans_files(corpus: Path) -> None:
-    with pytest.raises(TraceImportError, match="max_records"):
+def test_load_traces_cap_spans_files_and_names_the_configured_cap(corpus: Path) -> None:
+    # a.jsonl holds exactly 2 valid records, so the cap is filled before b.jsonl is read
+    with pytest.raises(TraceImportError, match=r"b\.jsonl: corpus exceeds max_records=2 "):
         load_traces([str(corpus / "*.jsonl")], max_records=2)
 
 

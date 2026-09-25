@@ -10,7 +10,11 @@ import pytest
 from click.testing import CliRunner, Result
 
 from permdiff.cli import diff as diff_module
+from permdiff.cli._render import OutputOptions
 from permdiff.cli.main import cli
+from permdiff.errors import ProcError
+from permdiff.redact import RedactLevel
+from permdiff.report import FailOn
 from tests.conftest import GitRepo
 
 ENGINE = "python:tests.fixtures.py_engine.rules:by_table"
@@ -217,7 +221,17 @@ def test_actor_falls_back_to_git_then_unknown(monkeypatch: pytest.MonkeyPatch) -
     assert isinstance(diff_module.actor(), str)
 
     def _raise(*args: object, **kwargs: object) -> None:
-        raise OSError("no git")
+        raise ProcError("executable not found: git")
 
-    monkeypatch.setattr("subprocess.run", _raise)
+    monkeypatch.setattr("permdiff._proc.run", _raise)
     assert diff_module.actor() == "unknown"
+
+
+def test_terminal_format_shows_principal_and_hashes_are_reserved_for_other_formats() -> None:
+    terminal = OutputOptions(fail_on=FailOn.WIDEN, redact=RedactLevel.SAFE, show_args=frozenset())
+    markdown = OutputOptions(
+        fail_on=FailOn.WIDEN, redact=RedactLevel.SAFE, show_args=frozenset(), fmt="markdown"
+    )
+
+    assert terminal.show_principal
+    assert not markdown.show_principal

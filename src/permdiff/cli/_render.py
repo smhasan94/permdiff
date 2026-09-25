@@ -14,6 +14,8 @@ from permdiff.report import FailOn, gate, render_terminal
 from permdiff.report.grouping import DEFAULT_SAMPLES
 
 FORMATS = ("terminal",)
+PRINCIPAL_SHOWN_IN = frozenset({"terminal"})
+"""Formats that print principal ids verbatim (overview §3.6); every other format hashes them."""
 
 
 @dataclass(frozen=True)
@@ -21,9 +23,14 @@ class OutputOptions:
     fail_on: FailOn
     redact: RedactLevel
     show_args: frozenset[str]
+    fmt: str = "terminal"
     samples: int = DEFAULT_SAMPLES
     quiet: bool = False
     no_color: bool = False
+
+    @property
+    def show_principal(self) -> bool:
+        return self.fmt in PRINCIPAL_SHOWN_IN
 
 
 def parse_show_args(text: str) -> frozenset[str]:
@@ -40,7 +47,7 @@ def emit_and_exit(ctx: click.Context, report: Report, opts: OutputOptions) -> No
         level=opts.redact,
         salt=bytes.fromhex(report.header.salt),
         show_args=opts.show_args,
-        show_principal=True,
+        show_principal=opts.show_principal,
     )
     exit_code = gate(report, opts.fail_on)
     text = render_terminal(
