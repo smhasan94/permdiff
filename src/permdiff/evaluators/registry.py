@@ -38,7 +38,17 @@ def _make_opa(**options: Any) -> Evaluator:
         raise EngineError(msg) from exc
 
 
-_BUILTIN: dict[str, Callable[..., Evaluator]] = {"opa": _make_opa}
+def _make_cedar(**options: Any) -> Evaluator:
+    from permdiff.evaluators.cedar import make_cedar  # noqa: PLC0415  # keep CLI start fast
+
+    try:
+        return make_cedar(**options)
+    except (ValidationError, ValueError) as exc:
+        msg = f"invalid options for --engine cedar: {exc}"
+        raise EngineError(msg) from exc
+
+
+_BUILTIN: dict[str, Callable[..., Evaluator]] = {"opa": _make_opa, "cedar": _make_cedar}
 
 
 def names() -> tuple[str, ...]:

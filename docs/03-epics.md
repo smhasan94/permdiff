@@ -255,8 +255,8 @@ Satisfies: FR-11, NFR-C4.
 
 | # | Story | Status |
 |---|---|---|
-| E6-S1 | Cedar policy loading, templates, batch evaluation | in progress |
-| E6-S2 | Approval annotation, errors, attribution, golden corpus | todo |
+| E6-S1 | Cedar policy loading, templates, batch evaluation | done |
+| E6-S2 | Approval annotation, errors, attribution, golden corpus | in progress |
 
 **E6-S1 Cedar loading and evaluation.** AC-11.1, AC-11.2, AC-11.3, AC-11.7.
 Deps: E1.

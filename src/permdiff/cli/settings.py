@@ -243,7 +243,15 @@ def resolve_config(ctx: click.Context, repo: Path, kwargs: dict[str, Any]) -> Co
 
 
 def engine_options(config: Config) -> dict[str, Any]:
-    """Engine-specific options for the resolved engine; only OPA takes any today."""
+    """Engine-specific options for the resolved engine (OPA and Cedar sections)."""
+    if config.policy.engine == "cedar":
+        c = config.cedar
+        return {
+            "principal": c.principal,
+            "action": c.action,
+            "resource": c.resource,
+            "approval_annotation": c.approval_annotation,
+        }
     if config.policy.engine != "opa":
         return {}
     opa = config.opa

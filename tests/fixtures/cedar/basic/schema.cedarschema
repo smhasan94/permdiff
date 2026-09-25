@@ -1,0 +1,4 @@
+entity User = { department: String };
+entity Resource;
+action "github.read", "stripe.refund", "github.delete_branch", "salesforce.update", "slack.post", "aws.ec2.terminate_instance"
+  appliesTo { principal: [User], resource: [Resource], context: { amount?: Long, env?: String, now: datetime } };

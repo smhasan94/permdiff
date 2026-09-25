@@ -34,7 +34,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-cedar = ["cedarpy~=4.12"]
+cedar = ["cedarpy~=4.12"]  # wheels for CPython 3.11-3.12; see docs
 
 [project.scripts]
 permdiff = "permdiff.cli.main:cli"
