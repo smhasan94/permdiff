@@ -61,6 +61,7 @@ def build_view(
         include_attribution=show_attribution,
         principal_key=hash_principal,
         sample_transform=redactor.transition,
+        reasons_of=redactor.changed_reasons,
     )
     kept = groups[: max(max_groups, 0)]
     return ReportView(

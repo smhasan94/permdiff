@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from permdiff.models import TransitionClass
+from permdiff.models import Decision, Effect, TransitionClass
 from permdiff.redact import RedactLevel, Redactor
 from permdiff.report.view import build_view
-from tests.redaction_harness import assert_no_sentinels
+from tests.redaction_harness import SENTINELS, assert_no_sentinels
 from tests.report_fixtures import FIXED_SALT, sample_report
 
 
@@ -58,3 +58,19 @@ def test_view_records_the_validated_group_by() -> None:
     view = build_view(sample_report(), redactor=Redactor(salt=FIXED_SALT), by=("", " "))
 
     assert view.group_by == ("tool",)
+
+
+def test_group_top_reasons_are_scrubbed_of_trace_values() -> None:
+    base_report = sample_report()
+    t = base_report.transitions[0]
+    echo = Decision(
+        call_id=t.call.id, effect=Effect.ALLOW, reasons=(f"ok {SENTINELS['arg_top']}",), engine="e"
+    )
+    report = base_report.model_copy(
+        update={"transitions": (t.model_copy(update={"head": echo}), *base_report.transitions[1:])}
+    )
+
+    view = build_view(report, redactor=Redactor(salt=FIXED_SALT))
+
+    assert_no_sentinels(view.model_dump_json())
+    assert "ok <redacted>" in view.groups[0].reasons

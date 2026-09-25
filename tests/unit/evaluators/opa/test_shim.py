@@ -2,16 +2,17 @@ from __future__ import annotations
 
 import json
 from datetime import UTC, datetime, timedelta, timezone
+from pathlib import Path
 
 import pytest
 
 from permdiff.evaluators.opa.shim import (
     CASES_ROOT,
     NdOverride,
-    render_cases,
     render_shim,
     timestamp_ns,
     validate_decision_path,
+    write_cases,
 )
 from permdiff.models import ToolCall
 
@@ -59,10 +60,12 @@ def test_timestamp_ns_is_utc_and_microsecond_precise() -> None:
     assert timestamp_ns(_call("c", ts)) == int(ts.astimezone(UTC).timestamp()) * 10**9 + 123456000
 
 
-def test_cases_document_shape() -> None:
+def test_cases_document_shape(tmp_path: Path) -> None:
     ts = datetime(2026, 9, 20, 14, tzinfo=UTC)
+    path = tmp_path / "cases.json"
 
-    doc = json.loads(render_cases([_call("a", ts), _call("b", ts)]))
+    write_cases([_call("a", ts), _call("b", ts)], path)
+    doc = json.loads(path.read_text(encoding="utf-8"))
 
     assert list(doc) == [CASES_ROOT]
     assert [c["id"] for c in doc[CASES_ROOT]] == ["a", "b"]

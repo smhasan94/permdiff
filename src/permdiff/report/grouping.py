@@ -84,8 +84,17 @@ class Group(Frozen):
         return f"{first.base.effect.value} → {first.head.effect.value}"
 
 
-def _top_reasons(members: Sequence[Transition], limit: int = 3) -> tuple[str, ...]:
-    counter: Counter[str] = Counter(r for t in members for r in _changed_decision(t))
+ReasonsOf = Callable[[Transition], tuple[str, ...]]
+
+
+def changed_reasons(t: Transition) -> tuple[str, ...]:
+    return _changed_decision(t)
+
+
+def _top_reasons(
+    members: Sequence[Transition], reasons_of: ReasonsOf, limit: int = 3
+) -> tuple[str, ...]:
+    counter: Counter[str] = Counter(r for t in members for r in reasons_of(t))
     return tuple(reason for reason, _ in counter.most_common(limit))
 
 
@@ -98,12 +107,13 @@ def group_transitions(
     include_attribution: bool = False,
     principal_key: Callable[[str], str] | None = None,
     sample_transform: Callable[[Transition], Transition] | None = None,
+    reasons_of: ReasonsOf = changed_reasons,
 ) -> tuple[Group, ...]:
     """Groups sorted widening first, then by count descending, then label (AC-16.3).
 
-    ``principal_key`` maps principal ids for grouping (the redactor's hash) and
-    ``sample_transform`` redacts only the sampled transitions, so a 100K corpus is never
-    copied whole.
+    ``principal_key`` maps principal ids for grouping (the redactor's hash),
+    ``sample_transform`` redacts only the sampled transitions, and ``reasons_of`` yields
+    already-scrubbed reason text per member, so a 100K corpus is never copied whole.
     """
     fields = validate_group_by(by)
     extractors = dict(GROUP_FIELDS)
@@ -125,7 +135,7 @@ def group_transitions(
             samples=tuple(
                 transform(t) for t in sorted(members, key=lambda t: t.call.id)[: max(samples, 0)]
             ),
-            reasons=_top_reasons(members),
+            reasons=_top_reasons(members, reasons_of),
         )
         for key, members in buckets.items()
     ]

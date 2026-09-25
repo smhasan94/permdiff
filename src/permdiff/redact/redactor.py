@@ -178,6 +178,18 @@ class Redactor:
             }
         )
 
+    def changed_reasons(self, transition: Transition) -> tuple[str, ...]:
+        """Scrubbed reasons of the decision that explains the transition (for group summaries)."""
+        decision = (
+            transition.base
+            if (transition.base.is_error and not transition.head.is_error)
+            else transition.head
+        )
+        if self.level is RedactLevel.NONE:
+            return decision.reasons
+        values = trace_values(transition.call, skip_keys=self.show_args)
+        return tuple(scrub_text(r, values) for r in decision.reasons)
+
     def decision(self, decision: Decision, values: Sequence[str]) -> Decision:
         return decision.model_copy(
             update={

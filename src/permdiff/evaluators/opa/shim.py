@@ -94,11 +94,6 @@ def _case(call: ToolCall) -> str:
     return json.dumps(case, separators=(",", ":"))
 
 
-def render_cases(calls: Sequence[ToolCall]) -> bytes:
-    """``{"permdiff_cases": [{"id", "ts_ns", "call"}, ...]}`` as compact UTF-8 JSON."""
-    return ('{"' + CASES_ROOT + '":[' + ",".join(_case(c) for c in calls) + "]}").encode("utf-8")
-
-
 def write_cases(calls: Sequence[ToolCall], path: Path) -> None:
     """Stream the cases document so a 100K corpus never exists twice in memory."""
     with path.open("w", encoding="utf-8") as fh:
