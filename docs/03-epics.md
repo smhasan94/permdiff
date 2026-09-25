@@ -10,7 +10,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | Epic | Title | Status |
 |---|---|---|
 | E1 | Foundation: installable package, JSONL, Python engine, terminal diff, demo | reviewed |
-| E2 | OPA evaluator | in progress |
+| E2 | OPA evaluator | done |
 | E3 | Reporting, grouping, config | todo |
 | E4 | GitHub Action | todo |
 | E5 | Importers: Custody, OTel, convert | todo |
@@ -120,7 +120,7 @@ Satisfies: FR-10, FR-25, NFR-C3, NFR-S3.
 | E2-S1 | OPA binary management and `permdiff setup opa` | done |
 | E2-S2 | Batch evaluation shim and result mapping | done |
 | E2-S3 | Time injection, capabilities restriction, nd-cache | done |
-| E2-S4 | `permdiff check` and demo on OPA | in progress |
+| E2-S4 | `permdiff check` and demo on OPA | done |
 
 **E2-S1 OPA binary management.** FR-10 (AC-10.1), NFR-S3. Deps: E1.
 AC: pinned version and per-platform SHA-256 table in package; download to user

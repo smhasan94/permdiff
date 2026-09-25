@@ -39,11 +39,30 @@ def to_decision(call_id: str, raw: Any, *, engine: str = ENGINE_NAME) -> Decisio
             return Decision.error(call_id, ErrorKind.UNSUPPORTED, reason, engine=engine)
         reasons = _strings(raw.get("reasons")) or _strings(raw.get("reason"))
         rules = _strings(raw.get("rules")) or _strings(raw.get("rule"))
+        if effect.strip().lower() == Effect.ERROR.value:
+            return _explicit_error(call_id, raw, reasons, engine)
         return Decision.from_effect(
             effect, call_id=call_id, engine=engine, reasons=reasons, determining=rules
         )
     reason = f"result is {type(raw).__name__}, expected object, boolean, or effect string"
     return Decision.error(call_id, ErrorKind.UNSUPPORTED, reason, engine=engine)
+
+
+def _explicit_error(
+    call_id: str, raw: Mapping[str, Any], reasons: tuple[str, ...], engine: str
+) -> Decision:
+    """A policy-declared can't-evaluate.
+
+    Shape: ``{"effect": "error", "kind": <ErrorKind>, "reason": ...}``.
+    """
+    kind_text = raw.get("kind")
+    try:
+        kind = ErrorKind(str(kind_text)) if kind_text is not None else ErrorKind.EVAL_ERROR
+    except ValueError:
+        reason = f"result declares unknown error kind {kind_text!r}"
+        return Decision.error(call_id, ErrorKind.UNSUPPORTED, reason, engine=engine)
+    reason = reasons[0] if reasons else "policy returned effect 'error'"
+    return Decision.error(call_id, kind, reason, engine=engine)
 
 
 def undefined_decision(

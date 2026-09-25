@@ -44,7 +44,36 @@ prod), two tightening groups, and a can't-evaluate group where the new policy
 needs a `department` attribute the traces lack. It exits `2` because a
 widening was found. Nothing is downloaded and no network is used.
 
+The demo uses the pinned OPA binary when it is installed and otherwise the
+bundled Python engine. To see the Rego version:
+
+```
+permdiff setup opa          # downloads opa 1.21.0 into your user cache, checksum verified
+permdiff demo --engine opa
+```
+
 **2. Point it at your own policy and traces.**
+
+```
+permdiff diff --base origin/main --head HEAD --policy policy/ \
+              --engine opa --decision data.agent.authz.decision \
+              --traces traces/*.jsonl
+```
+
+With `--engine opa` every trace becomes `input`, `time.now_ns()` returns the
+trace's timestamp, and the decision rule may return an object
+(`{"effect": "allow|deny|require_approval", "reason": "...", "rule": "..."}`),
+a boolean, or an effect string. `{"effect": "error", "kind": "missing_context",
+"reason": "principal.attrs.department"}` reports a call the policy cannot
+decide. Rules that stay undefined count as `deny` (`--undefined error` to
+flag them instead). OPA runs with `http.send`, `net.lookup_ip_addr`,
+`rand.intn`, `uuid.rfc4122`, and `opa.runtime` removed from its capabilities;
+a policy that uses one is reported as nondeterministic for every call unless
+you replay recorded values with `--nd-cache decision-log.json` (OPA's
+`nd_builtin_cache` shape). `permdiff check` validates traces and compiles both
+refs without diffing, which is what CI runs first.
+
+For a Python policy adapter instead:
 
 ```
 permdiff diff --base origin/main --head HEAD --policy policy/ \
@@ -61,16 +90,18 @@ Traces are JSONL, one `ToolCall` per line; `permdiff schema toolcall` prints
 the JSON Schema. Reports redact argument values by default; `--show-args`
 reveals named keys and `--redact none` shows everything for local use.
 
-OPA and Cedar engines, markdown/JSON/SARIF output, and the GitHub Action
-arrive in the next epics. The design is in `docs/01-overview.md`.
+The Cedar engine, markdown/JSON/SARIF output, and the GitHub Action arrive in
+the next epics. The design is in `docs/01-overview.md`.
 
 ## Engines
+
+`--engine opa` runs a pinned OPA binary (1.21.0, SHA-256 verified on
+download; override with `--opa-bin` or `PERMDIFF_OPA_BIN`).
 
 `--engine python:module.path:callable` calls your own Python function with
 signature `(call: ToolCall, policy_dir: Path) -> Decision | str` for every
 trace. **This imports and runs arbitrary code from the current environment**
-with your permissions; point it only at code you would run directly. OPA and
-Cedar adapters arrive in later stories.
+with your permissions; point it only at code you would run directly.
 
 ## License
 

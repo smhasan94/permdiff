@@ -55,3 +55,34 @@ def test_undefined_policy_deny_and_error() -> None:
     assert "data.x.y undefined" in deny.reasons[0]
     assert err.error_kind is ErrorKind.EVAL_ERROR
     assert "data.x.y" in err.reasons[0]
+
+
+@pytest.mark.parametrize(
+    ("raw", "kind", "reason"),
+    [
+        (
+            {"effect": "error", "kind": "missing_context", "reason": "principal.attrs.department"},
+            ErrorKind.MISSING_CONTEXT,
+            "principal.attrs.department",
+        ),
+        ({"effect": "error"}, ErrorKind.EVAL_ERROR, "policy returned effect 'error'"),
+        (
+            {"effect": "ERROR", "kind": "nondeterministic", "reasons": ["a", "b"]},
+            ErrorKind.NONDETERMINISTIC,
+            "a",
+        ),
+    ],
+)
+def test_policy_declared_errors_keep_their_kind(raw: Any, kind: ErrorKind, reason: str) -> None:
+    d = to_decision("c", raw)
+
+    assert d.effect is Effect.ERROR
+    assert d.error_kind is kind
+    assert d.reasons[0] == reason
+
+
+def test_policy_declared_error_with_unknown_kind_is_unsupported() -> None:
+    d = to_decision("c", {"effect": "error", "kind": "made_up"})
+
+    assert d.error_kind is ErrorKind.UNSUPPORTED
+    assert "made_up" in d.reasons[0]

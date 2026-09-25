@@ -22,4 +22,12 @@ end=$(date +%s)
 
 "$venv/bin/permdiff" demo --fail-on none --quiet --no-color
 "$venv/bin/permdiff" schema toolcall | python3 -m json.tool > /dev/null
+
+# The OPA variant: download the pinned binary (cached across runs), then rerun the demo.
+"$venv/bin/permdiff" setup opa
+set +e
+"$venv/bin/permdiff" demo --engine opa --quiet --no-color
+code=$?
+set -e
+[ "$code" -eq 2 ] || { echo "expected exit 2 from permdiff demo --engine opa, got $code" >&2; exit 1; }
 echo "quickstart OK"

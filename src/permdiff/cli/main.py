@@ -9,6 +9,7 @@ from typing import Any
 import click
 
 from permdiff import __version__
+from permdiff.cli.check import check_cmd
 from permdiff.cli.demo import demo_cmd
 from permdiff.cli.diff import diff_cmd
 from permdiff.cli.schema import schema_cmd
@@ -65,5 +66,6 @@ def cli(ctx: click.Context, verbose: bool, debug: bool) -> None:
 
 cli.add_command(schema_cmd)
 cli.add_command(diff_cmd)
+cli.add_command(check_cmd)
 cli.add_command(demo_cmd)
 cli.add_command(setup_group)

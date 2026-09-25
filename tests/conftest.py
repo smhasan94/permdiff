@@ -101,3 +101,76 @@ def opa_bin() -> Path:
         return resolve_binary()
     except EngineError as exc:
         pytest.skip(f"opa binary unavailable: {exc}")
+
+
+BASE_REGO = """package agent.authz
+
+import rego.v1
+
+default decision := {"effect": "deny", "rule": "default"}
+
+decision := {"effect": "allow", "rule": "read"} if input.tool.name == "github.read"
+
+decision := {"effect": "allow", "rule": "refund"} if input.tool.name == "stripe.refund"
+"""
+
+HEAD_REGO = """package agent.authz
+
+import rego.v1
+
+default decision := {"effect": "deny", "rule": "default"}
+
+decision := {"effect": "allow", "rule": "read"} if input.tool.name == "github.read"
+
+decision := {"effect": "require_approval", "reason": "amount>500", "rule": "refund-large"} if {
+    input.tool.name == "stripe.refund"
+    input.arguments.amount > 500
+}
+
+decision := {"effect": "allow", "rule": "refund-small"} if {
+    input.tool.name == "stripe.refund"
+    input.arguments.amount <= 500
+}
+
+decision := {"effect": "allow", "rule": "delete"} if input.tool.name == "github.delete_branch"
+"""
+
+
+@pytest.fixture
+def rego_repo(tmp_path: Path) -> Path:
+    repo = tmp_path / "repo"
+    (repo / "policy").mkdir(parents=True)
+    git(repo, "init", "-q", "-b", "main")
+    (repo / "policy" / "agent.rego").write_text(BASE_REGO, encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "base")
+    git(repo, "tag", "v-base")
+    (repo / "policy" / "agent.rego").write_text(HEAD_REGO, encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-q", "-m", "head")
+    return repo
+
+
+@pytest.fixture
+def traces(tmp_path: Path) -> Path:
+    def rec(i: int, tool: str, amount: int | None = None) -> str:
+        return json.dumps(
+            {
+                "id": f"c{i}",
+                "timestamp": f"2026-09-2{i}T12:00:00Z",
+                "principal": {"id": f"user{i}"},
+                "agent": {"id": "bot"},
+                "tool": {"name": tool},
+                "arguments": {"amount": amount} if amount is not None else None,
+            }
+        )
+
+    path = tmp_path / "t.jsonl"
+    lines = [
+        rec(1, "github.read"),
+        rec(2, "stripe.refund", 900),
+        rec(3, "stripe.refund", 100),
+        rec(4, "github.delete_branch"),
+    ]
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return path

@@ -10,7 +10,7 @@ DEMO_BUDGET_SECONDS = 5.0
 
 
 def _run(*args: str) -> Result:
-    return CliRunner().invoke(cli, ["demo", "--no-color", *args])
+    return CliRunner().invoke(cli, ["demo", "--engine", "python", "--no-color", *args])
 
 
 def test_demo_exits_two_and_shows_every_transition_kind() -> None:
@@ -60,7 +60,7 @@ def test_demo_fail_on_none_exits_zero_and_quiet_hides_groups() -> None:
 
 
 def test_demo_rejects_unknown_engine() -> None:
-    result = _run("--engine", "opa")
+    result = _run("--engine", "cedar")
 
     assert result.exit_code == 2
     assert "python" in result.stderr
