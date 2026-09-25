@@ -201,3 +201,30 @@ quickstart, bench, dogfood). The branch is a throwaway; close PR #1 without merg
 
 **Rationale.** Cheapest path to a real trace source for a large audience, and it reuses the
 importer protocol, limits, and redaction that already exist.
+
+## 2026-09-25: E8 input sources (Claude Code)
+
+**Question.** FR-L3 says "Claude Code hook log importer (`PreToolUse` JSON)". The hooks
+reference (code.claude.com/docs/en/hooks, read 2026-09-25) shows `PreToolUse` stdin carries
+`session_id`, `cwd`, `permission_mode`, `tool_name`, `tool_input`, `agent_id`, but no
+timestamp, no user identity, and no decision, and a hook must be configured before any
+trace exists. Session transcripts (`~/.claude/projects/<slug>/<session>.jsonl`) are
+undocumented but already on disk, and local files (Claude Code 2.1.282) show `tool_use`
+lines with `timestamp`, `sessionId`, `cwd`, `version`, `gitBranch`, tool `name`/`input`,
+and paired `tool_result` lines with `toolDenialKind` (`permission-rule`, `user-rejected`,
+`automode-blocked`). Which source does E8 read?
+
+**Options.**
+1. Both, transcript first: S1 transcript importer, S2 hook-log importer sharing the
+   mapping (documented `jq` hook that appends stdin plus `ts`), S3 principal option,
+   README quickstart, convert support (recommended: zero-setup first-run value, with a
+   documented input as the fallback if the transcript format changes).
+2. Hook log only, as the PRD wrote it.
+3. Transcript only.
+
+**Decision.** Option 1. FR-L3 is widened to "Claude Code importer: session transcripts
+and hook logs". Principal defaults to `--principal-from`/config, else `unknown` with a
+header note, as in the OTel importer.
+
+**Rationale.** Transcripts are the fastest path to a real trace on a laptop; the hook log
+is the stable, documented input and shares the mapping, so it costs little extra.
