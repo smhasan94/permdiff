@@ -164,10 +164,10 @@ def to_toolcall(event: Mapping[str, Any], locator: str, *, decision: str | None)
         "effect": effect.value if effect else None,
         "policy_hash": next(iter(bundles.values())) if len(bundles) == 1 else None,
     }
-    source = {"format": FORMAT_NAME, "locator": locator}
+    source_ref = {"format": FORMAT_NAME, "locator": locator}
     try:
         return ToolCall.model_validate(
-            call.model_dump() | {"context": context, "recorded": recorded, "source": source}
+            call.model_dump() | {"context": context, "recorded": recorded, "source": source_ref}
         )
     except ValidationError as exc:
         raise RecordRejected(summarize_validation_error(exc)) from exc
