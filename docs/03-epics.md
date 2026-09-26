@@ -6,9 +6,10 @@
 
 **Status 2026-09-25.** Seven 0.1.0 epics done and reviewed. 0.1.0 released: PyPI
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
-0.2.0 released 2026-09-25 with E8 (Claude Code importers). `main` is `0.3.0.dev0`; 0.3.0
-starts with E9 (FR-L11, decisions.md 2026-09-25). Remaining later candidates: FR-L1 Langfuse,
-FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution, FR-L10 HTML report.
+0.2.0 (E8, Claude Code importers) released 2026-09-25 and 0.3.0 (E9, `permdiff record`)
+released 2026-09-26. `main` is `0.4.0.dev0`; no epic in progress. Remaining later candidates:
+FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution,
+FR-L10 HTML report.
 
 Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 `pip install`-able and demoable. Each story is sized for about one day.
