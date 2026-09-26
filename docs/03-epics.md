@@ -8,7 +8,7 @@
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
 0.2.0 (E8, Claude Code importers) released 2026-09-25 and 0.3.0 (E9, `permdiff record`)
 released 2026-09-26. `main` is `0.4.0.dev0`; 0.4.0 (E10 OPA decision logs, E11 `--input-map`) released 2026-09-26. `main` is
-`0.5.0.dev0`; no epic in progress. Remaining later candidates:
+`0.5.0.dev0`; 0.5.0 scope is E12–E15 (decisions.md 2026-09-26). Remaining later candidates:
 FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution,
 FR-L10 HTML report.
 
@@ -28,6 +28,10 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
 | E10 | OPA decision-log importer | reviewed |
 | E11 | `--input-map` for foreign OPA decision-log inputs | reviewed |
+| E12 | Action install retry | done |
+| E13 | Langfuse and LangSmith importers | todo |
+| E14 | OPA rule attribution to file:line | todo |
+| E15 | HTML report | todo |
 
 ---
 
@@ -524,3 +528,18 @@ reaches the OPA log importer through the registry's per-importer option filter; 
 importers ignore it.
 AC-L4.14: `docs/importers.md` gets a worked example mapping the fixture's foreign event
 (`{"method": "GET", "path": "/salary/bob"}`) and a real-world shape; CHANGELOG entry.
+
+---
+
+## E12 — Action install retry
+
+Goal: a post-release commit that pins the new version in `action.yml` no longer fails the
+dogfood run while PyPI's CDN catches up.
+
+| # | Story | Status |
+|---|---|---|
+| E12-S1 | Retry loop in the Action's install step | done |
+
+AC-12.1: with `version` set, `pip install --no-cache-dir permdiff==<version>` is retried
+up to eight times 30 seconds apart, logging each retry, then fails with the version named;
+the source install path is unchanged; `docs/action.md` and CHANGELOG note it.

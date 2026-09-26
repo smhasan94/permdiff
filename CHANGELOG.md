@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- GitHub Action: a pinned `version` install retries for up to four minutes while PyPI's
+  CDN catches up with a fresh release.
+
 ## 0.4.0 (2026-09-26)
 
 - OPA decision-log importer (FR-L4): `--from opa-decision-log` reads sink JSON arrays and

@@ -90,7 +90,17 @@ runs:
       run: |
         set -euo pipefail
         if [ -n "$VERSION" ]; then
-          python -m pip install --quiet "permdiff==$VERSION"
+          # PyPI's CDN can lag a fresh upload by several minutes; retry before failing.
+          attempt=1
+          until python -m pip install --quiet --no-cache-dir "permdiff==$VERSION"; do
+            if [ "$attempt" -ge 8 ]; then
+              echo "permdiff==$VERSION not installable after $attempt attempts" >&2
+              exit 1
+            fi
+            echo "permdiff==$VERSION not available yet (attempt $attempt); retrying in 30s"
+            attempt=$((attempt + 1))
+            sleep 30
+          done
         else
           python -m pip install --quiet "$ACTION_PATH"
         fi

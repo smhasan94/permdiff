@@ -53,6 +53,8 @@ permdiff's defaults.
 ## What the action does
 
 1. `actions/setup-python`, then `pip install permdiff==<version>` (or the action source).
+   A pinned version is retried up to eight times, 30 seconds apart, because PyPI's CDN
+   can lag a fresh upload by a few minutes.
 2. `permdiff check`: traces parse and the policy compiles at both refs, else exit 1.
 3. `permdiff diff --format json --include-decisions`, exit code captured.
 4. `permdiff render` turns the JSON into markdown (always appended to the job summary)
