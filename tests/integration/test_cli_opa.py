@@ -169,3 +169,33 @@ def test_opa_replays_a_decision_log_with_its_merged_nd_cache(
     assert "can't evaluate" not in with_cache.stdout
     assert "dice.roll" in with_cache.stdout
     assert "deny → allow" in with_cache.stdout
+
+
+def test_opa_decisions_carry_rule_locations_and_sarif_points_at_them(
+    rego_repo: Path, traces: Path, opa_bin: Path
+) -> None:
+    as_json = _run(
+        rego_repo, traces, opa_bin, "--format", "json", "--include-decisions", "--salt", "00"
+    )
+    as_sarif = _run(rego_repo, traces, opa_bin, "--format", "sarif", "--salt", "00")
+
+    assert as_json.exit_code == 2, as_json.output
+    doc = json.loads(as_json.stdout)
+    by_tool = {d["call"]["tool"]["name"]: d for d in doc["decisions"]}
+    read_head = by_tool["github.read"]["head"]
+    assert read_head["determining"] == ["read"]
+    assert read_head["locations"] == ["agent.rego:7"]
+    refund_head = by_tool["stripe.refund"]["head"]
+    assert len(refund_head["locations"]) == len(refund_head["determining"]) == 1
+    assert refund_head["locations"][0].startswith("agent.rego:")
+    assert as_sarif.exit_code == 2, as_sarif.output
+    sarif = json.loads(as_sarif.stdout)
+    locations = {
+        (
+            r["locations"][0]["physicalLocation"]["artifactLocation"]["uri"],
+            r["locations"][0]["physicalLocation"]["region"]["startLine"],
+        )
+        for r in sarif["runs"][0]["results"]
+    }
+    assert {uri for uri, _ in locations} == {"policy/agent.rego"}
+    assert any(line > 1 for _, line in locations)  # a real rule line, not the line-1 fallback

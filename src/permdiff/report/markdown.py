@@ -75,6 +75,12 @@ def _sample_row(t: Transition) -> str:
     args = "" if t.call.arguments is None else json.dumps(t.call.arguments, sort_keys=True)
     decision = t.base if (t.base.is_error and not t.head.is_error) else t.head
     reasons = "; ".join(decision.reasons)
+    if decision.locations:
+        reasons = (
+            f"{reasons} @ {', '.join(decision.locations)}"
+            if reasons
+            else "@ " + ", ".join(decision.locations)
+        )
     return (
         f"| {_code(_cell(t.call.id))} | {_code(_cell(t.call.principal.id))} | "
         f"{_code(_cell(args)) if args else ''} | {_cell(reasons)} |"

@@ -67,11 +67,12 @@ def _rules() -> list[dict[str, Any]]:
 
 
 def _location(view: ReportView, group: Group) -> dict[str, Any]:
-    """The determining head policy file and line when known, else the first policy file, line 1."""
+    """The head decision's rule location (``locations``, then a ``file:line`` determining entry),
+    else the first policy file at line 1."""
     policy = view.header.policy_path.strip("/") or "."
     uri, line = None, 1
     for t in group.samples:
-        for det in t.head.determining:
+        for det in (*t.head.locations, *t.head.determining):
             m = _FILE_LINE.match(det)
             if m:
                 uri, line = m.group("file"), int(m.group("line"))

@@ -139,3 +139,27 @@ def test_safe_output_leaks_no_sentinels() -> None:
 
     assert_no_sentinels(out)
     assert SENTINELS["principal_id"] not in out
+
+
+def test_decision_locations_win_over_determining_labels() -> None:
+    base = sample_report()
+    t = base.transitions[0]
+    head = Decision(
+        call_id=t.call.id,
+        effect=Effect.ALLOW,
+        determining=("read",),
+        locations=("agent.rego:7",),
+        engine="opa",
+    )
+    report = base.model_copy(
+        update={"transitions": (t.model_copy(update={"head": head}), *base.transitions[1:])}
+    )
+    view = build_view(report, redactor=Redactor(salt=FIXED_SALT))
+
+    doc = json.loads(render_sarif(view, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN))
+
+    physical = doc["runs"][0]["results"][0]["locations"][0]["physicalLocation"]
+    assert physical == {
+        "artifactLocation": {"uri": "policy/agent.rego"},
+        "region": {"startLine": 7},
+    }

@@ -141,3 +141,37 @@ def test_large_report_stays_under_github_limit_with_default_max_groups() -> None
     assert len(out.encode("utf-8")) < GITHUB_COMMENT_LIMIT
     assert len(view.groups) == 50
     assert "…350 more groups not shown" in out
+
+
+def test_rule_locations_follow_the_reasons() -> None:
+    call = ToolCall.model_validate(
+        {
+            "id": "c1",
+            "timestamp": datetime(2026, 9, 20, tzinfo=UTC).isoformat(),
+            "principal": {"id": "p"},
+            "agent": {"id": "a"},
+            "tool": {"name": "t"},
+        }
+    )
+    base = Decision(call_id="c1", effect=Effect.DENY, engine="opa")
+    head = Decision(
+        call_id="c1",
+        effect=Effect.ALLOW,
+        reasons=("reads are free",),
+        determining=("read",),
+        locations=("agent.rego:7",),
+        engine="opa",
+    )
+    report = sample_report().model_copy(
+        update={"transitions": (Transition.build(call, base, head),)}
+    )
+    report = report.model_copy(
+        update={
+            "counts": report.counts.model_copy(update={"evaluated": 1, "by_class": {"widening": 1}})
+        }
+    )
+    view = build_view(report, redactor=Redactor(salt=FIXED_SALT))
+
+    out = render_markdown(view, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN)
+
+    assert "| reads are free @ agent.rego:7 |" in out

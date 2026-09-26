@@ -138,6 +138,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -150,6 +151,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "widening"
@@ -200,6 +202,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -212,6 +215,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "widening"
@@ -276,6 +280,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -288,6 +293,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "widening"
@@ -355,6 +361,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -367,6 +374,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "tightening"
@@ -420,6 +428,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -432,6 +441,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "tightening"
@@ -485,6 +495,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -497,6 +508,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "tightening"
@@ -561,6 +573,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -573,6 +586,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "tightening"
@@ -640,6 +654,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -650,6 +665,7 @@
               "principal.department"
             ],
             "determining": [],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "cant_evaluate"
@@ -703,6 +719,7 @@
             "determining": [
               "p"
             ],
+            "locations": [],
             "engine": "opa"
           },
           "head": {
@@ -713,6 +730,7 @@
               "principal.department"
             ],
             "determining": [],
+            "locations": [],
             "engine": "opa"
           },
           "cls": "cant_evaluate"

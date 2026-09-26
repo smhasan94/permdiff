@@ -158,3 +158,38 @@ def test_truncation_note_and_multi_field_labels() -> None:
 
     assert "widening  tool=github.delete_branch, agent=support-bot  (2 calls)" in out
     assert "… 4 more groups (--max-groups)" in out
+
+
+def test_rule_locations_follow_the_reasons() -> None:
+    from permdiff.models import Decision, Effect, ToolCall, Transition  # noqa: PLC0415
+
+    call = ToolCall.model_validate(
+        {
+            "id": "c1",
+            "timestamp": datetime(2026, 9, 20, tzinfo=UTC).isoformat(),
+            "principal": {"id": "p"},
+            "agent": {"id": "a"},
+            "tool": {"name": "t"},
+        }
+    )
+    base = Decision(call_id="c1", effect=Effect.DENY, engine="opa")
+    head = Decision(
+        call_id="c1",
+        effect=Effect.ALLOW,
+        reasons=("reads are free",),
+        locations=("agent.rego:7",),
+        engine="opa",
+    )
+    report = sample_report().model_copy(
+        update={"transitions": (Transition.build(call, base, head),)}
+    )
+    report = report.model_copy(
+        update={
+            "counts": report.counts.model_copy(update={"evaluated": 1, "by_class": {"widening": 1}})
+        }
+    )
+    view = build_view(report, redactor=Redactor(salt=FIXED_SALT))
+
+    out = render_terminal(view, exit_code=EXIT_GATE, fail_on=FailOn.WIDEN, color=False)
+
+    assert "[reads are free; @ agent.rego:7]" in out

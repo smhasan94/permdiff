@@ -108,6 +108,14 @@
           ],
           "default": null
         },
+        "locations": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Locations",
+          "type": "array"
+        },
         "reasons": {
           "default": [],
           "items": {

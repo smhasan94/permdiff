@@ -108,7 +108,10 @@ def _print_summary(console: Console, report: ReportView) -> None:
 def _sample_line(t: Transition) -> str:
     args = "" if t.call.arguments is None else json.dumps(t.call.arguments, sort_keys=True)
     decision = t.head if t.cls is not TransitionClass.CANT_EVALUATE or t.head.is_error else t.base
-    reasons = f"  [{'; '.join(decision.reasons)}]" if decision.reasons else ""
+    notes = [*decision.reasons]
+    if decision.locations:
+        notes.append("@ " + ", ".join(decision.locations))
+    reasons = f"  [{'; '.join(notes)}]" if notes else ""
     return (
         f"    {escape(t.call.id)}  {escape(t.call.principal.id)}  {escape(args)}{escape(reasons)}"
     )
