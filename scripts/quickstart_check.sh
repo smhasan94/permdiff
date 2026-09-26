@@ -21,6 +21,8 @@ end=$(date +%s)
 [ $((end - start)) -le 5 ] || { echo "permdiff demo took $((end - start))s (> 5s)" >&2; exit 1; }
 
 "$venv/bin/permdiff" demo --fail-on none --quiet --no-color
+"$venv/bin/permdiff" demo --fail-on none --format html --output "$(pwd)/demo.html" --no-color
+grep -q "<!DOCTYPE html>" demo.html && ! grep -qi "<script" demo.html || { echo "html report check failed" >&2; exit 1; }
 "$venv/bin/permdiff" schema toolcall | python3 -m json.tool > /dev/null
 
 # The OPA variant: download the pinned binary (cached across runs), then rerun the demo.

@@ -187,3 +187,40 @@ def test_input_map_from_config_env_and_flag(
     assert "traces: 1 calls (3 skipped" in from_flag.stdout
     assert unmapped.exit_code == 0, unmapped.output
     assert "traces: 0 calls (4 skipped" in unmapped.stdout
+
+
+def test_html_report_format_from_config(
+    git_repo: GitRepo, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    (git_repo.path / "permdiff.toml").write_text(
+        '[report]\nformat = "html"\nfail_on = "none"\n', encoding="utf-8"
+    )
+    monkeypatch.chdir(git_repo.path)
+    traces = tmp_path / "t.jsonl"
+    traces.write_text(
+        '{"id": "c1", "timestamp": "2026-09-21T12:00:00Z", "principal": {"id": "u"}, '
+        '"agent": {"id": "bot"}, "tool": {"name": "github.read"}}\n',
+        encoding="utf-8",
+    )
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "diff",
+            "--repo",
+            str(git_repo.path),
+            "--base",
+            "v-base",
+            "--head",
+            "HEAD",
+            "--engine",
+            "python:tests.fixtures.py_engine.rules:by_table",
+            "--traces",
+            str(traces),
+            "--salt",
+            "00",
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert result.stdout.startswith("<!DOCTYPE html>")

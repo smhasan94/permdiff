@@ -51,7 +51,7 @@ class TracesConfig(Frozen):
 
 
 class ReportConfig(Frozen):
-    format: Literal["terminal", "markdown", "json", "sarif"] = "terminal"
+    format: Literal["terminal", "markdown", "json", "sarif", "html"] = "terminal"
     redact: Literal["safe", "none"] = "safe"
     show_args: tuple[str, ...] = ()
     samples: int = 3

@@ -57,6 +57,8 @@ permdiff's defaults.
    can lag a fresh upload by a few minutes.
 2. `permdiff check`: traces parse and the policy compiles at both refs, else exit 1.
 3. `permdiff diff --format json --include-decisions`, exit code captured.
+   Any format, including `html`, can be rendered from that JSON afterwards with
+   `permdiff render --from-json report.json --format html --output report.html`.
 4. `permdiff render` turns the JSON into markdown (always appended to the job summary)
    and SARIF when requested.
 5. On a same-repository pull request with `pull-requests: write`, one comment marked

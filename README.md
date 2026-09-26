@@ -146,8 +146,8 @@ Traces are JSONL, one `ToolCall` per line; `permdiff schema toolcall` prints
 the JSON Schema. Reports redact argument values by default; `--show-args`
 reveals named keys and `--redact none` shows everything for local use.
 
-`--format markdown|json|sarif` and `permdiff render --from-json` produce the
-other outputs; `permdiff schema report` prints the JSON report's schema.
+`--format markdown|json|sarif|html` and `permdiff render --from-json` produce the
+other outputs (`html` is one self-contained file with no JavaScript); `permdiff schema report` prints the JSON report's schema.
 Importers (permdiff JSONL, Custody, OpenTelemetry GenAI, Claude Code, OPA decision
 logs, Langfuse, LangSmith) are in [docs/importers.md](docs/importers.md); the design is in `docs/01-overview.md`.
 

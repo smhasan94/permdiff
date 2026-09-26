@@ -17,6 +17,7 @@ from permdiff.report import (
     ReportView,
     build_view,
     gate,
+    render_html,
     render_json,
     render_markdown,
     render_sarif,
@@ -24,7 +25,7 @@ from permdiff.report import (
 )
 from permdiff.report.grouping import DEFAULT_GROUP_BY, DEFAULT_MAX_GROUPS, DEFAULT_SAMPLES
 
-FORMATS = ("terminal", "markdown", "json", "sarif")
+FORMATS = ("terminal", "markdown", "json", "sarif", "html")
 PRINCIPAL_SHOWN_IN = frozenset({"terminal"})
 """Formats that print principal ids verbatim (overview §3.6); every other format hashes them."""
 
@@ -99,6 +100,8 @@ def render(view: ReportView, opts: OutputOptions, *, exit_code: int) -> str:
         return render_markdown(view, exit_code=exit_code, fail_on=opts.fail_on)
     if opts.fmt == "sarif":
         return render_sarif(view, exit_code=exit_code, fail_on=opts.fail_on)
+    if opts.fmt == "html":
+        return render_html(view, exit_code=exit_code, fail_on=opts.fail_on)
     if opts.fmt == "json":
         return render_json(
             view,

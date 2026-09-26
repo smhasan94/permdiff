@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+- HTML report (FR-L10): `--format html` on `diff`, `demo`, and `render`, and `report.format
+  = "html"` in config, write one self-contained document (inline CSS, no JavaScript) with
+  the markdown report's content and redaction.
+- OPA rule attribution (FR-L7): decisions carry `locations` (`file:row` of the determining
+  rules, from a static `opa parse` index per ref); SARIF results point at that line and
+  report samples show it after the reasons.
 - Langfuse importer (FR-L1): `--from langfuse` reads `tool` observations from blob-storage
   exports (JSONL, JSON, Parquet, gzip) and v2 API pages.
 - LangSmith importer (FR-L2): `--from langsmith` reads `tool` runs from SDK dumps and Parquet

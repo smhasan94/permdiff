@@ -9,7 +9,14 @@ from pydantic import ValidationError
 
 from permdiff.cli._render import FORMATS
 from permdiff.errors import ConfigError
-from permdiff.report import JsonReport, ReportView, render_markdown, render_sarif, render_terminal
+from permdiff.report import (
+    JsonReport,
+    ReportView,
+    render_html,
+    render_markdown,
+    render_sarif,
+    render_terminal,
+)
 from permdiff.report.grouping import Group, GroupKey
 
 
@@ -69,6 +76,8 @@ def render_cmd(source: Path, fmt: str, output: Path | None, quiet: bool) -> None
         text = render_markdown(view, exit_code=report.exit_code, fail_on=report.fail_on)
     elif fmt == "sarif":
         text = render_sarif(view, exit_code=report.exit_code, fail_on=report.fail_on)
+    elif fmt == "html":
+        text = render_html(view, exit_code=report.exit_code, fail_on=report.fail_on)
     else:
         text = render_terminal(
             view, exit_code=report.exit_code, fail_on=report.fail_on, quiet=quiet

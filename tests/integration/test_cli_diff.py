@@ -203,7 +203,7 @@ def test_debug_keeps_policy_temp_dirs(run: Run, caplog: pytest.LogCaptureFixture
 
 
 def test_unsupported_format_is_rejected(run: Run) -> None:
-    result = run("--format", "html")
+    result = run("--format", "pdf")
 
     assert result.exit_code == 2
     assert "terminal" in result.stderr
@@ -328,3 +328,18 @@ def test_policy_reasons_echoing_arguments_are_scrubbed_in_reports(run: Run) -> N
     assert result.exit_code == 0, result.output
     assert "hunter2" not in result.stdout
     assert "<redacted>" in result.stdout
+
+
+def test_html_format_writes_one_self_contained_file(run: Run, tmp_path: Path) -> None:
+    out = tmp_path / "report.html"
+
+    result = run("--format", "html", "--salt", "00", "--output", str(out))
+
+    assert result.exit_code == 2, result.output
+    text = out.read_text(encoding="utf-8")
+    assert text.startswith("<!DOCTYPE html>")
+    assert "<script" not in text.lower()
+    assert "hunter2" not in text  # arguments redacted like every non-terminal format
+    assert "user1@example.com" not in text  # principals hashed outside the terminal format
+    assert "principal:" in text
+    assert "wrote html report to" in result.stderr

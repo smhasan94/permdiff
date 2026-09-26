@@ -31,7 +31,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E12 | Action install retry | done |
 | E13 | Langfuse and LangSmith importers | reviewed |
 | E14 | OPA rule attribution to file:line | todo |
-| E15 | HTML report | in progress |
+| E15 | HTML report | done |
 
 ---
 
@@ -664,7 +664,7 @@ one file, inline CSS, no JavaScript, no CDN; no `permdiff serve`).
 | # | Story | Status |
 |---|---|---|
 | E15-S1 | HTML renderer | done |
-| E15-S2 | CLI, config, Action, docs | todo |
+| E15-S2 | CLI, config, Action, docs | done |
 
 **E15-S1 Renderer.** Deps: E3.
 AC-15.1: `report/html.render_html(view, exit_code, fail_on)` returns one HTML document
