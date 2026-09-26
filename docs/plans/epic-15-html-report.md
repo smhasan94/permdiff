@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E15; FR-L10
 **Complexity**: Small (2 stories, about half a day)
-**Status**: done 2026-09-26 (S1, S2); review pending
+**Status**: reviewed 2026-09-26 (code-review low: no findings)
 
 ## Summary
 

@@ -31,7 +31,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E12 | Action install retry | done |
 | E13 | Langfuse and LangSmith importers | reviewed |
 | E14 | OPA rule attribution to file:line | todo |
-| E15 | HTML report | done |
+| E15 | HTML report | reviewed |
 
 ---
 
