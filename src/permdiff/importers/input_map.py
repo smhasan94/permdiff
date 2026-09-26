@@ -73,6 +73,11 @@ def parse_input_map(specs: Iterable[str]) -> InputMap:
                 raise ConfigError(msg)
             seen.add(target)
             pairs.append((target, source))
+    if "arguments" in seen and any(t.startswith("arguments.") for t in seen):
+        msg = (
+            "--input-map: map either arguments (whole object) or arguments.<key> entries, not both"
+        )
+        raise ConfigError(msg)
     return InputMap(pairs=tuple(pairs))
 
 

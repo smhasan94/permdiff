@@ -43,6 +43,13 @@ def test_parse_rejects_bad_pairs(spec: str, message: str) -> None:
         parse_input_map([spec])
 
 
+def test_parse_rejects_whole_and_keyed_arguments_together() -> None:
+    with pytest.raises(ConfigError, match="not both"):
+        parse_input_map(["arguments=args", "arguments.k=const:x"])
+    with pytest.raises(ConfigError, match="not both"):
+        parse_input_map(["arguments.k=const:x", "tool.name=m", "arguments=args"])
+
+
 def test_parse_rejects_duplicate_targets() -> None:
     with pytest.raises(ConfigError, match=r"tool\.name mapped twice"):
         parse_input_map(["tool.name=method", "tool.name=path"])

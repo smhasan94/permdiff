@@ -26,7 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
 | E10 | OPA decision-log importer | reviewed |
-| E11 | `--input-map` for foreign OPA decision-log inputs | done |
+| E11 | `--input-map` for foreign OPA decision-log inputs | reviewed |
 
 ---
 

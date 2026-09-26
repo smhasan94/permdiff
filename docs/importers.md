@@ -151,7 +151,8 @@ For other shapes, declare the mapping with `--input-map target=source` (repeatab
 comma-separated; `traces.input_map` in `permdiff.toml`, `PERMDIFF_TRACES_INPUT_MAP` in the
 environment). `target` is a dotted `ToolCall` path: `id`, `timestamp`, `principal.id`,
 `principal.type`, `principal.attrs.<k>`, `agent.id`, `agent.version`, `agent.attrs.<k>`,
-`tool.name`, `tool.server`, `tool.type`, `arguments` (an object), `arguments.<k>`,
+`tool.name`, `tool.server`, `tool.type`, `arguments` (an object) or `arguments.<k>` entries
+(not both),
 `resource.type`, `resource.id`, `resource.attrs.<k>`, `context.<k>`. `source` is a dotted
 path into the event's `input` (list indexes as integers), `event.<field>` for the event
 itself, or `const:<text>`. With a map, `id` defaults to the event's `decision_id` and
