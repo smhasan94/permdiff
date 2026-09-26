@@ -29,7 +29,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E10 | OPA decision-log importer | reviewed |
 | E11 | `--input-map` for foreign OPA decision-log inputs | reviewed |
 | E12 | Action install retry | done |
-| E13 | Langfuse and LangSmith importers | todo |
+| E13 | Langfuse and LangSmith importers | in progress |
 | E14 | OPA rule attribution to file:line | todo |
 | E15 | HTML report | todo |
 
@@ -572,7 +572,7 @@ Facts verified 2026-09-26 (Langfuse docs `export-to-blob-storage`, `observations
 
 | # | Story | Status |
 |---|---|---|
-| E13-S1 | Row reader: JSONL, JSON array, Parquet, gzip; `permdiff[parquet]` | todo |
+| E13-S1 | Row reader: JSONL, JSON array, Parquet, gzip; `permdiff[parquet]` | done |
 | E13-S2 | Langfuse importer (`langfuse`) | todo |
 | E13-S3 | LangSmith importer (`langsmith`) | todo |
 | E13-S4 | Docs, CHANGELOG | todo |

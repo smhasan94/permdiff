@@ -35,6 +35,7 @@ dependencies = [
 
 [project.optional-dependencies]
 cedar = ["cedarpy~=4.12"]  # wheels for CPython 3.11-3.12; see docs
+parquet = ["pyarrow>=15"]  # Langfuse and LangSmith Parquet exports
 
 [project.scripts]
 permdiff = "permdiff.cli.main:cli"
