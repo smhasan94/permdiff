@@ -607,3 +607,45 @@ AC-13.6: detection: first row has `run_type`.
 **E13-S4 Docs.** Deps: S2, S3.
 AC-13.7: `docs/importers.md` sections with mapping tables and the export commands;
 README importer list; CHANGELOG entry; fixtures README with sources and dates.
+
+---
+
+## E14 — OPA rule attribution to file:line
+
+Goal: SARIF results and report samples point at the Rego rule that decided a call, so a
+reviewer opens the right line of the policy PR.
+
+Satisfies: FR-L7 (decisions.md 2026-09-26: static index, no per-call explain traces).
+
+Facts verified 2026-09-26 with the pinned OPA 1.21.0: `opa parse -f json --json-include
+locations FILE` returns `rules[]` with `head.name` (or `head.ref`), `head.value` (an AST
+object whose `value` is a list of `[key, value]` term pairs), and `location {file, row,
+col}`. The evaluator's `to_decision` already fills `Decision.determining` with the `rule`
+/ `rules` labels a policy returns; the SARIF renderer already recognises `file:line`
+strings. Attribution-change classification compares `determining` between refs, so
+locations must live in a separate field.
+
+| # | Story | Status |
+|---|---|---|
+| E14-S1 | `Decision.locations` and the OPA rule index | todo |
+| E14-S2 | SARIF, markdown, terminal, JSON use the locations | todo |
+
+**E14-S1 Rule index.** Deps: E2.
+AC-14.1: `Decision.locations: tuple[str, ...]` (`<file relative to the policy dir>:<row>`
+entries, aligned to `determining` where known) is additive; attribution-change
+classification is unchanged.
+AC-14.2: `evaluators/opa/ruleindex.build(binary, policy_dir)` parses every `.rego` under
+the policy dir once per ref and maps each label (string literals under `rule` / `rules`
+in a rule head value), each Rego rule name, and `package.rule` to `file:row`; a parse
+failure logs a warning and yields an empty index (never fails the run).
+AC-14.3: the OPA evaluator attaches locations to every decision whose `determining`
+labels resolve; unknown labels get none; the Python and Cedar engines are unchanged.
+
+**E14-S2 Reports.** Deps: S1.
+AC-14.4: SARIF `physicalLocation` uses the head decision's first location (file under the
+policy path, `startLine` = row) before falling back to the existing behaviour.
+AC-14.5: markdown and terminal samples append ` @ file:row` to the reasons cell when the
+decision has locations; the JSON report carries `locations` per decision; goldens for
+the Python-engine demo are unchanged (no locations there).
+AC-14.6: an OPA integration test asserts the SARIF uri and line for a rego rule and the
+JSON `locations`.
