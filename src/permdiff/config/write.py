@@ -12,7 +12,10 @@ _COMMENTS: dict[str, str] = {
     "policy.head": "git ref, or WORKTREE for the uncommitted policy",
     "opa.capabilities": "default (no network builtins) | path to a capabilities file",
     "opa.nd_cache": "recorded nd_builtin_cache JSON to replay, or empty",
-    "traces.format": "auto | jsonl | custody | otel",
+    "traces.format": (
+        "auto | jsonl | custody | otel | claude-code | claude-code-hooks | opa-decision-log"
+    ),
+    "traces.input_map": "OPA decision logs: target=source pairs for a foreign input shape",
     "traces.since": "window on trace timestamps, e.g. 7d (relative to the newest trace)",
     "report.redact": "safe | none (local only)",
     "report.fail_on": "widen | any-change | cant-evaluate | none",

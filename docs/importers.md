@@ -142,10 +142,31 @@ with `type: "openpolicyagent.org/decision_logs"`, other server log lines skipped
 2026-09-26 against the pinned OPA 1.21.0; fixtures in `tests/fixtures/opa_log/` are a live
 capture.
 
-Only events whose `input` is a permdiff `ToolCall` import, which is what a deployment gets
-when it sends OPA the same `input` permdiff's engine does. Any other `input` shape is
-skipped and counted with the first validation error named; nothing is guessed. A mapping
-option for foreign shapes is a later story.
+By default only events whose `input` is a permdiff `ToolCall` import, which is what a
+deployment gets when it sends OPA the same `input` permdiff's engine does. Any other
+`input` shape is skipped and counted with the first validation error named; nothing is
+guessed.
+
+For other shapes, declare the mapping with `--input-map target=source` (repeatable, or
+comma-separated; `traces.input_map` in `permdiff.toml`, `PERMDIFF_TRACES_INPUT_MAP` in the
+environment). `target` is a dotted `ToolCall` path: `id`, `timestamp`, `principal.id`,
+`principal.type`, `principal.attrs.<k>`, `agent.id`, `agent.version`, `agent.attrs.<k>`,
+`tool.name`, `tool.server`, `tool.type`, `arguments` (an object), `arguments.<k>`,
+`resource.type`, `resource.id`, `resource.attrs.<k>`, `context.<k>`. `source` is a dotted
+path into the event's `input` (list indexes as integers), `event.<field>` for the event
+itself, or `const:<text>`. With a map, `id` defaults to the event's `decision_id` and
+`timestamp` to the event's `timestamp`; a required target (`principal.id`, `agent.id`,
+`tool.name`) that resolves to nothing skips the event with the target and source named.
+
+An HTTP-authorization deployment whose input is `{"method": "GET", "path": "/salary/bob",
+"user": {"name": "bob"}}`:
+
+```
+permdiff diff --from opa-decision-log --traces decisions.jsonl \
+  --input-map principal.id=user.name --input-map agent.id=const:api-gateway \
+  --input-map tool.name=method --input-map resource.type=const:http --input-map resource.id=path \
+  --decision data.http.authz.allow ...
+```
 
 | Decision-log event | ToolCall |
 |---|---|

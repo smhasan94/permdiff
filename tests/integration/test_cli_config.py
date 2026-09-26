@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
+from click.testing import CliRunner, Result
 
 from permdiff.cli.main import cli
 from tests.conftest import GitRepo
@@ -131,3 +131,59 @@ def test_init_writes_and_refuses_overwrite(tmp_path: Path, monkeypatch: pytest.M
     forced = CliRunner().invoke(cli, ["init", "--force", "--base", "main"])
     assert forced.exit_code == 0
     assert 'base = "main"' in (tmp_path / "permdiff.toml").read_text(encoding="utf-8")
+
+
+OPA_LOG_SINK = Path(__file__).parents[1] / "fixtures" / "opa_log" / "sink.json"
+PY_ENGINE = "python:tests.fixtures.py_engine.rules:by_table"
+
+
+def _check(repo: Path, *extra: str) -> Result:
+    args = [
+        "check",
+        "--repo",
+        str(repo),
+        "--base",
+        "v-base",
+        "--head",
+        "HEAD",
+        "--engine",
+        PY_ENGINE,
+        "--traces",
+        str(OPA_LOG_SINK),
+        *extra,
+    ]
+    return CliRunner().invoke(cli, args)
+
+
+def test_input_map_from_config_env_and_flag(
+    git_repo: GitRepo, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (git_repo.path / "permdiff.toml").write_text(
+        '[traces]\nformat = "opa-decision-log"\n'
+        'input_map = ["principal.id=const:cfg", "agent.id=const:gateway", "tool.name=method"]\n',
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(git_repo.path)
+
+    from_file = _check(git_repo.path)
+    monkeypatch.setenv(
+        "PERMDIFF_TRACES_INPUT_MAP", "principal.id=const:env,agent.id=const:gateway,tool.name=path"
+    )
+    from_env = _check(git_repo.path)
+    from_flag = _check(  # a flag replaces the whole list, like every other config key
+        git_repo.path,
+        "--input-map",
+        "principal.id=const:flag,agent.id=const:gateway,tool.name=method",
+    )
+    unmapped = _check(
+        git_repo.path, "--from", "opa-decision-log", "--input-map", "principal.id=const:x"
+    )
+
+    assert from_file.exit_code == 0, from_file.output
+    assert "traces: 1 calls (3 skipped" in from_file.stdout
+    assert from_env.exit_code == 0, from_env.output
+    assert "traces: 1 calls (3 skipped" in from_env.stdout
+    assert from_flag.exit_code == 0, from_flag.output
+    assert "traces: 1 calls (3 skipped" in from_flag.stdout
+    assert unmapped.exit_code == 0, unmapped.output
+    assert "traces: 0 calls (4 skipped" in unmapped.stdout

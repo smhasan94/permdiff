@@ -186,3 +186,36 @@ def test_convert_nd_cache_out_reports_conflicts_and_strict_aborts(tmp_path: Path
     assert strict.exit_code == 1
     assert "conflict" in strict.stderr
     assert not (tmp_path / "nd2.json").exists()
+
+
+INPUT_MAP = [
+    "--input-map",
+    "principal.id=const:anonymous,agent.id=const:gateway",
+    "--input-map",
+    "tool.name=method",
+    "--input-map",
+    "resource.id=path",
+]
+
+
+def test_convert_input_map_imports_foreign_decision_log_inputs(tmp_path: Path) -> None:
+    result = CliRunner().invoke(
+        cli,
+        [
+            "convert",
+            str(OPA_LOG / "sink.json"),
+            *INPUT_MAP,
+            "--decision",
+            "data.agent.authz.decision",
+        ],
+    )
+    bad = CliRunner().invoke(cli, ["convert", str(OPA_LOG / "sink.json"), "--input-map", "nope=x"])
+
+    assert result.exit_code == 0, result.output
+    assert "converted 1 calls (3 skipped)" in result.stderr
+    call = json.loads(result.stdout)
+    assert call["tool"]["name"] == "GET"
+    assert call["resource"]["id"] == "/salary/bob"
+    assert call["recorded"]["effect"] == "deny"
+    assert bad.exit_code == 1
+    assert "unknown target 'nope'" in bad.stderr

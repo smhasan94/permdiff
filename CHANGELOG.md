@@ -11,6 +11,9 @@
   `--nd-cache` loads, reporting conflicts (first value wins; `--strict` aborts).
 - Importers now receive only the options their constructors accept, so `--principal-from`
   and `--decision` can be given together.
+- `--input-map target=source` (also `traces.input_map`) builds `ToolCall`s from any OPA
+  decision-log `input` shape: dotted paths into `input`, `event.<field>`, or `const:<text>`,
+  with `id` and `timestamp` defaulting to the event's.
 
 ## 0.3.0 (2026-09-25)
 

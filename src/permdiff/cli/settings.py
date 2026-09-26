@@ -19,6 +19,7 @@ from permdiff.config import Config, load_config
 from permdiff.errors import ConfigError
 from permdiff.importers.base import ImportResult
 from permdiff.importers.filters import FilterResult, TraceFilters, apply_filters
+from permdiff.importers.input_map import parse_input_map
 from permdiff.redact import RedactLevel
 from permdiff.report import FailOn
 from permdiff.report.grouping import GROUP_FIELDS, validate_group_by
@@ -38,6 +39,7 @@ CONFIG_FLAGS: dict[str, tuple[str, str]] = {
     "since": ("traces", "since"),
     "until": ("traces", "until"),
     "principal_from": ("traces", "principal_from"),
+    "input_map": ("traces", "input_map"),
     "decision": ("opa", "decision"),
     "v0_compatible": ("opa", "v0_compatible"),
     "undefined": ("opa", "undefined"),
@@ -128,6 +130,12 @@ def selection_flags(fn: F) -> F:
                     "Principal source: OTel attribute path (resource.attr.service.name); "
                     "Claude Code env:VAR or a top-level key."
                 ),
+            ),
+            click.option(
+                "--input-map",
+                "input_map",
+                multiple=True,
+                help="OPA decision logs: target=source pair(s) for a foreign input shape.",
             ),
             click.option("--tool", "tool_globs", multiple=True, help="Keep tools matching GLOB."),
             click.option(
@@ -233,6 +241,16 @@ def overrides_from(kwargs: dict[str, Any]) -> dict[str, dict[str, Any]]:
     return overrides
 
 
+def importer_options_from(config: Config) -> dict[str, Any]:
+    """Options the registry hands to the importers that accept them."""
+    options: dict[str, Any] = {"decision": config.opa.decision}
+    if config.traces.principal_from:
+        options["principal_from"] = config.traces.principal_from
+    if config.traces.input_map:
+        options["input_map"] = parse_input_map(config.traces.input_map)
+    return options
+
+
 def resolve_config(ctx: click.Context, repo: Path, kwargs: dict[str, Any]) -> Config:
     explicit = ctx.obj.get("config") if ctx.obj else None
     start = Path.cwd()
@@ -299,9 +317,7 @@ def load_filtered_traces(
         agent=tuple(kwargs.pop("agent_globs")),
         principal=tuple(kwargs.pop("principal_globs")),
     )
-    importer_options = (
-        {"principal_from": config.traces.principal_from} if config.traces.principal_from else {}
-    )
+    importer_options = importer_options_from(config)
     imported = api.load_traces(
         require_traces(config),
         fmt=config.traces.format,

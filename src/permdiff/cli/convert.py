@@ -16,6 +16,7 @@ from permdiff.evaluators.opa.ndcache import (
     merge_nd_caches,
     render_nd_cache_file,
 )
+from permdiff.importers.input_map import parse_input_map
 from permdiff.importers.jsonl import FORMAT_NAME
 from permdiff.models import Source, ToolCall
 from permdiff.models.limits import DEFAULT_MAX_RECORDS
@@ -50,6 +51,13 @@ def to_jsonl_line(call: ToolCall) -> str:
     default=None,
     help="Principal source: OTel attribute path, or env:VAR / a top-level key for Claude Code.",
 )
+@click.option(
+    "--input-map",
+    "input_map",
+    multiple=True,
+    help="OPA decision logs: target=source pair(s) for a foreign input shape.",
+)
+@click.option("--decision", default=None, help="OPA decision logs: rule path for package results.")
 def convert_cmd(
     files: tuple[str, ...],
     fmt: str,
@@ -58,9 +66,17 @@ def convert_cmd(
     nd_cache_out: Path | None,
     max_records: int,
     principal_from: str | None,
+    input_map: tuple[str, ...],
+    decision: str | None,
 ) -> None:
     """Convert any supported trace format to permdiff JSONL."""
-    options = {"principal_from": principal_from} if principal_from else {}
+    options: dict[str, object] = {}
+    if principal_from:
+        options["principal_from"] = principal_from
+    if input_map:
+        options["input_map"] = parse_input_map(input_map)
+    if decision:
+        options["decision"] = decision
     result = api.load_traces(
         files, fmt=fmt, strict=strict, max_records=max_records, importer_options=options
     )

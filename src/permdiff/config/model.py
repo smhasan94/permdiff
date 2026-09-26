@@ -46,6 +46,8 @@ class TracesConfig(Frozen):
     max_records: int = DEFAULT_MAX_RECORDS
     principal_from: str | None = None
     """OTel: attribute path for the principal, e.g. ``resource.attr.service.name``."""
+    input_map: tuple[str, ...] = ()
+    """OPA decision logs: ``target=source`` pairs building a ToolCall from a foreign input."""
 
 
 class ReportConfig(Frozen):
