@@ -42,7 +42,7 @@ def test_opa_diff_end_to_end(rego_repo: Path, traces: Path, opa_bin: Path) -> No
         "attribution changed         1   stripe.refund" in out
     )  # rule renamed refund → refund-small
     assert "unchanged                   1" in out
-    assert "[amount>500]" in out
+    assert "[amount>500; @ agent.rego:9]" in out
 
 
 def test_opa_diff_custom_decision_path_and_undefined_error(
