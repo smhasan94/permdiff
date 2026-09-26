@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>permdiff: origin/main → HEAD</title>
+<style>
+:root { color-scheme: light dark; --fg: #1f2328; --bg: #ffffff; --muted: #656d76;
+  --line: #d0d7de; --warn-bg: #fff8c5; --warn-fg: #7d4e00; --code-bg: #f6f8fa; }
+@media (prefers-color-scheme: dark) { :root { --fg: #e6edf3; --bg: #0d1117;
+  --muted: #8b949e; --line: #30363d; --warn-bg: #3b2e00; --warn-fg: #f2cc60;
+  --code-bg: #161b22; } }
+body { margin: 0 auto; max-width: 60rem; padding: 1.5rem 1rem; color: var(--fg);
+  background: var(--bg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+h1 { font-size: 1.4rem; margin: 0 0 .25rem; } .meta { color: var(--muted); margin: 0 0 1rem; }
+code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, monospace; background: var(--code-bg);
+  padding: .1em .3em; border-radius: 4px; word-break: break-all; }
+table { border-collapse: collapse; width: 100%; margin: .5rem 0 1rem; }
+th, td { text-align: left; vertical-align: top; padding: .35rem .5rem;
+  border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; } td.n { text-align: right; }
+details { border: 1px solid var(--line); border-radius: 6px; margin: .5rem 0;
+  padding: .25rem .75rem; }
+summary { cursor: pointer; font-weight: 600; padding: .25rem 0; }
+.widening summary { color: var(--warn-fg); } .widening { background: var(--warn-bg); }
+.reasons, .more { color: var(--muted); margin: .25rem 0 .5rem; }
+footer { margin-top: 1.5rem; padding-top: .75rem; border-top: 1px solid var(--line);
+  color: var(--muted); }
+</style>
+</head>
+<body>
+<h1>permdiff: <code>origin/main</code> → <code>HEAD</code></h1>
+<p class="meta"><strong>14 calls</strong> · 2026-09-18 → 2026-09-22 · policy <code>policy</code> · engine <code>opa</code><br>base <code>0123456789ab</code> · head <code>89abcdef0123</code> · salt <code>000102030405060708090a0b0c0d0e0f</code></p>
+<table><thead><tr><th>Transition</th><th>Count</th><th>Top</th></tr></thead>
+<tbody>
+<tr><td>newly DENIED</td><td class="n">3</td><td><code>aws.ec2.terminate_instance</code></td></tr>
+<tr><td>newly ALLOWED ⚠ widening</td><td class="n">2</td><td><code>github.delete_branch</code></td></tr>
+<tr><td>now REQUIRE_APPROVAL ⚠ widening</td><td class="n">2</td><td><code>stripe.refund</code></td></tr>
+<tr><td>attribution changed</td><td class="n">1</td><td><code>github.read</code></td></tr>
+<tr><td>can&#x27;t evaluate</td><td class="n">2</td><td><code>missing context: principal.department</code></td></tr>
+<tr><td>unchanged</td><td class="n">4</td><td></td></tr>
+</tbody></table>
+<details open class="widening">
+<summary>⚠ widening · <code>github.delete_branch</code> · 2 calls · deny → allow</summary>
+<p class="reasons">Reasons: branch protection removed</p>
+<table><thead><tr><th>Call</th><th>Principal</th><th>Arguments</th><th>Reasons</th></tr></thead><tbody>
+<tr><td><code>call-001</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;branch&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>branch protection removed</td></tr>
+<tr><td><code>call-002</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;branch&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>branch protection removed</td></tr>
+</tbody></table>
+</details>
+<details open class="widening">
+<summary>⚠ widening · <code>stripe.refund</code> · 1 call · deny → require_approval</summary>
+<p class="reasons">Reasons: amount&gt;500</p>
+<table><thead><tr><th>Call</th><th>Principal</th><th>Arguments</th><th>Reasons</th></tr></thead><tbody>
+<tr><td><code>call-003</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;amount&quot;: &quot;&lt;int&gt;&quot;}</code></td><td>amount&gt;500</td></tr>
+</tbody></table>
+</details>
+<details class="group">
+<summary>tightening · <code>aws.ec2.terminate_instance</code> · 3 calls · allow → deny</summary>
+<p class="reasons">Reasons: prod instances locked</p>
+<table><thead><tr><th>Call</th><th>Principal</th><th>Arguments</th><th>Reasons</th></tr></thead><tbody>
+<tr><td><code>call-004</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;meta&quot;: {&quot;n&quot;: &quot;&lt;str:24&gt;&quot;}, &quot;target&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>prod instances locked</td></tr>
+<tr><td><code>call-005</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;meta&quot;: {&quot;n&quot;: &quot;&lt;str:24&gt;&quot;}, &quot;target&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>prod instances locked</td></tr>
+<tr><td><code>call-006</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;meta&quot;: {&quot;n&quot;: &quot;&lt;str:24&gt;&quot;}, &quot;target&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>prod instances locked</td></tr>
+</tbody></table>
+</details>
+<details class="group">
+<summary>tightening · <code>stripe.refund</code> · 1 call · allow → require_approval</summary>
+<p class="reasons">Reasons: amount&gt;500</p>
+<table><thead><tr><th>Call</th><th>Principal</th><th>Arguments</th><th>Reasons</th></tr></thead><tbody>
+<tr><td><code>call-007</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;amount&quot;: &quot;&lt;int&gt;&quot;}</code></td><td>amount&gt;500</td></tr>
+</tbody></table>
+</details>
+<details class="group">
+<summary>can&#x27;t evaluate · <code>salesforce.update</code> · 2 calls · allow → error</summary>
+<p class="reasons">Reasons: principal.department</p>
+<table><thead><tr><th>Call</th><th>Principal</th><th>Arguments</th><th>Reasons</th></tr></thead><tbody>
+<tr><td><code>call-008</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;meta&quot;: {&quot;n&quot;: &quot;&lt;str:24&gt;&quot;}, &quot;target&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>principal.department</td></tr>
+<tr><td><code>call-009</code></td><td><code>principal:6d614a89</code></td><td><code>{&quot;meta&quot;: {&quot;n&quot;: &quot;&lt;str:24&gt;&quot;}, &quot;target&quot;: &quot;&lt;str:21&gt;&quot;}</code></td><td>principal.department</td></tr>
+</tbody></table>
+</details>
+<footer>
+<p>imported 17, skipped 3 malformed · recorded decisions disagree with base on 1 call (base ref may not be the deployed policy)</p>
+<p><strong>exit 2</strong> (widening found; --fail-on widen)</p>
+</footer>
+</body>
+</html>

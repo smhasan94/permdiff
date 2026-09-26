@@ -10,6 +10,7 @@ from permdiff.report.exit_codes import (
     gate,
     gate_reason,
 )
+from permdiff.report.html import render_html
 from permdiff.report.json_ import JsonReport, render_json
 from permdiff.report.markdown import MARKER, render_markdown
 from permdiff.report.sarif import render_sarif
@@ -27,6 +28,7 @@ __all__ = [
     "build_view",
     "gate",
     "gate_reason",
+    "render_html",
     "render_json",
     "render_markdown",
     "render_sarif",
