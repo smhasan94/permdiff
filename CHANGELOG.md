@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.4.0 (2026-09-26)
 
 - OPA decision-log importer (FR-L4): `--from opa-decision-log` reads sink JSON arrays and
   console logs, imports events whose `input` is a permdiff `ToolCall`, maps `result` to the
