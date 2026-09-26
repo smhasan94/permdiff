@@ -543,3 +543,67 @@ dogfood run while PyPI's CDN catches up.
 AC-12.1: with `version` set, `pip install --no-cache-dir permdiff==<version>` is retried
 up to eight times 30 seconds apart, logging each retry, then fails with the version named;
 the source install path is unchanged; `docs/action.md` and CHANGELOG note it.
+
+---
+
+## E13 — Langfuse and LangSmith importers
+
+Goal: teams tracing agents with Langfuse or LangSmith replay their exported tool calls
+without conversion scripts, from JSONL, JSON, or Parquet exports.
+
+Satisfies: FR-L1, FR-L2, FR-5, FR-7. Parquet via `permdiff[parquet]` (decisions.md
+2026-09-26).
+
+Facts verified 2026-09-26 (Langfuse docs `export-to-blob-storage`, `observations-api`,
+`observation-types`; LangSmith docs `run-data-format`, `data-export`, `export-traces`):
+- Langfuse blob exports write `observations_v2/{timestamp}.{parquet|json|jsonl|csv}[.gz]`
+  with snake_case columns in groups: core (`id`, `trace_id`, `start_time`, `end_time`,
+  `project_id`, `parent_observation_id`, `type`), basic (`name`, `user_id`, `session_id`,
+  `environment`, `level`, `version`, …), io (`input`, `output`), `metadata`, `tools`,
+  `trace_context`. The v2 Observations API returns the same fields in camelCase
+  (`traceId`, `startTime`, `userId`, `traceName`) with `input`/`output` as JSON strings.
+  Observation types are `event`, `span`, `generation`, `agent`, `tool`, `chain`,
+  `retriever`, `evaluator`, `embedding`, `guardrail`; the API spells them uppercase.
+- LangSmith runs carry `id`, `name`, `run_type` (`tool` for tool calls), `inputs`,
+  `outputs`, `start_time`/`end_time` (ISO without a zone, UTC), `trace_id`,
+  `parent_run_id`, `session_id`, `extra` (metadata under `extra.metadata`), `tags`,
+  `error`, `status`, `dotted_order`. Bulk exports are Parquet (zstandard) with those
+  fields as columns; SDK dumps are JSONL of the same objects.
+
+| # | Story | Status |
+|---|---|---|
+| E13-S1 | Row reader: JSONL, JSON array, Parquet, gzip; `permdiff[parquet]` | todo |
+| E13-S2 | Langfuse importer (`langfuse`) | todo |
+| E13-S3 | LangSmith importer (`langsmith`) | todo |
+| E13-S4 | Docs, CHANGELOG | todo |
+
+**E13-S1 Row reader.** Deps: E5-S4.
+AC-13.1: `importers/rows.iter_rows(path)` yields `(row, locator)` from JSONL (`path:line`),
+a JSON array or a `{"data": [...]}` envelope (`path[i]`), and Parquet (`path[i]`, via
+`pyarrow` imported lazily; without it, `TraceImportError` says `pip install
+"permdiff[parquet]"`); `.gz` is decompressed for the text formats; a bad JSONL line is
+yielded as `RecordRejected` for skip-or-abort.
+AC-13.2: `pyproject` extra `parquet = ["pyarrow>=15"]`; CI installs it for the tests.
+
+**E13-S2 Langfuse.** Deps: S1.
+AC-13.3: rows whose `type` is `tool` (case-insensitive) become calls; other types skip
+silently; snake_case and camelCase keys both accepted; `input`/`output` JSON strings
+parsed; `id` → `id`, `start_time` → `timestamp`, `user_id` → principal (else
+`--principal-from` dotted path over the row, else `unknown` with a note), `trace_name`
+else `langfuse` → agent, `name` → tool, `input` (object) → arguments, `trace_id`,
+`session_id`, `parent_observation_id`, `environment`, `level`, `project_id` → context,
+`metadata` → `context["langfuse.metadata"]`; `source.format = "langfuse"`.
+AC-13.4: detection: first row has `trace_id`/`traceId` and `type` and no `run_type`.
+
+**E13-S3 LangSmith.** Deps: S1.
+AC-13.5: rows with `run_type == "tool"` become calls; `id` → `id`, `start_time`
+(naive → UTC) → `timestamp`, `--principal-from` dotted path (default
+`extra.metadata.user_id`, else `unknown` with a note) → principal, `session_id` else
+`langsmith` → agent, `name` → tool, `inputs` (object, or JSON string) → arguments,
+`trace_id`, `parent_run_id`, `dotted_order`, `tags`, `status`, `error` → context,
+`extra.metadata` → `context["langsmith.metadata"]`; `source.format = "langsmith"`.
+AC-13.6: detection: first row has `run_type`.
+
+**E13-S4 Docs.** Deps: S2, S3.
+AC-13.7: `docs/importers.md` sections with mapping tables and the export commands;
+README importer list; CHANGELOG entry; fixtures README with sources and dates.
