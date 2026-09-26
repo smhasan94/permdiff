@@ -47,6 +47,8 @@ class Decision(Frozen):
     error_kind: ErrorKind | None = None
     reasons: tuple[str, ...] = ()
     determining: tuple[str, ...] = ()
+    locations: tuple[str, ...] = ()
+    """``file:line`` of the determining rules when the engine can tell (FR-L7); never compared."""
     engine: str
 
     @model_validator(mode="after")

@@ -22,6 +22,7 @@ from permdiff.evaluators.opa.mapping import (
     undefined_decision,
 )
 from permdiff.evaluators.opa.ndcache import load_nd_cache, render_nd_data
+from permdiff.evaluators.opa.ruleindex import EMPTY_INDEX, RuleIndex, attach, build
 from permdiff.evaluators.opa.shim import (
     CASES_FILE,
     ND_FILE,
@@ -62,6 +63,8 @@ class OpaPrepared:
     policy_dir: Path
     compile_error: str | None = None
     denied_builtins: tuple[str, ...] = field(default_factory=tuple)
+    rule_index: RuleIndex = EMPTY_INDEX
+    """Rule labels and names → ``file:row`` (FR-L7); empty when parsing failed."""
 
     def close(self) -> None:
         return None
@@ -129,6 +132,9 @@ class OpaEvaluator:
             flags += ["--capabilities", str(self._capabilities)]
         return flags
 
+    def _parse_flags(self) -> list[str]:
+        return ["--v0-compatible"] if self.options.v0_compatible else []
+
     def prepare(self, policy_dir: Path, *, label: str) -> PreparedPolicy:
         """``opa check`` once per ref; a failure is recorded, not raised (every call errors)."""
         self._ensure_ready()
@@ -136,7 +142,8 @@ class OpaEvaluator:
         argv += [*self._common_flags(), policy_dir]
         result = _proc.run(argv)
         if result.ok:
-            return OpaPrepared(label=label, policy_dir=policy_dir)
+            index = build(self.binary, policy_dir, extra_flags=self._parse_flags())
+            return OpaPrepared(label=label, policy_dir=policy_dir, rule_index=index)
         message, denied = _compile_failure(result.stdout or result.stderr)
         log.warning("opa check failed at %s: %s", label, message)
         return OpaPrepared(
@@ -158,7 +165,7 @@ class OpaEvaluator:
                 self.options.decision,
                 prepared.label,
             )
-        return tuple(self._decide(c, raw, failures) for c in calls)
+        return tuple(self._decide(c, raw, failures, prepared) for c in calls)
 
     def _compile_error_decision(self, call_id: str, prepared: OpaPrepared) -> Decision:
         if prepared.denied_builtins:
@@ -168,7 +175,13 @@ class OpaEvaluator:
         reason = f"policy at {prepared.label} failed to compile: {prepared.compile_error}"
         return Decision.error(call_id, ErrorKind.EVAL_ERROR, reason, engine=self.name)
 
-    def _decide(self, call: ToolCall, raw: dict[str, Any], failures: dict[str, str]) -> Decision:
+    def _decide(
+        self,
+        call: ToolCall,
+        raw: dict[str, Any],
+        failures: dict[str, str],
+        prepared: OpaPrepared,
+    ) -> Decision:
         if call.id in failures:
             message = failures[call.id]
             if ND_MISS_PREFIX in message:
@@ -177,7 +190,8 @@ class OpaEvaluator:
                 return Decision.error(call.id, ErrorKind.NONDETERMINISTIC, reason, engine=self.name)
             return Decision.error(call.id, ErrorKind.EVAL_ERROR, message, engine=self.name)
         if call.id in raw:
-            return to_decision(call.id, raw[call.id], engine=self.name)
+            decision = to_decision(call.id, raw[call.id], engine=self.name)
+            return attach(decision, prepared.rule_index)
         return undefined_decision(
             call.id, self.options.undefined, decision_path=self.options.decision, engine=self.name
         )
