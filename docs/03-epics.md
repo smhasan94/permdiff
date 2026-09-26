@@ -573,8 +573,8 @@ Facts verified 2026-09-26 (Langfuse docs `export-to-blob-storage`, `observations
 | # | Story | Status |
 |---|---|---|
 | E13-S1 | Row reader: JSONL, JSON array, Parquet, gzip; `permdiff[parquet]` | done |
-| E13-S2 | Langfuse importer (`langfuse`) | todo |
-| E13-S3 | LangSmith importer (`langsmith`) | todo |
+| E13-S2 | Langfuse importer (`langfuse`) | done |
+| E13-S3 | LangSmith importer (`langsmith`) | done |
 | E13-S4 | Docs, CHANGELOG | todo |
 
 **E13-S1 Row reader.** Deps: E5-S4.

@@ -14,6 +14,8 @@ from permdiff.importers.base import Importer
 from permdiff.importers.claude_code import ClaudeCodeHooksImporter, ClaudeCodeImporter
 from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import JsonlImporter
+from permdiff.importers.langfuse import LangfuseImporter
+from permdiff.importers.langsmith import LangsmithImporter
 from permdiff.importers.opa_log import OpaDecisionLogImporter
 from permdiff.importers.otel import OtelImporter
 
@@ -29,8 +31,10 @@ _BUILTIN: tuple[Callable[..., Importer], ...] = (
     ClaudeCodeHooksImporter,
     ClaudeCodeImporter,
     OpaDecisionLogImporter,
+    LangfuseImporter,
+    LangsmithImporter,
 )
-"""Detection order: permdiff JSONL, Custody, OTel, Claude Code hooks and transcripts, OPA logs."""
+"""Detection order: permdiff JSONL, Custody, OTel, Claude Code, OPA logs, Langfuse, LangSmith."""
 _ALIASES: dict[str, str] = {"permdiff": "jsonl"}
 
 

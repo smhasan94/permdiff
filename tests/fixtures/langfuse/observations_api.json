@@ -1,0 +1,51 @@
+{
+ "data": [
+  {
+   "id": "obs-tool-1",
+   "traceId": "trace-1",
+   "startTime": "2026-09-20T10:00:00.000Z",
+   "projectId": "proj-1",
+   "parentObservationId": "obs-agent-1",
+   "isRootObservation": false,
+   "type": "TOOL",
+   "endTime": "2026-09-20T10:00:01.200Z",
+   "name": "github.read",
+   "level": "DEFAULT",
+   "environment": "production",
+   "input": "{\"repo\": \"acme/api\", \"path\": \"README.md\"}",
+   "output": "{\"ok\": true}",
+   "metadata": {
+    "team": "support"
+   },
+   "userId": "alice@example.com",
+   "sessionId": "sess-1",
+   "tags": [
+    "support"
+   ],
+   "release": "v1.2.0",
+   "traceName": "support-agent"
+  },
+  {
+   "id": "obs-span-1",
+   "traceId": "trace-1",
+   "startTime": "2026-09-20T10:00:02.000Z",
+   "projectId": "proj-1",
+   "parentObservationId": null,
+   "isRootObservation": true,
+   "type": "SPAN",
+   "name": "wrap",
+   "level": "DEFAULT",
+   "environment": "production",
+   "input": null,
+   "output": null,
+   "metadata": {},
+   "userId": "alice@example.com",
+   "sessionId": "sess-1",
+   "tags": [],
+   "traceName": "support-agent"
+  }
+ ],
+ "meta": {
+  "cursor": "abc"
+ }
+}

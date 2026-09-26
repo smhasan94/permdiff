@@ -167,7 +167,7 @@ def test_detect_and_registry() -> None:
 
     assert registry.detect(FIXTURES / "console.jsonl").name == FORMAT_NAME
     assert registry.detect(FIXTURES / "sink.json").name == FORMAT_NAME
-    assert registry.names()[-1] == FORMAT_NAME
+    assert FORMAT_NAME in registry.names()
     with_option = registry.get(FORMAT_NAME, decision="data.x.y", principal_from="attr.u")
     assert with_option.decision == "data.x.y"  # type: ignore[attr-defined]
     otel = registry.get("otel", decision="data.x.y", principal_from="attr.u")

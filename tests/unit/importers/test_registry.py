@@ -118,6 +118,8 @@ def test_broken_entry_points_are_ignored_with_warning(
             "claude-code-hooks",
             "claude-code",
             "opa-decision-log",
+            "langfuse",
+            "langsmith",
         )
 
     messages = " ".join(r.getMessage() for r in caplog.records)

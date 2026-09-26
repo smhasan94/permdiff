@@ -105,6 +105,8 @@ def test_detect_and_registry_options() -> None:
         "claude-code-hooks",
         "claude-code",
         "opa-decision-log",
+        "langfuse",
+        "langsmith",
     )
 
 

@@ -35,6 +35,8 @@ PERMISSION_MODE_LINE = "permission-mode"
 _RESULT_MARKER = b'"tool_result"'
 _SESSION_KEYS = ("sessionId", "session_id")
 _HOOK_MARKER = "hook_event_name"
+_BARE_LINE_TYPES = frozenset({"mode", PERMISSION_MODE_LINE, "summary"})
+"""Transcript lines without a uuid: session mode markers and summaries."""
 
 ResultIndex = Mapping[str, str | None]
 """``tool_use_id`` → ``toolDenialKind`` (``None`` when the call ran)."""
@@ -190,7 +192,10 @@ class ClaudeCodeImporter:
             return False
         if not isinstance(record, dict) or "type" not in record or _HOOK_MARKER in record:
             return False
-        return any(key in record for key in _SESSION_KEYS)
+        if not any(key in record for key in _SESSION_KEYS):
+            return False
+        looks_like_line = "uuid" in record or "parentUuid" in record
+        return looks_like_line or record.get("type") in _BARE_LINE_TYPES
 
     def read(
         self, path: Path, *, strict: bool = False, max_records: int = DEFAULT_MAX_RECORDS
