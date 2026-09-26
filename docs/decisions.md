@@ -248,3 +248,29 @@ appends a file, nothing more.
 
 **Rationale.** Removes the `jq` dependency and the hand edit of `settings.json` for the
 0.2.0 quickstart's stable input, without taking on collection or storage.
+
+## 2026-09-26: FR-L4 scope (E10)
+
+**Question.** An OPA decision-log event's `input` is whatever the deployment sent. Which
+inputs does the importer map?
+
+**Options.**
+1. permdiff-shaped inputs only (recommended): an event whose `input` validates as a
+   `ToolCall` is imported with `result` as the recorded effect; others are skipped and
+   counted with the first missing field named. Plus `permdiff convert --nd-cache-out FILE`
+   merging every event's `nd_builtin_cache` for `--nd-cache`.
+2. Add `--input-map` (dotted paths) for foreign shapes; about one more day.
+3. Importer only, no `nd_builtin_cache` merging.
+
+**Decision.** Option 1. Epic E10. `--input-map` stays a later story if a user asks.
+
+**Rationale.** permdiff's own OPA engine sends a `ToolCall` as `input`, so the logs of a
+deployment that mirrors it map without configuration; guessing at foreign shapes would
+violate "never silently treated as allow".
+
+Verified 2026-09-26 with the pinned OPA 1.21.0 (`opa run --server` with
+`decision_logs.console: true` and `nd_builtin_cache: true`): console lines carry the event
+fields plus `msg: "Decision Log"`, `type: "openpolicyagent.org/decision_logs"`, `level`,
+`time`, `metrics`, `req_id`; `nd_builtin_cache` is `{}` when nothing nondeterministic ran;
+`result` is the queried path's value (the decision object, a package object wrapping it, or
+a scalar). The remote sink receives a JSON array of the same events (docs).

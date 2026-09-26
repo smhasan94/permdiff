@@ -299,7 +299,9 @@ Reads OTLP/JSON (`resourceSpans`) files and JSONL (one `TracesData` per line).
 - FR-L2 LangSmith importer (`run_type == "tool"`, JSONL and Parquet).
 - FR-L3 Claude Code importer: session transcripts (`tool_use` / `tool_result` lines) and
   hook logs (`PreToolUse` JSON); see decisions.md 2026-09-25.
-- FR-L4 OPA decision-log importer (`input`, `result`, `nd_builtin_cache`).
+- FR-L4 OPA decision-log importer: permdiff-shaped `input` → `ToolCall`, `result` →
+  recorded effect, `nd_builtin_cache` merged by `convert --nd-cache-out`; see decisions.md
+  2026-09-26.
 - FR-L5 TOLAP purpose-binding evaluator.
 - FR-L6 Custody evaluator (once Custody has an evaluator API).
 - FR-L7 Line-level determining-rule attribution for OPA.
