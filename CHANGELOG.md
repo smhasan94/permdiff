@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.5.0 (2026-09-26)
 
 - HTML report (FR-L10): `--format html` on `diff`, `demo`, and `render`, and `report.format
   = "html"` in config, write one self-contained document (inline CSS, no JavaScript) with

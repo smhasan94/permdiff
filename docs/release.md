@@ -3,6 +3,15 @@
 permdiff is never published by the agent (standing rule 5). Everything below is for the
 repository owner.
 
+## 0.5.0 (prepared 2026-09-26; owner publishes)
+
+Same steps as 0.2.0 with the version changed: build and `twine check` from a clean tree,
+`twine upload dist/*`, tag `v0.5.0` and move `v0` to it, push both tags, create the GitHub
+release from the 0.5.0 section of `CHANGELOG.md`, then once PyPI shows 0.5.0 set the
+`action.yml` `version` default to `0.5.0` and bump `src/permdiff/__init__.py` to
+`0.6.0.dev0` ("Post-release: 0.5.0"). The Action's install step now retries for four
+minutes, so the post-release dogfood run should pass on the first try.
+
 ## 0.4.0 (released 2026-09-26: PyPI, tags v0.4.0 and v0 at 2e66006, GitHub release published)
 
 Same steps as 0.2.0 with the version changed: build and `twine check` from a clean tree,
