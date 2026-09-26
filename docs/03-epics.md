@@ -8,7 +8,7 @@
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
 0.2.0 (E8, Claude Code importers) released 2026-09-25 and 0.3.0 (E9, `permdiff record`)
 released 2026-09-26. `main` is `0.4.0.dev0`; 0.4.0 (E10 OPA decision logs, E11 `--input-map`) released 2026-09-26. `main` is
-`0.5.0.dev0`; 0.5.0 scope is E12–E15 (decisions.md 2026-09-26). Remaining later candidates:
+`0.6.0.dev0`; 0.5.0 (E12–E15) released 2026-09-26; no epic in progress. Remaining later candidates:
 FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution,
 FR-L10 HTML report.
 

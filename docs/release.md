@@ -3,7 +3,7 @@
 permdiff is never published by the agent (standing rule 5). Everything below is for the
 repository owner.
 
-## 0.5.0 (prepared 2026-09-26; owner publishes)
+## 0.5.0 (released 2026-09-26: PyPI, tags v0.5.0 and v0 at 81634de, GitHub release published)
 
 Same steps as 0.2.0 with the version changed: build and `twine check` from a clean tree,
 `twine upload dist/*`, tag `v0.5.0` and move `v0` to it, push both tags, create the GitHub
