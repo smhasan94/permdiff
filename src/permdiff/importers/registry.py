@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import inspect
 import logging
-from collections.abc import Callable, Iterable
+from collections.abc import Callable, Iterable, Mapping
 from importlib.metadata import EntryPoint, entry_points
 from pathlib import Path
 from typing import Any
@@ -13,6 +14,7 @@ from permdiff.importers.base import Importer
 from permdiff.importers.claude_code import ClaudeCodeHooksImporter, ClaudeCodeImporter
 from permdiff.importers.custody import CustodyImporter
 from permdiff.importers.jsonl import JsonlImporter
+from permdiff.importers.opa_log import OpaDecisionLogImporter
 from permdiff.importers.otel import OtelImporter
 
 log = logging.getLogger(__name__)
@@ -26,8 +28,9 @@ _BUILTIN: tuple[Callable[..., Importer], ...] = (
     OtelImporter,
     ClaudeCodeHooksImporter,
     ClaudeCodeImporter,
+    OpaDecisionLogImporter,
 )
-"""Detection order: permdiff JSONL first, then Custody, OTel, Claude Code hooks, transcripts."""
+"""Detection order: permdiff JSONL, Custody, OTel, Claude Code hooks and transcripts, OPA logs."""
 _ALIASES: dict[str, str] = {"permdiff": "jsonl"}
 
 
@@ -51,15 +54,20 @@ def _load_external() -> list[Importer]:
     return loaded
 
 
+def _accepted(factory: Callable[..., Importer], options: Mapping[str, Any]) -> dict[str, Any]:
+    """The subset of ``options`` the factory's signature names (each importer takes its own)."""
+    try:
+        params = inspect.signature(factory).parameters
+    except (TypeError, ValueError):
+        return {}
+    if any(p.kind is inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return dict(options)
+    return {k: v for k, v in options.items() if k in params}
+
+
 def _builtins(**options: Any) -> list[Importer]:
-    """Instantiate built-ins; options go to the ones whose constructor accepts them."""
-    instances: list[Importer] = []
-    for factory in _BUILTIN:
-        try:
-            instances.append(factory(**options) if options else factory())
-        except TypeError:
-            instances.append(factory())
-    return instances
+    """Instantiate built-ins; each receives only the options its constructor accepts."""
+    return [factory(**_accepted(factory, options)) for factory in _BUILTIN]
 
 
 def all_importers(**options: Any) -> tuple[Importer, ...]:

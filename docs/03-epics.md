@@ -26,7 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E7 | Performance, hardening, release preparation | reviewed |
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
-| E10 | OPA decision-log importer | todo |
+| E10 | OPA decision-log importer | in progress |
 
 ---
 
@@ -445,7 +445,7 @@ gunzipped) and console lines (one event per line with `msg: "Decision Log"` and 
 
 | # | Story | Status |
 |---|---|---|
-| E10-S1 | Decision-log importer (`opa-decision-log`) | todo |
+| E10-S1 | Decision-log importer (`opa-decision-log`) | done |
 | E10-S2 | `convert --nd-cache-out`: merged `nd_builtin_cache` | todo |
 | E10-S3 | Docs, fixtures from the live capture, CHANGELOG | todo |
 

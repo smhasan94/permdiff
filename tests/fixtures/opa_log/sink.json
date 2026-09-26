@@ -1,0 +1,129 @@
+[
+ {
+  "decision_id": "88d625cf-f7f3-45a1-ad7a-648b330d8d7e",
+  "input": {
+   "agent": {
+    "id": "bot"
+   },
+   "arguments": {
+    "repo": "a/b"
+   },
+   "id": "c1",
+   "principal": {
+    "id": "alice@example.com"
+   },
+   "timestamp": "2026-09-25T12:00:00Z",
+   "tool": {
+    "name": "github.read"
+   }
+  },
+  "labels": {
+   "id": "opa-instance-0001",
+   "version": "1.21.0"
+  },
+  "nd_builtin_cache": {},
+  "path": "agent/authz/decision",
+  "req_id": 1,
+  "requested_by": "10.0.0.5:40000",
+  "result": {
+   "effect": "allow",
+   "reason": "reads are free",
+   "rule": "read"
+  },
+  "timestamp": "2026-09-26T03:49:25.358697Z",
+  "bundles": {
+   "authz": {
+    "revision": "W3sibCI6InN5cy9jYXRhbG9nIn1d"
+   }
+  }
+ },
+ {
+  "decision_id": "d831c021-042e-4129-a338-792ef5a20ad1",
+  "input": {
+   "agent": {
+    "id": "bot"
+   },
+   "arguments": {
+    "amount": 900
+   },
+   "id": "c2",
+   "principal": {
+    "id": "bob@example.com"
+   },
+   "timestamp": "2026-09-25T12:01:00Z",
+   "tool": {
+    "name": "stripe.refund"
+   }
+  },
+  "labels": {
+   "id": "opa-instance-0001",
+   "version": "1.21.0"
+  },
+  "nd_builtin_cache": {},
+  "path": "agent/authz/decision",
+  "req_id": 2,
+  "requested_by": "10.0.0.5:40000",
+  "result": {
+   "effect": "require_approval",
+   "reason": "large"
+  },
+  "timestamp": "2026-09-26T03:49:25.374069Z"
+ },
+ {
+  "decision_id": "48bc9ee9-faf6-4c1b-91a3-92c1c19e0e86",
+  "input": {
+   "agent": {
+    "id": "bot"
+   },
+   "id": "c3",
+   "principal": {
+    "id": "carol@example.com"
+   },
+   "timestamp": "2026-09-25T12:02:00Z",
+   "tool": {
+    "name": "dice.roll"
+   }
+  },
+  "labels": {
+   "id": "opa-instance-0001",
+   "version": "1.21.0"
+  },
+  "nd_builtin_cache": {
+   "rand.intn": {
+    "[\"x\",10]": 2
+   }
+  },
+  "path": "agent/authz/lucky",
+  "req_id": 3,
+  "requested_by": "10.0.0.5:40000",
+  "result": 2,
+  "timestamp": "2026-09-26T03:49:25.384357Z"
+ },
+ {
+  "decision_id": "c04ba767-9660-4e22-b761-c2dd92c0dcc8",
+  "input": {
+   "method": "GET",
+   "path": "/salary/bob"
+  },
+  "labels": {
+   "id": "opa-instance-0001",
+   "version": "1.21.0"
+  },
+  "nd_builtin_cache": {
+   "rand.intn": {
+    "[\"x\",10]": 3
+   }
+  },
+  "path": "agent/authz",
+  "req_id": 4,
+  "requested_by": "10.0.0.5:40000",
+  "result": {
+   "decision": {
+    "effect": "deny",
+    "reason": "default deny"
+   },
+   "lucky": 3
+  },
+  "timestamp": "2026-09-26T03:49:25.393666Z"
+ }
+]
