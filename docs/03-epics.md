@@ -7,7 +7,8 @@
 **Status 2026-09-25.** Seven 0.1.0 epics done and reviewed. 0.1.0 released: PyPI
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
 0.2.0 (E8, Claude Code importers) released 2026-09-25 and 0.3.0 (E9, `permdiff record`)
-released 2026-09-26. `main` is `0.4.0.dev0`; no epic in progress. Remaining later candidates:
+released 2026-09-26. `main` is `0.4.0.dev0`; 0.4.0 starts with E10 (FR-L4, decisions.md
+2026-09-26). Remaining later candidates:
 FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution,
 FR-L10 HTML report.
 
@@ -25,6 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E7 | Performance, hardening, release preparation | reviewed |
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
+| E10 | OPA decision-log importer | todo |
 
 ---
 
@@ -423,3 +425,63 @@ AC-L11.8: `docs/importers.md` and README show `permdiff record install claude-co
 first and keep the `jq` variant as the manual alternative; CHANGELOG Unreleased entry.
 AC-L11.9: `scripts/quickstart_check.sh` pipes a sample `PreToolUse` object through
 `permdiff record claude-code --out` and diffs the result with `--from claude-code-hooks`.
+
+---
+
+## E10 — OPA decision-log importer
+
+Goal: a team whose OPA sends a permdiff-shaped `input` replays its production decision
+logs against a policy change, with the recorded verdict and the recorded nondeterministic
+builtin values, without conversion scripts.
+
+Satisfies: FR-L4 (scoped 2026-09-26), FR-5 (auto-detect), FR-7 (convert), AC-10.7
+(`--nd-cache` input produced from logs).
+
+Facts verified 2026-09-26 (docs at openpolicyagent.org/docs/management-decision-logs; live
+run of the pinned OPA 1.21.0 with `decision_logs.console: true` and `nd_builtin_cache:
+true`): see decisions.md. Two file shapes: a JSON array of events (remote sink payload,
+gunzipped) and console lines (one event per line with `msg: "Decision Log"` and `type:
+"openpolicyagent.org/decision_logs"` among ordinary log lines).
+
+| # | Story | Status |
+|---|---|---|
+| E10-S1 | Decision-log importer (`opa-decision-log`) | todo |
+| E10-S2 | `convert --nd-cache-out`: merged `nd_builtin_cache` | todo |
+| E10-S3 | Docs, fixtures from the live capture, CHANGELOG | todo |
+
+**E10-S1 Importer.** Deps: E1-S3, E2 (`to_decision`), E5-S4 (registry).
+AC-L4.1: reads a JSON array file and a console log (non-event lines skipped silently; an
+event is a line whose `type` is `openpolicyagent.org/decision_logs` or that has both
+`decision_id` and `input`); auto-detects both after the existing formats; `--from`
+mismatch errors as AC-5.2.
+AC-L4.2: an event whose `input` validates as a `ToolCall` becomes that call, with
+`source.format = "opa-decision-log"` and the event's `decision_id`, `path`, `timestamp`
+(as `opa.logged_at`), `labels`, `bundles` revisions, `requested_by`, `erased`, `masked`
+in context; the call's own `timestamp` and `id` win over the event's.
+AC-L4.3: `recorded.effect` comes from `result` through the OPA engine's mapping
+(object with `effect`, boolean, effect string); when `--decision` (or `opa.decision` in
+config) names a rule and `result` is an object without `effect` that has that rule's last
+segment as a key, the value under it is used; an unmappable `result` leaves the effect
+unset and puts the reason in `context["opa.result_unmapped"]`; `bundles` revision goes to
+`recorded.policy_hash` when exactly one bundle is present.
+AC-L4.4: an event whose `input` is not a `ToolCall` is skipped and counted with a reason
+naming the first validation error (never imported as a guessed call); strict aborts.
+AC-L4.5: `erased`/`masked` inputs still import when they validate; the paths are kept in
+context so reports can say the arguments were masked at the source.
+
+**E10-S2 nd-cache merge.** Deps: S1.
+AC-L4.6: `permdiff convert --from opa-decision-log FILE... --nd-cache-out CACHE.json`
+merges every event's `nd_builtin_cache` into one `{builtin: {args: value}}` file that
+`--nd-cache` loads; keys are canonicalized as `ndcache.canonical_key`; events without a
+cache contribute nothing.
+AC-L4.7: two events recording different values for the same builtin and args are a
+conflict: the first value is kept, the conflict is counted and reported on stderr with
+the builtin, args, and both decision ids; `--strict` aborts instead.
+AC-L4.8: an integration test replays the captured log through `diff --engine opa
+--nd-cache` and shows `rand.intn` resolved from the merged cache.
+
+**E10-S3 Docs and fixtures.** Deps: S1, S2.
+AC-L4.9: fixtures are the 2026-09-26 capture (console form) and the same events as a
+JSON array, with a `SOURCE` README naming OPA 1.21.0 and the config used; `docs/importers.md`
+section with the mapping table, the `input`-shape caveat, and the `--nd-cache-out` flow;
+CHANGELOG Unreleased entry.
