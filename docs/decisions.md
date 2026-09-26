@@ -294,3 +294,20 @@ unrelated and wait.
 defaults to `event.decision_id` and `timestamp` to `event.timestamp`; everything else must
 be mapped or is absent; a missing required target skips the event with the target named.
 Without a map, behaviour is unchanged (input must already be a `ToolCall`).
+
+## 2026-09-26: 0.5.0 scope and four design choices
+
+**Question.** The owner asked to finish every remaining to-do for 0.5.0. Which items, and
+how are the foreseeable design questions settled so the work runs without halts?
+
+**Decision (owner: "recommended").** Scope: Action install retry (E12), FR-L1 Langfuse and
+FR-L2 LangSmith as one epic (E13), FR-L7 OPA rule attribution (E14), FR-L10 HTML report
+(E15), then release 0.5.0. FR-L5, L6, L8, L9 stay out (external toolchains).
+1. Parquet: JSONL/JSON in core; Parquet through an optional extra `permdiff[parquet]`
+   (`pyarrow`, imported lazily, install hint on absence). Keeps NFR-D.
+2. FR-L7: a static rule-name → `file:line` map per ref built with `opa inspect`, applied
+   to the `rule`/`rules` names policies return; no per-call explain traces.
+3. FR-L10: `--format html` and `render --format html`, one self-contained file (inline
+   CSS, no JavaScript, no CDN), markdown's redaction rules; no `permdiff serve`.
+4. Order as listed; each epic re-verifies its external facts (Langfuse and LangSmith export
+   schemas, `opa inspect` output) before code and halts only on a contradiction.
