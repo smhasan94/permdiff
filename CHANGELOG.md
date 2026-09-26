@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Langfuse importer (FR-L1): `--from langfuse` reads `tool` observations from blob-storage
+  exports (JSONL, JSON, Parquet, gzip) and v2 API pages.
+- LangSmith importer (FR-L2): `--from langsmith` reads `tool` runs from SDK dumps and Parquet
+  bulk exports.
+- Parquet support through the `permdiff[parquet]` extra (`pyarrow`).
 - GitHub Action: a pinned `version` install retries for up to four minutes while PyPI's
   CDN catches up with a fresh release.
 

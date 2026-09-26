@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E13; FR-L1, FR-L2
 **Complexity**: Medium (4 stories, about a day and a half)
-**Status**: planned 2026-09-26
+**Status**: done 2026-09-26 (S1–S4); review pending
 
 ## Summary
 

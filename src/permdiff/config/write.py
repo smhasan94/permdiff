@@ -14,6 +14,7 @@ _COMMENTS: dict[str, str] = {
     "opa.nd_cache": "recorded nd_builtin_cache JSON to replay, or empty",
     "traces.format": (
         "auto | jsonl | custody | otel | claude-code | claude-code-hooks | opa-decision-log"
+        " | langfuse | langsmith"
     ),
     "traces.input_map": "OPA decision logs: target=source pairs for a foreign input shape",
     "traces.since": "window on trace timestamps, e.g. 7d (relative to the newest trace)",

@@ -188,10 +188,47 @@ permdiff diff --engine opa --nd-cache nd.json --traces traces.jsonl ...
 The first recorded value wins when two events disagree for the same builtin and
 arguments; every conflict is printed with both decision ids, and `--strict` aborts instead.
 
+## Langfuse (`langfuse`)
+
+Reads `tool` observations from a Langfuse export: blob-storage files
+(`observations_v2/*.jsonl|json|parquet[.gz]`, snake_case columns; the `core`, `basic`, and
+`io` field groups are needed) or a v2 Observations API page (`{"data": [...]}`, camelCase).
+Other observation types (`generation`, `span`, `agent`, …) are skipped. Parquet needs
+`pip install "permdiff[parquet]"`. Verified 2026-09-26 against the Langfuse docs; the
+fixtures are hand-built from the documented field lists.
+
+| Langfuse | ToolCall |
+|---|---|
+| `id` | `id` |
+| `start_time` / `startTime` | `timestamp` |
+| `user_id` / `userId`; else `--principal-from <dotted path over the row>`; else `unknown` with `context["langfuse.principal_missing"]` | `principal.id` |
+| `trace_name` / `traceName`, else `langfuse`; `version` / `release` | `agent.id`, `agent.version` |
+| `name` | `tool.name` |
+| `input` (object, or JSON text; other text under `_raw`) | `arguments` |
+| `trace_id`, `session_id`, `parent_observation_id`, `environment`, `level`, `project_id`, `tags`, `metadata`, `output` | `context` (`trace_id`, `session_id`, `langfuse.*`) |
+
+## LangSmith (`langsmith`)
+
+Reads `tool` runs from a LangSmith export: an SDK dump (`client.list_runs(...)` written as
+JSONL) or a bulk export (Parquet, JSON columns stored as text). Other run types (`llm`,
+`chain`, …) are skipped. Run `start_time` values carry no zone and are taken as UTC.
+Verified 2026-09-26 against the LangSmith docs; fixtures are hand-built.
+
+| LangSmith | ToolCall |
+|---|---|
+| `id` | `id` |
+| `start_time` (naive → UTC) | `timestamp` |
+| `--principal-from <dotted path>`, default `extra.metadata.user_id`; else `unknown` with `context["langsmith.principal_missing"]` | `principal.id` |
+| `session_id` (the project), else `langsmith` | `agent.id` |
+| `name` | `tool.name` |
+| `inputs` (object or JSON text) | `arguments` |
+| `trace_id`, `parent_run_id`, `dotted_order`, `tags`, `status`, `error`, `extra.metadata`, `outputs` | `context` (`trace_id`, `langsmith.*`) |
+
 ## Auto-detection and `permdiff convert`
 
 `--from auto` (the default) sniffs each file in the order permdiff JSONL, Custody, OTel, Claude Code
-hook log, Claude Code transcript, OPA decision log and logs the choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
+hook log, Claude Code transcript, OPA decision log, Langfuse, LangSmith and logs the
+choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
 message when the file is recognizably another format.
 
 ```

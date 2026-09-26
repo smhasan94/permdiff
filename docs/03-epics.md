@@ -29,7 +29,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E10 | OPA decision-log importer | reviewed |
 | E11 | `--input-map` for foreign OPA decision-log inputs | reviewed |
 | E12 | Action install retry | done |
-| E13 | Langfuse and LangSmith importers | in progress |
+| E13 | Langfuse and LangSmith importers | done |
 | E14 | OPA rule attribution to file:line | todo |
 | E15 | HTML report | todo |
 
@@ -575,7 +575,7 @@ Facts verified 2026-09-26 (Langfuse docs `export-to-blob-storage`, `observations
 | E13-S1 | Row reader: JSONL, JSON array, Parquet, gzip; `permdiff[parquet]` | done |
 | E13-S2 | Langfuse importer (`langfuse`) | done |
 | E13-S3 | LangSmith importer (`langsmith`) | done |
-| E13-S4 | Docs, CHANGELOG | todo |
+| E13-S4 | Docs, CHANGELOG | done |
 
 **E13-S1 Row reader.** Deps: E5-S4.
 AC-13.1: `importers/rows.iter_rows(path)` yields `(row, locator)` from JSONL (`path:line`),
