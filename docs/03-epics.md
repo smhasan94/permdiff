@@ -649,3 +649,37 @@ decision has locations; the JSON report carries `locations` per decision; golden
 the Python-engine demo are unchanged (no locations there).
 AC-14.6: an OPA integration test asserts the SARIF uri and line for a rego rule and the
 JSON `locations`.
+
+---
+
+## E15 — HTML report
+
+Goal: a reviewer without a terminal or GitHub opens one self-contained HTML file and sees
+the same report as the markdown comment, with the samples readable and the widening groups
+first.
+
+Satisfies: FR-L10 (decisions.md 2026-09-26: `--format html` and `render --format html`,
+one file, inline CSS, no JavaScript, no CDN; no `permdiff serve`).
+
+| # | Story | Status |
+|---|---|---|
+| E15-S1 | HTML renderer | todo |
+| E15-S2 | CLI, config, Action, docs | todo |
+
+**E15-S1 Renderer.** Deps: E3.
+AC-15.1: `report/html.render_html(view, exit_code, fail_on)` returns one HTML document
+with inline CSS only (no `<script>`, no external `href`/`src`), the same header, summary
+table, groups (widening first, collapsible `<details>` open for widening), sample rows
+with principal, arguments, reasons and rule locations, truncation note, and footer as the
+markdown report; every value is HTML-escaped; output is byte-identical for identical
+input.
+AC-15.2: redaction is the markdown report's (principals hashed, arguments redacted per
+`--redact`/`--show-args`); the redaction harness finds no sentinel in the output.
+AC-15.3: a golden file `tests/golden/html_report.html` checked with `UPDATE_GOLDEN`.
+
+**E15-S2 Plumbing.** Deps: S1.
+AC-15.4: `html` joins the `--format` choices of `diff`, `demo`, and `render`, the
+`report.format` config value, and the Action's `format` input if it has one; `--output`
+writes the file; principals are hashed (html is not in `PRINCIPAL_SHOWN_IN`).
+AC-15.5: README and `docs/action.md` mention it; CHANGELOG entry; the quickstart script
+renders the demo to HTML and checks the file has no `<script>`.
