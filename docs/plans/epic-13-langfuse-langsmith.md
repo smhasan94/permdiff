@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E13; FR-L1, FR-L2
 **Complexity**: Medium (4 stories, about a day and a half)
-**Status**: done 2026-09-26 (S1–S4); review pending
+**Status**: reviewed 2026-09-26 (code-review low: 1 finding fixed, dead branch in the row reader)
 
 ## Summary
 

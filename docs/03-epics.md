@@ -29,7 +29,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E10 | OPA decision-log importer | reviewed |
 | E11 | `--input-map` for foreign OPA decision-log inputs | reviewed |
 | E12 | Action install retry | done |
-| E13 | Langfuse and LangSmith importers | done |
+| E13 | Langfuse and LangSmith importers | reviewed |
 | E14 | OPA rule attribution to file:line | todo |
 | E15 | HTML report | todo |
 

@@ -75,8 +75,8 @@ def _is_parquet(path: Path) -> bool:
         return False
 
 
-def _document_rows(document: Any, path: Path) -> list[Row] | None:
-    """Rows of a whole-document JSON file, or ``None`` when the text is not one document."""
+def _document_rows(document: Any, path: Path) -> list[Row]:
+    """Rows of a whole-document JSON file: an array, an object, or a ``{"data": [...]}`` page."""
     if isinstance(document, Mapping) and isinstance(document.get("data"), list):
         document = document["data"]
     if isinstance(document, Mapping):
@@ -104,16 +104,15 @@ def iter_rows(path: Path) -> Iterator[tuple[Row | RecordRejected, str]]:
         raise TraceImportError(msg) from exc
     except ValueError:
         document = None
-    if document is not None:
-        rows = _document_rows(document, path)
-        if rows is not None:
-            if len(rows) == 1 and isinstance(document, Mapping) and "data" not in document:
-                yield rows[0], str(path)
-                return
-            for index, row in enumerate(rows):
-                yield row, f"{path}[{index}]"
-            return
-    yield from _iter_lines(text, path)
+    if document is None:  # not one JSON document: JSONL
+        yield from _iter_lines(text, path)
+        return
+    rows = _document_rows(document, path)
+    if isinstance(document, Mapping) and "data" not in document:
+        yield rows[0], str(path)
+        return
+    for index, row in enumerate(rows):
+        yield row, f"{path}[{index}]"
 
 
 def _iter_lines(text: str, path: Path) -> Iterator[tuple[Row | RecordRejected, str]]:
