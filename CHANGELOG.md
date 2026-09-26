@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.3.0 (2026-09-25)
 
 - `permdiff record claude-code`, a Claude Code `PreToolUse` hook command that stamps the
   event with `ts` and appends it to `~/.claude/permdiff-hooks.jsonl` (never writes stdout,

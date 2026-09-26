@@ -10,7 +10,7 @@ from permdiff.api import diff, load_traces
 from permdiff.evaluators import Evaluator
 from permdiff.models import Decision, Effect, ErrorKind, Report, ToolCall, Transition
 
-__version__ = "0.3.0.dev0"
+__version__ = "0.3.0"
 
 __all__ = [
     "Decision",
