@@ -7,8 +7,7 @@
 **Status 2026-09-25.** Seven 0.1.0 epics done and reviewed. 0.1.0 released: PyPI
 `permdiff==0.1.0`, tags `v0.1.0`/`v0` at `98cd323`, GitHub release published, repo public.
 0.2.0 (E8, Claude Code importers) released 2026-09-25 and 0.3.0 (E9, `permdiff record`)
-released 2026-09-26. `main` is `0.4.0.dev0`; 0.4.0 starts with E10 (FR-L4, decisions.md
-2026-09-26). Remaining later candidates:
+released 2026-09-26. `main` is `0.4.0.dev0`; 0.4.0 ships E10 (FR-L4) and E11 (`--input-map`, decisions.md 2026-09-26). Remaining later candidates:
 FR-L1 Langfuse, FR-L2 LangSmith, FR-L4 OPA decision logs, FR-L7 line-level OPA attribution,
 FR-L10 HTML report.
 
@@ -27,6 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
 | E10 | OPA decision-log importer | reviewed |
+| E11 | `--input-map` for foreign OPA decision-log inputs | todo |
 
 ---
 
@@ -485,3 +485,41 @@ AC-L4.9: fixtures are the 2026-09-26 capture (console form) and the same events 
 JSON array, with a `SOURCE` README naming OPA 1.21.0 and the config used; `docs/importers.md`
 section with the mapping table, the `input`-shape caveat, and the `--nd-cache-out` flow;
 CHANGELOG Unreleased entry.
+
+---
+
+## E11 — `--input-map` for foreign OPA decision-log inputs
+
+Goal: a deployment whose OPA `input` is not permdiff-shaped replays its decision logs by
+declaring a handful of field mappings, with no conversion script.
+
+Satisfies: FR-L4 follow-on (decisions.md 2026-09-26). Deps: E10.
+
+| # | Story | Status |
+|---|---|---|
+| E11-S1 | Mapping spec and application | todo |
+| E11-S2 | Flag, config key, docs | todo |
+
+**E11-S1 Mapping.** Deps: E10-S1.
+AC-L4.10: `parse_input_map(pairs)` accepts `target=source` strings (comma-separated
+inside one string allowed), rejects an unknown target, an empty side, or a duplicate
+target with a `ConfigError` naming the pair; targets are `id`, `timestamp`,
+`principal.id`, `principal.type`, `principal.attrs.<k>`, `agent.id`, `agent.version`,
+`agent.attrs.<k>`, `tool.name`, `tool.server`, `tool.type`, `arguments`,
+`arguments.<k>`, `resource.type`, `resource.id`, `resource.attrs.<k>`, `context.<k>`.
+AC-L4.11: sources resolve as a dotted path into `input` (list indexes allowed as
+integers), `event.<dotted>` into the event, or `const:<text>`; a source that resolves to
+nothing leaves the target unset.
+AC-L4.12: with a map, `id` defaults to `event.decision_id` and `timestamp` to
+`event.timestamp` unless mapped; `arguments` mapped to an object copies it; a missing
+required target (`principal.id`, `agent.id`, `tool.name`) skips the event with
+"input-map: <target> resolved to nothing from <source>"; the OPA context keys and
+`recorded` mapping from E10 apply unchanged.
+
+**E11-S2 Plumbing.** Deps: S1.
+AC-L4.13: `--input-map` on `diff`, `check`, and `convert` (repeatable), config
+`traces.input_map` (list of pairs, env `PERMDIFF_TRACES_INPUT_MAP` comma-separated);
+reaches the OPA log importer through the registry's per-importer option filter; other
+importers ignore it.
+AC-L4.14: `docs/importers.md` gets a worked example mapping the fixture's foreign event
+(`{"method": "GET", "path": "/salary/bob"}`) and a real-world shape; CHANGELOG entry.

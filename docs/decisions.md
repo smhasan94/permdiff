@@ -274,3 +274,23 @@ fields plus `msg: "Decision Log"`, `type: "openpolicyagent.org/decision_logs"`, 
 `time`, `metrics`, `req_id`; `nd_builtin_cache` is `{}` when nothing nondeterministic ran;
 `result` is the queried path's value (the decision object, a package object wrapping it, or
 a scalar). The remote sink receives a JSON array of the same events (docs).
+
+## 2026-09-26: release 0.4.0 after `--input-map` (E11)
+
+**Question.** Release 0.4.0 with E10 alone, or group more work first?
+
+**Decision.** Owner delegated the call ("if releasing now makes sense go ahead, but if the
+other to dos make sense to group together in one release then keep going"). The agent
+chose to add `--input-map` (E11) first: E10 reaches only deployments whose OPA `input` is
+already permdiff-shaped, the plan's highest risk, and the mapping is about a day. 0.4.0
+then ships "OPA decision logs, any input shape". FR-L7, Langfuse, and the HTML report are
+unrelated and wait.
+
+**Mapping design (agent's choice under that delegation, flagged for the owner).**
+`--input-map target=source` pairs (repeatable or comma-separated; config
+`traces.input_map = [...]`). `target` is a dotted `ToolCall` path (`principal.id`,
+`tool.name`, `arguments`, `context.<key>`, …); `source` is a dotted path into the event's
+`input`, `event.<field>` for the event itself, or `const:<literal>`. With a map, `id`
+defaults to `event.decision_id` and `timestamp` to `event.timestamp`; everything else must
+be mapped or is absent; a missing required target skips the event with the target named.
+Without a map, behaviour is unchanged (input must already be a `ToolCall`).
