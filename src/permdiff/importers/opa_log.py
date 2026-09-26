@@ -105,12 +105,11 @@ def iter_events(path: Path) -> Iterator[tuple[Any, str]]:
         try:
             check_line_size(line.encode("utf-8"))
             obj = json.loads(line)
-        except (ValueError, RecursionError) as exc:
-            reason = exc.reason if isinstance(exc, RecordRejected) else f"invalid JSON: {exc}"
-            yield RecordRejected(reason), locator
-            continue
         except RecordRejected as exc:
             yield exc, locator
+            continue
+        except (ValueError, RecursionError) as exc:
+            yield RecordRejected(f"invalid JSON: {exc}"), locator
             continue
         if is_event(obj):
             yield obj, locator

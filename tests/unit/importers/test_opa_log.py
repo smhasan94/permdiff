@@ -172,3 +172,17 @@ def test_detect_and_registry() -> None:
     assert with_option.decision == "data.x.y"  # type: ignore[attr-defined]
     otel = registry.get("otel", decision="data.x.y", principal_from="attr.u")
     assert otel.principal_from == "attr.u"  # type: ignore[attr-defined]
+
+
+def test_oversized_console_line_is_skipped_and_counted(tmp_path: Path) -> None:
+    from permdiff.models.limits import MAX_LINE_BYTES  # noqa: PLC0415
+
+    big = {"decision_id": "d-big", "input": {"id": "x", "pad": "x" * (MAX_LINE_BYTES + 1)}}
+    path = tmp_path / "log.jsonl"
+    path.write_text('{"level": "info", "msg": "Initializing server"}\n' + json.dumps(big) + "\n")
+
+    result = OpaDecisionLogImporter().read(path)
+
+    assert result.stats.read == 0
+    assert result.stats.skipped == 1
+    assert "over the 1 MiB limit" in result.stats.skipped_locators[0]

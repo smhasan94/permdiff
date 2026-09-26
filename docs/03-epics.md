@@ -26,7 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E7 | Performance, hardening, release preparation | reviewed |
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
-| E10 | OPA decision-log importer | done |
+| E10 | OPA decision-log importer | reviewed |
 
 ---
 
