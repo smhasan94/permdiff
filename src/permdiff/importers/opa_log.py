@@ -21,6 +21,7 @@ from permdiff.errors import TraceImportError
 from permdiff.evaluators.opa.mapping import to_decision
 from permdiff.evaluators.opa.ndcache import ND_CACHE_CONTEXT_KEY
 from permdiff.importers.base import ImportResult, ImportStats
+from permdiff.importers.input_map import InputMap, apply, missing_required
 from permdiff.importers.jsonl import summarize_validation_error
 from permdiff.importers.limits import RecordRejected, check_line_size, decode_utf8
 from permdiff.models import Effect, ToolCall
@@ -142,17 +143,36 @@ def _bundles(event: Mapping[str, Any]) -> dict[str, str]:
     }
 
 
-def to_toolcall(event: Mapping[str, Any], locator: str, *, decision: str | None) -> ToolCall:
+def _payload(event: Mapping[str, Any], input_map: InputMap | None) -> Any:
     raw_input = event.get("input")
-    if not isinstance(raw_input, Mapping):
-        msg = (
-            f"input is not a permdiff ToolCall: expected an object, got {type(raw_input).__name__}"
-        )
+    if input_map is None:
+        if not isinstance(raw_input, Mapping):
+            kind = type(raw_input).__name__
+            msg = f"input is not a permdiff ToolCall: expected an object, got {kind}"
+            raise RecordRejected(msg)
+        return raw_input
+    payload = apply(input_map, input=raw_input, event=event)
+    missing = missing_required(input_map, payload)
+    if missing is not None:
+        target, source = missing
+        msg = f"input-map: {target} resolved to nothing from {source}"
         raise RecordRejected(msg)
+    return payload
+
+
+def to_toolcall(
+    event: Mapping[str, Any],
+    locator: str,
+    *,
+    decision: str | None,
+    input_map: InputMap | None = None,
+) -> ToolCall:
+    payload = _payload(event, input_map)
     try:
-        call = ToolCall.model_validate(raw_input)
+        call = ToolCall.model_validate(payload)
     except ValidationError as exc:
-        msg = f"input is not a permdiff ToolCall: {summarize_validation_error(exc)}"
+        label = "input-map payload" if input_map else "input is not a permdiff ToolCall"
+        msg = f"{label}: {summarize_validation_error(exc)}"
         raise RecordRejected(msg) from exc
     context: dict[str, Any] = dict(call.context)
     for source, target in _CONTEXT_KEYS:
@@ -183,8 +203,9 @@ def to_toolcall(event: Mapping[str, Any], locator: str, *, decision: str | None)
 class OpaDecisionLogImporter:
     name = FORMAT_NAME
 
-    def __init__(self, decision: str | None = None) -> None:
+    def __init__(self, decision: str | None = None, input_map: InputMap | None = None) -> None:
         self.decision = decision
+        self.input_map = input_map
 
     def detect(self, head: bytes) -> bool:
         """An event among the first lines (console logs start with server noise), or an array."""
@@ -213,7 +234,9 @@ class OpaDecisionLogImporter:
             try:
                 if isinstance(item, RecordRejected):
                     raise item
-                calls.append(to_toolcall(item, locator, decision=self.decision))
+                calls.append(
+                    to_toolcall(item, locator, decision=self.decision, input_map=self.input_map)
+                )
             except RecordRejected as exc:
                 message = f"{locator}: {exc.reason}"
                 if strict:

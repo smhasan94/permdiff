@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E11; FR-L4 follow-on (decisions.md 2026-09-26)
 **Complexity**: Small (2 stories, about half a day)
-**Status**: planned 2026-09-26
+**Status**: in progress 2026-09-26 (S1 done)
 
 ## Summary
 

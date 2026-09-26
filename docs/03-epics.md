@@ -26,7 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
 | E10 | OPA decision-log importer | reviewed |
-| E11 | `--input-map` for foreign OPA decision-log inputs | todo |
+| E11 | `--input-map` for foreign OPA decision-log inputs | in progress |
 
 ---
 
@@ -497,7 +497,7 @@ Satisfies: FR-L4 follow-on (decisions.md 2026-09-26). Deps: E10.
 
 | # | Story | Status |
 |---|---|---|
-| E11-S1 | Mapping spec and application | todo |
+| E11-S1 | Mapping spec and application | done |
 | E11-S2 | Flag, config key, docs | todo |
 
 **E11-S1 Mapping.** Deps: E10-S1.

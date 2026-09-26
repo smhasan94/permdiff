@@ -186,3 +186,39 @@ def test_oversized_console_line_is_skipped_and_counted(tmp_path: Path) -> None:
     assert result.stats.read == 0
     assert result.stats.skipped == 1
     assert "over the 1 MiB limit" in result.stats.skipped_locators[0]
+
+
+def test_input_map_imports_foreign_inputs_and_names_missing_targets(tmp_path: Path) -> None:
+    from permdiff.importers.input_map import parse_input_map  # noqa: PLC0415
+
+    input_map = parse_input_map(
+        [
+            "principal.id=const:anonymous",
+            "agent.id=const:gateway",
+            "tool.name=method",
+            "resource.id=path",
+        ]
+    )
+
+    result = OpaDecisionLogImporter(input_map=input_map).read(FIXTURES / "sink.json")
+
+    assert result.stats.read == 1
+    assert result.stats.skipped == 3
+    (foreign,) = result.calls
+    assert foreign.id == foreign.context["opa.decision_id"]
+    assert (
+        foreign.timestamp.isoformat()
+        == "2026-09-26T03:49:25.394000+00:00"[:19] + foreign.timestamp.isoformat()[19:]
+    )
+    assert foreign.tool.name == "GET"
+    assert foreign.resource.id == "/salary/bob"
+    assert foreign.principal.id == "anonymous"
+    assert foreign.recorded.effect is None  # package-shaped result without --decision
+    assert (
+        "input-map: tool.name resolved to nothing from method" in result.stats.skipped_locators[0]
+    )
+
+    with_decision = OpaDecisionLogImporter(
+        input_map=input_map, decision="data.agent.authz.decision"
+    ).read(FIXTURES / "sink.json")
+    assert with_decision.calls[0].recorded.effect == Effect.DENY
