@@ -446,7 +446,7 @@ gunzipped) and console lines (one event per line with `msg: "Decision Log"` and 
 | # | Story | Status |
 |---|---|---|
 | E10-S1 | Decision-log importer (`opa-decision-log`) | done |
-| E10-S2 | `convert --nd-cache-out`: merged `nd_builtin_cache` | todo |
+| E10-S2 | `convert --nd-cache-out`: merged `nd_builtin_cache` | done |
 | E10-S3 | Docs, fixtures from the live capture, CHANGELOG | todo |
 
 **E10-S1 Importer.** Deps: E1-S3, E2 (`to_decision`), E5-S4 (registry).

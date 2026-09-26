@@ -79,3 +79,64 @@ def test_shim_mocks_follow_arity() -> None:
         "with rand.intn as permdiff_mock_rand_intn with opa.runtime as permdiff_mock_opa_runtime"
         in text
     )
+
+
+def _call_with_cache(call_id: str, cache: dict[str, dict[str, object]] | None) -> object:
+    from permdiff.importers.opa_log import ND_CACHE_CONTEXT_KEY  # noqa: PLC0415
+    from permdiff.models import ToolCall  # noqa: PLC0415
+
+    context: dict[str, object] = {"opa.decision_id": f"d-{call_id}"}
+    if cache is not None:
+        context[ND_CACHE_CONTEXT_KEY] = cache
+    return ToolCall.model_validate(
+        {
+            "id": call_id,
+            "timestamp": "2026-09-26T00:00:00Z",
+            "principal": {"id": "u"},
+            "agent": {"id": "a"},
+            "tool": {"name": "t"},
+            "context": context,
+        }
+    )
+
+
+def test_merge_nd_caches_unions_calls_and_reports_conflicts(tmp_path: Path) -> None:
+    from permdiff.evaluators.opa.ndcache import (  # noqa: PLC0415
+        merge_nd_caches,
+        render_nd_cache_file,
+    )
+
+    calls = [
+        _call_with_cache("c1", {"rand.intn": {'["x", 10]': 2}}),
+        _call_with_cache("c2", None),
+        _call_with_cache(
+            "c3", {"rand.intn": {'["x",10]': 7, '["y",3]': 1}, "time.now_ns": {"[]": 5}}
+        ),
+        _call_with_cache("c4", {"rand.intn": {'["y",3]': 1}}),
+    ]
+
+    cache, conflicts = merge_nd_caches(calls)  # type: ignore[arg-type]
+
+    assert cache.entries == {
+        "rand.intn": {'["x",10]': 2, '["y",3]': 1},
+        "time.now_ns": {"[]": 5},
+    }
+    (conflict,) = conflicts
+    assert (conflict.builtin, conflict.args) == ("rand.intn", '["x",10]')
+    assert (conflict.kept, conflict.dropped) == (2, 7)
+    assert (conflict.kept_from, conflict.dropped_from) == ("d-c1", "d-c3")
+
+    out = tmp_path / "nd.json"
+    out.write_text(render_nd_cache_file(cache))
+    assert load_nd_cache(out).entries == cache.entries
+
+
+def test_merge_nd_caches_ignores_malformed_context_entries() -> None:
+    from permdiff.evaluators.opa.ndcache import merge_nd_caches  # noqa: PLC0415
+
+    calls = [_call_with_cache("c1", {"rand.intn": "nope", "x": {"not json": 1}})]  # type: ignore[dict-item]
+
+    cache, conflicts = merge_nd_caches(calls)  # type: ignore[arg-type]
+
+    assert cache.entries == {}
+    assert conflicts == ()

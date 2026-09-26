@@ -8,13 +8,16 @@ Keys are canonicalized to compact JSON with sorted object keys, which is what
 from __future__ import annotations
 
 import json
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
 from permdiff.errors import EngineError
 from permdiff.evaluators.opa.shim import ND_ROOT
-from permdiff.models import Frozen
+from permdiff.models import Frozen, ToolCall
+
+ND_CACHE_CONTEXT_KEY = "opa.nd_builtin_cache"
+"""Context key the OPA decision-log importer uses for an event's recorded builtin values."""
 
 
 class NdCache(Frozen):
@@ -70,3 +73,62 @@ def render_nd_data(cache: NdCache) -> bytes:
     return json.dumps({ND_ROOT: cache.entries}, separators=(",", ":"), ensure_ascii=False).encode(
         "utf-8"
     )
+
+
+class NdConflict(Frozen):
+    """Two decision-log events recorded different values for the same builtin call."""
+
+    builtin: str
+    args: str
+    kept: Any
+    dropped: Any
+    kept_from: str
+    dropped_from: str
+
+
+def _event_caches(call: ToolCall) -> Iterator[tuple[str, str, Any]]:
+    """``(builtin, canonical args, value)`` from a call imported by the OPA log importer."""
+    cache = call.context.get(ND_CACHE_CONTEXT_KEY)
+    if not isinstance(cache, Mapping):
+        return
+    for builtin, table in cache.items():
+        if not isinstance(table, Mapping):
+            continue
+        for key, value in table.items():
+            try:
+                args = json.loads(key)
+            except ValueError:
+                continue
+            if isinstance(args, list):
+                yield str(builtin), canonical_key(args), value
+
+
+def merge_nd_caches(calls: Sequence[ToolCall]) -> tuple[NdCache, tuple[NdConflict, ...]]:
+    """Union of every call's recorded builtin values; the first value wins on conflict."""
+    entries: dict[str, dict[str, Any]] = {}
+    origin: dict[tuple[str, str], str] = {}
+    conflicts: list[NdConflict] = []
+    for call in calls:
+        source = str(call.context.get("opa.decision_id") or call.id)
+        for builtin, key, value in _event_caches(call):
+            table = entries.setdefault(builtin, {})
+            if key not in table:
+                table[key] = value
+                origin[builtin, key] = source
+            elif table[key] != value:
+                conflicts.append(
+                    NdConflict(
+                        builtin=builtin,
+                        args=key,
+                        kept=table[key],
+                        dropped=value,
+                        kept_from=origin[builtin, key],
+                        dropped_from=source,
+                    )
+                )
+    return NdCache(entries=entries), tuple(conflicts)
+
+
+def render_nd_cache_file(cache: NdCache) -> str:
+    """The bare ``{builtin: {args: value}}`` file that ``--nd-cache`` loads."""
+    return json.dumps(cache.entries, indent=2, ensure_ascii=False, sort_keys=True) + "\n"

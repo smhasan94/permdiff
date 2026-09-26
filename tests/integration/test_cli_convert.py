@@ -115,3 +115,74 @@ def test_convert_claude_code_transcripts_and_hook_logs(tmp_path: Path) -> None:
         assert reread.calls[0].source is not None
         assert reread.calls[0].source.format == fmt
         assert reread.calls[0].tool.name == "Bash"
+
+
+OPA_LOG = FIXTURES / "opa_log"
+
+
+def test_convert_nd_cache_out_merges_the_events_caches(tmp_path: Path) -> None:
+    nd = tmp_path / "nd.json"
+
+    result = CliRunner().invoke(
+        cli,
+        [
+            "convert",
+            str(OPA_LOG / "console.jsonl"),
+            "-o",
+            str(tmp_path / "c.jsonl"),
+            "--nd-cache-out",
+            str(nd),
+        ],
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "converted 3 calls (1 skipped)" in result.stderr
+    assert "merged nd_builtin_cache from 1 of 3 calls into" in result.stderr
+    assert "1 builtin, 0 conflicts" in result.stderr
+    assert json.loads(nd.read_text()) == {"rand.intn": {'["x",10]': 2}}
+
+
+def test_convert_nd_cache_out_reports_conflicts_and_strict_aborts(tmp_path: Path) -> None:
+    def event(call_id: str, value: int) -> dict[str, object]:
+        return {
+            "decision_id": f"d-{call_id}",
+            "path": "agent/authz/decision",
+            "input": {
+                "id": call_id,
+                "timestamp": "2026-09-26T00:00:00Z",
+                "principal": {"id": "u"},
+                "agent": {"id": "a"},
+                "tool": {"name": "t"},
+            },
+            "result": True,
+            "nd_builtin_cache": {"rand.intn": {'["x",10]': value}},
+            "timestamp": "2026-09-26T00:00:01Z",
+        }
+
+    log = tmp_path / "log.json"
+    log.write_text(json.dumps([event("c1", 2), event("c2", 5)]))
+    nd = tmp_path / "nd.json"
+
+    lenient = CliRunner().invoke(
+        cli, ["convert", str(log), "-o", str(tmp_path / "c.jsonl"), "--nd-cache-out", str(nd)]
+    )
+    strict = CliRunner().invoke(
+        cli,
+        [
+            "convert",
+            str(log),
+            "-o",
+            str(tmp_path / "c2.jsonl"),
+            "--nd-cache-out",
+            str(tmp_path / "nd2.json"),
+            "--strict",
+        ],
+    )
+
+    assert lenient.exit_code == 0, lenient.output
+    assert "1 conflict" in lenient.stderr
+    assert 'rand.intn ["x",10]: kept 2 from d-c1, dropped 5 from d-c2' in lenient.stderr
+    assert json.loads(nd.read_text()) == {"rand.intn": {'["x",10]': 2}}
+    assert strict.exit_code == 1
+    assert "conflict" in strict.stderr
+    assert not (tmp_path / "nd2.json").exists()

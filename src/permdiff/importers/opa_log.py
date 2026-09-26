@@ -19,6 +19,7 @@ from pydantic import ValidationError
 
 from permdiff.errors import TraceImportError
 from permdiff.evaluators.opa.mapping import to_decision
+from permdiff.evaluators.opa.ndcache import ND_CACHE_CONTEXT_KEY
 from permdiff.importers.base import ImportResult, ImportStats
 from permdiff.importers.jsonl import summarize_validation_error
 from permdiff.importers.limits import RecordRejected, check_line_size, decode_utf8
@@ -27,10 +28,17 @@ from permdiff.models.limits import DEFAULT_MAX_RECORDS
 
 log = logging.getLogger(__name__)
 
+__all__ = [
+    "FORMAT_NAME",
+    "ND_CACHE_CONTEXT_KEY",
+    "OpaDecisionLogImporter",
+    "iter_events",
+    "to_toolcall",
+    "unwrap_result",
+]
+
 FORMAT_NAME = "opa-decision-log"
 EVENT_TYPE = "openpolicyagent.org/decision_logs"
-ND_CACHE_CONTEXT_KEY = "opa.nd_builtin_cache"
-"""Per-call copy of the event's ``nd_builtin_cache``; ``convert --nd-cache-out`` merges them."""
 _GZIP_MAGIC = b"\x1f\x8b"
 _DETECT_LINES = 64
 """Console logs open with server start-up lines; look this far for the first event."""

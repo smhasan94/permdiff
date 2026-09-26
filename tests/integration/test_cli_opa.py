@@ -113,3 +113,59 @@ def test_opa_diff_nd_cache_flag(
     )
     assert with_cache.exit_code == 2, with_cache.output
     assert "newly ALLOWED               1   github.delete_branch   ⚠ widening" in with_cache.stdout
+
+
+OPA_LOG_FIXTURE = Path(__file__).parents[1] / "fixtures" / "opa_log" / "console.jsonl"
+LUCKY_HEAD = """package agent.authz
+
+import rego.v1
+
+default decision := {"effect": "deny", "reason": "default deny"}
+
+decision := {"effect": "allow", "rule": "lucky"} if {
+    input.tool.name == "dice.roll"
+    rand.intn("x", 10) == 2
+}
+"""
+
+
+def test_opa_replays_a_decision_log_with_its_merged_nd_cache(
+    rego_repo: Path, opa_bin: Path, tmp_path: Path
+) -> None:
+    (rego_repo / "policy" / "agent.rego").write_text(LUCKY_HEAD, encoding="utf-8")
+    nd = tmp_path / "nd.json"
+    converted = CliRunner().invoke(
+        cli,
+        [
+            "convert",
+            str(OPA_LOG_FIXTURE),
+            "-o",
+            str(tmp_path / "c.jsonl"),
+            "--nd-cache-out",
+            str(nd),
+        ],
+    )
+    assert converted.exit_code == 0, converted.output
+
+    without = _run(
+        rego_repo, OPA_LOG_FIXTURE, opa_bin, "--head", "WORKTREE", "--from", "opa-decision-log"
+    )
+    with_cache = _run(
+        rego_repo,
+        OPA_LOG_FIXTURE,
+        opa_bin,
+        "--head",
+        "WORKTREE",
+        "--from",
+        "opa-decision-log",
+        "--nd-cache",
+        str(nd),
+    )
+
+    assert without.exit_code == 0, without.output  # can't-evaluate does not match --fail-on widen
+    assert "can't evaluate" in without.stdout
+    assert "rand.intn" in without.stdout
+    assert with_cache.exit_code == 2, with_cache.output
+    assert "can't evaluate" not in with_cache.stdout
+    assert "dice.roll" in with_cache.stdout
+    assert "deny → allow" in with_cache.stdout
