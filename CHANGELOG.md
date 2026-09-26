@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+- OPA decision-log importer (FR-L4): `--from opa-decision-log` reads sink JSON arrays and
+  console logs, imports events whose `input` is a permdiff `ToolCall`, maps `result` to the
+  recorded effect (`--decision` unwraps package-shaped results), and keeps `decision_id`,
+  `path`, labels, bundle revisions, and `erased`/`masked` paths in context. Foreign `input`
+  shapes are skipped with the first validation error named.
+- `permdiff convert --nd-cache-out FILE` merges the events' `nd_builtin_cache` into the file
+  `--nd-cache` loads, reporting conflicts (first value wins; `--strict` aborts).
+- Importers now receive only the options their constructors accept, so `--principal-from`
+  and `--decision` can be given together.
+
 ## 0.3.0 (2026-09-25)
 
 - `permdiff record claude-code`, a Claude Code `PreToolUse` hook command that stamps the

@@ -148,8 +148,8 @@ reveals named keys and `--redact none` shows everything for local use.
 
 `--format markdown|json|sarif` and `permdiff render --from-json` produce the
 other outputs; `permdiff schema report` prints the JSON report's schema.
-Importers (permdiff JSONL, Custody, OpenTelemetry GenAI, Claude Code) are in
-[docs/importers.md](docs/importers.md); the design is in `docs/01-overview.md`.
+Importers (permdiff JSONL, Custody, OpenTelemetry GenAI, Claude Code, OPA decision
+logs) are in [docs/importers.md](docs/importers.md); the design is in `docs/01-overview.md`.
 
 ## Engines
 

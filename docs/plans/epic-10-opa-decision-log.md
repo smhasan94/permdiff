@@ -2,7 +2,7 @@
 
 **Source**: [03-epics.md](../03-epics.md) E10; FR-L4 (scoped 2026-09-26)
 **Complexity**: Small (3 stories, about one day)
-**Status**: in progress 2026-09-26 (S1, S2 done)
+**Status**: done 2026-09-26 (S1–S3); review pending
 
 ## Summary
 

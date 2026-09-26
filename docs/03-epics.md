@@ -26,7 +26,7 @@ Ordering: by dependency, then time-to-first-value. Epic 1 ends with something
 | E7 | Performance, hardening, release preparation | reviewed |
 | E8 | Claude Code importer: transcripts and hook logs | reviewed |
 | E9 | `permdiff record`: Claude Code hook command and installer | reviewed |
-| E10 | OPA decision-log importer | in progress |
+| E10 | OPA decision-log importer | done |
 
 ---
 
@@ -447,7 +447,7 @@ gunzipped) and console lines (one event per line with `msg: "Decision Log"` and 
 |---|---|---|
 | E10-S1 | Decision-log importer (`opa-decision-log`) | done |
 | E10-S2 | `convert --nd-cache-out`: merged `nd_builtin_cache` | done |
-| E10-S3 | Docs, fixtures from the live capture, CHANGELOG | todo |
+| E10-S3 | Docs, fixtures from the live capture, CHANGELOG | done |
 
 **E10-S1 Importer.** Deps: E1-S3, E2 (`to_decision`), E5-S4 (registry).
 AC-L4.1: reads a JSON array file and a console log (non-event lines skipped silently; an

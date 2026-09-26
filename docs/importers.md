@@ -134,10 +134,42 @@ manual equivalent with `jq` is:
 
 Lines for other hook events (`PostToolUse`, …) in the same file are skipped silently.
 
+## OPA decision logs (`opa-decision-log`)
+
+Reads the decision logs an OPA server emits: the JSON array a remote sink receives
+(gunzip it first) or console logging (`decision_logs.console: true`; one event per line
+with `type: "openpolicyagent.org/decision_logs"`, other server log lines skipped). Verified
+2026-09-26 against the pinned OPA 1.21.0; fixtures in `tests/fixtures/opa_log/` are a live
+capture.
+
+Only events whose `input` is a permdiff `ToolCall` import, which is what a deployment gets
+when it sends OPA the same `input` permdiff's engine does. Any other `input` shape is
+skipped and counted with the first validation error named; nothing is guessed. A mapping
+option for foreign shapes is a later story.
+
+| Decision-log event | ToolCall |
+|---|---|
+| `input` (must validate as a `ToolCall`) | the call itself: `id`, `timestamp`, `principal`, `agent`, `tool`, `arguments`, `resource`, `context` |
+| `result`, through the OPA engine's rules (object with `effect`, boolean, effect string); with `--decision data.pkg.rule`, a package-shaped object is unwrapped at `rule` | `recorded.effect`; an unmappable result leaves it unset and puts the reason in `context["opa.result_unmapped"]` |
+| `bundles.<name>.revision` | `recorded.policy_hash` when exactly one bundle; all of them in `context["opa.bundles"]` |
+| `decision_id`, `path`, `timestamp`, `labels`, `requested_by`, `erased`, `masked` | `context["opa.decision_id"]`, `opa.path`, `opa.logged_at`, `opa.labels`, `opa.requested_by`, `opa.erased`, `opa.masked` |
+| `nd_builtin_cache` (when `nd_builtin_cache: true` in the OPA config) | `context["opa.nd_builtin_cache"]` |
+
+Replaying a log against a policy that calls nondeterministic builtins needs the values
+the deployment saw. `convert` merges them:
+
+```
+permdiff convert --from opa-decision-log decisions.jsonl -o traces.jsonl --nd-cache-out nd.json
+permdiff diff --engine opa --nd-cache nd.json --traces traces.jsonl ...
+```
+
+The first recorded value wins when two events disagree for the same builtin and
+arguments; every conflict is printed with both decision ids, and `--strict` aborts instead.
+
 ## Auto-detection and `permdiff convert`
 
 `--from auto` (the default) sniffs each file in the order permdiff JSONL, Custody, OTel, Claude Code
-hook log, Claude Code transcript and logs the choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
+hook log, Claude Code transcript, OPA decision log and logs the choice (`--verbose`). `--from NAME` forces an importer and fails with a clear
 message when the file is recognizably another format.
 
 ```
